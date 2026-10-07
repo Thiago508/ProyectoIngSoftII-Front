@@ -1,0 +1,62 @@
+# React + TypeScript + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the Oxlint configuration
+
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
+```
+
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## Checkout RF5: incremento de navegación
+
+- `/checkout`: datos personales y dirección de envío.
+- `/checkout/payment`: selección de método de pago de demostración.
+- `/checkout/summary`: revisión del borrador, sin crear pedidos ni aprobar pagos.
+
+`CheckoutFlow` conserva datos y método de pago en estado React y renderiza un único
+`CustomerHeader`. Las páginas reciben valores y callbacks por props; no se necesita
+Context para este flujo pequeño. El borrador se conserva al cambiar de ruta, pero se
+pierde al recargar. No se almacena información personal en localStorage.
+
+Pago requiere datos válidos; Resumen requiere además un método seleccionado.
+El acceso directo tras una recarga redirige a Datos y envío. La raíz y rutas
+desconocidas redirigen al checkout mientras no exista una página de inicio.
+Los métodos son opciones del mockup y no acreditan disponibilidad real de una pasarela.
+
+### Verificación manual
+
+1. Ejecutar `npm run dev` y abrir `/checkout`.
+2. Enviar vacío: verificar errores y foco en Nombre completo.
+3. Completar datos válidos y continuar: verificar `/checkout/payment`.
+4. Intentar revisar sin método: verificar mensaje y foco en el primer radio.
+5. Elegir un método, revisar y usar ambos enlaces de edición: comprobar que se
+   conservan datos y método. Probar también Atrás y Adelante del navegador.
+6. Recargar `/checkout/payment` o `/checkout/summary`: comprobar regreso al formulario.
+7. Revisar teclado y anchos móvil, tablet y escritorio.
+
+Checks: `npm run build`, `npm run lint`, `npm test` (validación de datos).
+Las verificaciones manuales anteriores no son pruebas automatizadas de navegación.
