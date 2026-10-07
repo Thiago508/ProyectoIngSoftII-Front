@@ -35,7 +35,7 @@ See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rule
 
 - `/checkout`: datos personales y dirección de envío.
 - `/checkout/payment`: selección de método de pago de demostración.
-- `/checkout/summary`: revisión del borrador, sin crear pedidos ni aprobar pagos.
+- `/checkout/summary`: revisión y creación de un pedido de demostración pendiente de pago.
 
 `CheckoutFlow` conserva datos y método de pago en estado React y renderiza un único
 `CustomerHeader`. Las páginas reciben valores y callbacks por props; no se necesita
@@ -60,3 +60,21 @@ Los métodos son opciones del mockup y no acreditan disponibilidad real de una p
 
 Checks: `npm run build`, `npm run lint`, `npm test` (validación de datos).
 Las verificaciones manuales anteriores no son pruebas automatizadas de navegación.
+
+### Pedido de demostración
+
+`demo/demoCart.ts` contiene únicamente productos del mockup. `createDemoOrder.ts`
+es una simulación asíncrona local, separada de la UI; no define endpoints ni un
+contrato de backend. Devuelve una copia del borrador con referencia DEMO y estado
+pendiente de pago. No modifica el carrito ni inventario. El subtotal es $219.700
+COP; el costo de envío está pendiente de definir. La integración real deberá
+validar precios, disponibilidad, concurrencia y aprobación del pago.
+
+En Resumen, activar «Simular error de creación», crear y comprobar el mensaje.
+Desactivar la opción y reintentar: comprobar referencia DEMO y estado pendiente
+de pago. Durante la espera, el botón queda bloqueado. Tras crear, volver mediante
+el historial a Datos o Pago redirige al resumen para no editar el pedido creado.
+Al recargar se pierde también el pedido simulado; no existe persistencia real.
+
+El mockup de pago aprobado solo podrá mostrarse con una aprobación verificada.
+La creación local de este incremento no completa RF5 en producción.

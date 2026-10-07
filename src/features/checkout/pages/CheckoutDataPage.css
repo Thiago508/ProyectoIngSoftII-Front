@@ -165,3 +165,10 @@
   outline: 3px solid #d83f70;
   outline-offset: 3px;
 }
+
+.checkout-summary__items { list-style: none; margin: 0; padding: 0; }
+.checkout-summary__items li, .checkout-summary__total { display: flex; justify-content: space-between; gap: 1rem; }
+.checkout-summary__items li { padding: 1rem 0; border-bottom: 1px solid #eeeeee; flex-wrap: wrap; }
+.checkout-summary__items p { margin-bottom: 0; }
+.checkout-form__submit:disabled { opacity: 0.6; cursor: wait; }
+.checkout-form__status, .checkout-page p { overflow-wrap: anywhere; }

@@ -12,3 +12,23 @@ export type CheckoutErrors = Partial<
 >;
 
 export type PaymentMethod = "card" | "wallet" | "transfer" | "cash";
+
+
+export interface CheckoutItem {
+  id: string;
+  name: string;
+  size: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+// Modelo local de demostración, no contrato de una API.
+export interface DemoOrder {
+  id: string;
+  createdAt: string;
+  status: "pending_payment";
+  customer: CheckoutData;
+  paymentMethod: PaymentMethod;
+  items: CheckoutItem[];
+  total: number;
+}

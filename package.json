@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test src/features/checkout/utils/checkoutValidation.test.ts"
+    "test": "node --experimental-strip-types --test src/features/checkout/utils/checkoutValidation.test.ts src/features/checkout/demo/createDemoOrder.test.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
