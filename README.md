@@ -78,3 +78,19 @@ Al recargar se pierde también el pedido simulado; no existe persistencia real.
 
 El mockup de pago aprobado solo podrá mostrarse con una aprobación verificada.
 La creación local de este incremento no completa RF5 en producción.
+
+### Protección de navegación durante la creación
+
+La operación asíncrona y sus estados viven en `CheckoutFlow`, por encima de las
+rutas. Mientras se crea el pedido, intentar volver a Datos o Pago redirige al
+Resumen para evitar editar el borrador enviado. Un resultado exitoso enfoca el
+título del pedido creado. Si falla, el error y el reintento permanecen disponibles.
+La fecha del pedido se presenta en la zona horaria `America/Bogota`.
+
+Prueba manual adicional: crear un pedido e inmediatamente pulsar Atrás o el enlace
+Fashion. Debe mantenerse el Resumen y completarse una única creación. Repetir con
+el error simulado y comprobar que después del fallo se puede volver a editar.
+
+`checkoutNavigation.test.ts` verifica las reglas de acceso directo, datos inválidos,
+método requerido, rutas desconocidas, pedido creado y operación en curso. Son
+pruebas de reglas; no sustituyen la verificación del navegador y su historial.

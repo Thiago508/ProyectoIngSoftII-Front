@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CheckoutStepper } from "../components/CheckoutStepper/CheckoutStepper";
 import { demoCart } from "../demo/demoCart";
-import { calculateSubtotal, createDemoOrder } from "../demo/createDemoOrder";
+import { calculateSubtotal } from "../demo/createDemoOrder";
 import { paymentMethods } from "../paymentMethods";
 import type { CheckoutData, DemoOrder, PaymentMethod } from "../types/checkout.types";
 
@@ -12,44 +12,25 @@ interface CheckoutSummaryPageProps {
   data: CheckoutData;
   paymentMethod: PaymentMethod;
   order: DemoOrder | null;
-  onCreated: (order: DemoOrder) => void;
+  isSubmitting: boolean;
+  error: string | null;
+  onCreate: (simulateFailure: boolean) => Promise<void>;
 }
 
-export function CheckoutSummaryPage({ data, paymentMethod, order, onCreated }: CheckoutSummaryPageProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, error, onCreate }: CheckoutSummaryPageProps) {
   const [simulateFailure, setSimulateFailure] = useState(false);
-  const inFlight = useRef(false);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const items = order?.items ?? demoCart;
-
-  async function handleCreate() {
-    if (inFlight.current || order) return;
-    inFlight.current = true;
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const created = await createDemoOrder(data, paymentMethod, demoCart, simulateFailure);
-      onCreated(created);
-      headingRef.current?.focus();
-    } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : "No se pudo crear el pedido de demostración.");
-    } finally {
-      inFlight.current = false;
-      setIsSubmitting(false);
-    }
-  }
 
   return (
     <main className="checkout-page">
       <div className="checkout-page__container checkout-form" aria-busy={isSubmitting}>
         <CheckoutStepper currentStep="summary" />
-        <h1 ref={headingRef} tabIndex={-1}>{order ? "Pedido de demostración creado" : "Revisa tu pedido"}</h1>
+        <h1 tabIndex={-1}>{order ? "Pedido de demostración creado" : "Revisa tu pedido"}</h1>
         <p>Carrito simulado. Los precios y la disponibilidad definitivos deben ser comprobados por el backend.</p>
         {order && <div role="status">
           <p>Estado: pendiente de pago. No se ha realizado ningún cobro ni descontado inventario.</p>
           <p>Referencia: {order.id}</p>
-          <p>Fecha: {new Date(order.createdAt).toLocaleString("es-CO")}</p>
+          <p>Fecha: {new Date(order.createdAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</p>
         </div>}
         <section className="checkout-form__section">
           <h2>Productos</h2>
@@ -75,7 +56,7 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, onCreated }: C
         {!order && <>
           <label><input type="checkbox" checked={simulateFailure} disabled={isSubmitting} onChange={(event) => setSimulateFailure(event.currentTarget.checked)} /> Simular error de creación (demostración)</label>
           {error && <p className="checkout-form__error" role="alert">{error}</p>}
-          <button className="checkout-form__submit" type="button" disabled={isSubmitting} onClick={handleCreate}>{isSubmitting ? "Creando pedido de demostración…" : "Crear pedido de demostración"}</button>
+          <button className="checkout-form__submit" type="button" disabled={isSubmitting} onClick={() => { void onCreate(simulateFailure); }}>{isSubmitting ? "Creando pedido de demostración…" : "Crear pedido de demostración"}</button>
           {!isSubmitting && <Link className="checkout-form__back" to="/checkout/payment">Volver a Pago</Link>}
         </>}
       </div>

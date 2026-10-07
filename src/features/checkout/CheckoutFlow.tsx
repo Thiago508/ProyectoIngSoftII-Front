@@ -5,7 +5,9 @@ import { CheckoutDataPage } from "./pages/CheckoutDataPage";
 import { CheckoutPaymentPage } from "./pages/CheckoutPaymentPage";
 import { CheckoutSummaryPage } from "./pages/CheckoutSummaryPage";
 import type { CheckoutData, DemoOrder, PaymentMethod } from "./types/checkout.types";
-import { validateCheckoutData } from "./utils/checkoutValidation";
+import { getCheckoutRedirect } from "./utils/checkoutNavigation";
+import { createDemoOrder } from "./demo/createDemoOrder";
+import { demoCart } from "./demo/demoCart";
 
 const emptyData: CheckoutData = {
   fullName: "", email: "", phone: "", address: "", city: "", department: "",
@@ -15,32 +17,52 @@ export function CheckoutFlow() {
   const [data, setData] = useState<CheckoutData>(emptyData);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [order, setOrder] = useState<DemoOrder | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
+  const inFlight = useRef(false);
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const contentRef = useRef<HTMLDivElement>(null);
-  const hasValidData = Object.keys(validateCheckoutData(data)).length === 0;
+  const redirect = getCheckoutRedirect(pathname, data, paymentMethod, Boolean(order), isSubmitting);
+
+  async function handleCreate(simulateFailure: boolean) {
+    if (inFlight.current || order || !paymentMethod) return;
+    inFlight.current = true;
+    setIsSubmitting(true);
+    setCreationError(null);
+    try {
+      const created = await createDemoOrder(data, paymentMethod, demoCart, simulateFailure);
+      setOrder(created);
+      navigate("/checkout/summary", { replace: true });
+    } catch (cause: unknown) {
+      setCreationError(cause instanceof Error ? cause.message : "No se pudo crear el pedido de demostración.");
+    } finally {
+      inFlight.current = false;
+      setIsSubmitting(false);
+    }
+  }
 
   useEffect(() => {
     contentRef.current?.querySelector<HTMLElement>("h1")?.focus();
-  }, [pathname]);
+  }, [pathname, order]);
 
   return (
     <>
       <CustomerHeader />
       <div ref={contentRef}>
-        <Routes>
-          <Route index element={order ? <Navigate to="/checkout/summary" replace /> : <CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {
+        {redirect ? <Navigate to={redirect} replace /> : <Routes>
+          <Route index element={<CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {
             setData(normalizedData);
             navigate("/checkout/payment");
           }} />} />
-          <Route path="payment" element={order ? <Navigate to="/checkout/summary" replace /> : hasValidData ? (
+          <Route path="payment" element={
             <CheckoutPaymentPage method={paymentMethod} onChange={setPaymentMethod} onContinue={() => navigate("/checkout/summary")} />
-          ) : <Navigate to="/checkout" replace />} />
-          <Route path="summary" element={!hasValidData ? <Navigate to="/checkout" replace /> : !paymentMethod ? <Navigate to="/checkout/payment" replace /> : (
-            <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={order?.paymentMethod ?? paymentMethod} order={order} onCreated={setOrder} />
+          } />
+          <Route path="summary" element={paymentMethod && (
+            <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={order?.paymentMethod ?? paymentMethod}
+              order={order} isSubmitting={isSubmitting} error={creationError} onCreate={handleCreate} />
           )} />
-          <Route path="*" element={<Navigate to="/checkout" replace />} />
-        </Routes>
+        </Routes>}
       </div>
     </>
   );
