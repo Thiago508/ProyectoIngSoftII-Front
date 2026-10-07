@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
 import "./CustomerHeader.css";
 
-export function CustomerHeader() {
+interface CustomerHeaderProps {
+  cartItemCount: number;
+}
+
+export function CustomerHeader({ cartItemCount }: CustomerHeaderProps) {
   return (
     <header className="customer-header">
-      <Link className="customer-header__brand" to="/checkout">
+      <a className="customer-header__skip" href="#checkout-heading">Saltar al contenido del checkout</a>
+      <Link className="customer-header__brand" to="/checkout" aria-label="Fashion Online Store">
         <span className="customer-header__brand-name">Fashion</span>
         <span className="customer-header__brand-subtitle">Online Store</span>
       </Link>
@@ -17,7 +22,9 @@ export function CustomerHeader() {
         <input
           id="product-search"
           type="search"
-          placeholder="Buscar productos..."
+          placeholder="Búsqueda pendiente"
+          disabled
+          aria-describedby="header-demo-note"
         />
       </div>
 
@@ -28,7 +35,8 @@ export function CustomerHeader() {
         <button
           type="button"
           className="customer-header__action"
-          aria-label="Mi perfil"
+          aria-label="Mi perfil (pendiente de implementar)"
+          disabled
         >
           ♙
         </button>
@@ -36,12 +44,14 @@ export function CustomerHeader() {
         <button
           type="button"
           className="customer-header__action customer-header__cart"
-          aria-label="Carrito de compras"
+          aria-label={`Carrito de demostración: ${cartItemCount} unidades (pendiente de implementar)`}
+          disabled
         >
           ♡
-          <span className="customer-header__cart-count">3</span>
+          <span className="customer-header__cart-count">{cartItemCount}</span>
         </button>
       </nav>
+      <p id="header-demo-note" className="customer-header__notice">Demo: búsqueda, perfil y carrito pendientes de implementar.</p>
     </header>
   );
 }

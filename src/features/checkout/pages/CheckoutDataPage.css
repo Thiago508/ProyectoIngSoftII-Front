@@ -61,7 +61,7 @@
 }
 
 .checkout-form__field input:focus {
-  border-color: #d83f70;
+  border-color: #b52d59;
   outline: 2px solid rgb(216 63 112 / 15%);
 }
 
@@ -73,7 +73,7 @@
   border: 0;
   border-radius: 4px;
 
-  background-color: #d83f70;
+  background-color: #b52d59;
   color: #ffffff;
 
   font-weight: 600;
@@ -144,12 +144,12 @@
 }
 
 .checkout-payment__method:has(input:checked) {
-  border-color: #d83f70;
+  border-color: #b52d59;
   background: #fff5f8;
 }
 
 .checkout-payment__method input {
-  accent-color: #d83f70;
+  accent-color: #b52d59;
 }
 
 .checkout-form__back {
@@ -162,7 +162,7 @@
 
 .checkout-page a:focus-visible,
 .checkout-payment__method input:focus-visible {
-  outline: 3px solid #d83f70;
+  outline: 3px solid #b52d59;
   outline-offset: 3px;
 }
 
@@ -172,3 +172,40 @@
 .checkout-summary__items p { margin-bottom: 0; }
 .checkout-form__submit:disabled { opacity: 0.6; cursor: wait; }
 .checkout-form__status, .checkout-page p { overflow-wrap: anywhere; }
+
+.checkout-form > h1 {
+  margin: 0;
+  color: #222222;
+  font-size: 1.35rem;
+}
+
+.checkout-summary {
+  gap: 1.25rem;
+}
+
+.checkout-summary .checkout-stepper {
+  margin-bottom: 0.5rem;
+}
+
+.checkout-summary p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.checkout-summary .checkout-form__section {
+  gap: 0.75rem;
+}
+
+.checkout-summary .checkout-summary__items p {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #555555;
+}
+
+.checkout-summary a {
+  color: #a52d54;
+}
+
+.checkout-summary__total {
+  flex-wrap: wrap;
+}

@@ -19,7 +19,7 @@
   flex-direction: column;
   align-items: center;
 
-  color: #999999;
+  color: #666666;
   font-size: 0.8rem;
 }
 
@@ -57,19 +57,19 @@
 }
 
 .checkout-stepper__step--active {
-  color: #d83f70;
+  color: #b52d59;
   font-weight: 600;
 }
 
 .checkout-stepper__step--active .checkout-stepper__number {
-  border-color: #d83f70;
-  background-color: #d83f70;
+  border-color: #b52d59;
+  background-color: #b52d59;
   color: #ffffff;
 }
 
 .checkout-stepper__step--completed .checkout-stepper__number {
-  border-color: #d83f70;
-  color: #d83f70;
+  border-color: #b52d59;
+  color: #b52d59;
 }
 
 @media (max-width: 480px) {

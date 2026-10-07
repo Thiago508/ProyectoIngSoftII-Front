@@ -61,7 +61,7 @@ export function CheckoutDataPage({ formData, onChange, onContinue }: CheckoutDat
           noValidate
         >
           <section className="checkout-form__section">
-            <h1 tabIndex={-1}>Datos personales</h1>
+            <h1 id="checkout-heading" tabIndex={-1}>Datos personales</h1>
 
             <div className="checkout-form__field">
               <label htmlFor="fullName">

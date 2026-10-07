@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test src/features/checkout/utils/checkoutValidation.test.ts src/features/checkout/demo/createDemoOrder.test.ts src/features/checkout/utils/checkoutNavigation.test.ts"
+    "test": "node --experimental-strip-types --test src/features/checkout/utils/checkoutValidation.test.ts src/features/checkout/demo/createDemoOrder.test.ts src/features/checkout/utils/checkoutNavigation.test.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -16,6 +17,8 @@
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

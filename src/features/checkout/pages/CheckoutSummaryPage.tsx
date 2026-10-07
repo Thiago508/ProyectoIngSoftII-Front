@@ -23,15 +23,18 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, 
 
   return (
     <main className="checkout-page">
-      <div className="checkout-page__container checkout-form" aria-busy={isSubmitting}>
+      <p className="sr-only" role="status" aria-atomic="true">
+        {isSubmitting ? "Creando pedido de demostración. Espera el resultado." : order ? "Pedido de demostración creado, pendiente de pago." : ""}
+      </p>
+      <div className="checkout-page__container checkout-form checkout-summary" aria-busy={isSubmitting}>
         <CheckoutStepper currentStep="summary" />
-        <h1 tabIndex={-1}>{order ? "Pedido de demostración creado" : "Revisa tu pedido"}</h1>
+        <h1 id="checkout-heading" tabIndex={-1}>{order ? "Pedido de demostración creado" : "Revisa tu pedido"}</h1>
         <p>Carrito simulado. Los precios y la disponibilidad definitivos deben ser comprobados por el backend.</p>
-        {order && <div role="status">
+        {order && <section aria-label="Resultado del pedido">
           <p>Estado: pendiente de pago. No se ha realizado ningún cobro ni descontado inventario.</p>
           <p>Referencia: {order.id}</p>
-          <p>Fecha: {new Date(order.createdAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</p>
-        </div>}
+          <p>Fecha: <time dateTime={order.createdAt}>{new Date(order.createdAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</time></p>
+        </section>}
         <section className="checkout-form__section">
           <h2>Productos</h2>
           <ul className="checkout-summary__items">

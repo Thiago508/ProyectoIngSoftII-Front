@@ -48,7 +48,7 @@ export function CheckoutFlow() {
 
   return (
     <>
-      <CustomerHeader />
+      <CustomerHeader cartItemCount={demoCart.reduce((count, item) => count + item.quantity, 0)} />
       <div ref={contentRef}>
         {redirect ? <Navigate to={redirect} replace /> : <Routes>
           <Route index element={<CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {

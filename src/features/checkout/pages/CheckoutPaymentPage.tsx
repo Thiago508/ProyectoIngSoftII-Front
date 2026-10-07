@@ -31,13 +31,13 @@ export function CheckoutPaymentPage({ method, onChange, onContinue }: CheckoutPa
       <div className="checkout-page__container">
         <CheckoutStepper currentStep="payment" />
         <form className="checkout-form" onSubmit={handleSubmit} noValidate>
-          <h1 tabIndex={-1}>Pago</h1>
+          <h1 id="checkout-heading" tabIndex={-1}>Pago</h1>
           <fieldset className="checkout-payment__methods" aria-describedby={error ? "payment-error" : undefined}>
             <legend>Método de pago</legend>
             {paymentMethods.map((option, index) => (
               <label className="checkout-payment__method" key={option.id}>
                 <input ref={index === 0 ? firstMethodRef : undefined} type="radio" name="paymentMethod"
-                  value={option.id} checked={method === option.id} required aria-invalid={error}
+                  value={option.id} checked={method === option.id} required aria-invalid={error} aria-describedby={error ? "payment-error" : undefined}
                   onChange={() => { onChange(option.id); setError(false); }} />
                 {option.label}
               </label>

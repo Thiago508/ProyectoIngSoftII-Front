@@ -1,96 +1,167 @@
-# React + TypeScript + Vite
+# Fashion Online Store
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Proyecto académico de tienda de ropa femenina con React, TypeScript y Vite.
+El incremento actual desarrolla el frontend de **RF5: Realizar pedidos** mediante
+un carrito y una operación de creación explícitamente simulados. No completa RF5
+en producción: el documento académico exige pago obligatorio y todavía no existe
+una integración de backend o pagos.
 
-Currently, two official plugins are available:
+## Ejecutar el proyecto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+El desarrollo de esta sesión utilizó Node 22.23.1. Las versiones resueltas de las
+dependencias están en `package-lock.json`.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm ci
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Abrir la URL indicada por Vite y entrar a `/checkout`.
 
-## Checkout RF5: incremento de navegación
+| Comando | Propósito |
+| --- | --- |
+| `npm run build` | Comprobar TypeScript y generar `dist/` |
+| `npm run lint` | Revisar el código con Oxlint |
+| `npm test` | Probar validaciones, navegación y operación simulada |
+| `npm run test:e2e` | Probar el flujo en Chromium de escritorio y móvil emulado |
+| `npm run preview` | Servir el resultado de un build local |
 
-- `/checkout`: datos personales y dirección de envío.
-- `/checkout/payment`: selección de método de pago de demostración.
-- `/checkout/summary`: revisión y creación de un pedido de demostración pendiente de pago.
+Modificar archivos en `src/`; `dist/` es salida generada y se excluye de Git.
 
-`CheckoutFlow` conserva datos y método de pago en estado React y renderiza un único
-`CustomerHeader`. Las páginas reciben valores y callbacks por props; no se necesita
-Context para este flujo pequeño. El borrador se conserva al cambiar de ruta, pero se
-pierde al recargar. No se almacena información personal en localStorage.
+## Flujo implementado
 
-Pago requiere datos válidos; Resumen requiere además un método seleccionado.
-El acceso directo tras una recarga redirige a Datos y envío. La raíz y rutas
-desconocidas redirigen al checkout mientras no exista una página de inicio.
-Los métodos son opciones del mockup y no acreditan disponibilidad real de una pasarela.
+| Ruta | Contenido | Condición de acceso |
+| --- | --- | --- |
+| `/checkout` | Datos personales y dirección de envío | Borrador editable |
+| `/checkout/payment` | Selección de método de pago de demostración | Datos válidos |
+| `/checkout/summary` | Productos, datos, método y creación simulada | Datos válidos y método seleccionado |
 
-### Verificación manual
+El stepper usa **Datos y envío → Pago → Resumen**. Se unieron Datos y Envío porque
+el mockup los presenta en el mismo formulario y no define otra pantalla de envío.
+La raíz y rutas desconocidas redirigen al checkout hasta que exista un inicio real.
 
-1. Ejecutar `npm run dev` y abrir `/checkout`.
-2. Enviar vacío: verificar errores y foco en Nombre completo.
-3. Completar datos válidos y continuar: verificar `/checkout/payment`.
-4. Intentar revisar sin método: verificar mensaje y foco en el primer radio.
-5. Elegir un método, revisar y usar ambos enlaces de edición: comprobar que se
-   conservan datos y método. Probar también Atrás y Adelante del navegador.
-6. Recargar `/checkout/payment` o `/checkout/summary`: comprobar regreso al formulario.
-7. Revisar teclado y anchos móvil, tablet y escritorio.
+Volver entre etapas conserva lo escrito y el método elegido. Recargar elimina el
+borrador y el pedido simulado: todo vive en memoria, sin localStorage ni envío de
+datos personales a una API. El acceso directo sin requisitos vuelve a la etapa
+correspondiente.
 
-Checks: `npm run build`, `npm run lint`, `npm test` (validación de datos).
-Las verificaciones manuales anteriores no son pruebas automatizadas de navegación.
+Durante la creación, el botón bloquea envíos repetidos y la navegación a etapas
+anteriores vuelve al resumen. Tras un error se puede reintentar o editar. Después
+de crear, el historial vuelve al pedido creado para evitar modificarlo.
 
-### Pedido de demostración
+## Arquitectura para la entrega
 
-`demo/demoCart.ts` contiene únicamente productos del mockup. `createDemoOrder.ts`
-es una simulación asíncrona local, separada de la UI; no define endpoints ni un
-contrato de backend. Devuelve una copia del borrador con referencia DEMO y estado
-pendiente de pago. No modifica el carrito ni inventario. El subtotal es $219.700
-COP; el costo de envío está pendiente de definir. La integración real deberá
-validar precios, disponibilidad, concurrencia y aprobación del pago.
+```text
+src/
+  App.tsx                         Router de la aplicación
+  features/checkout/
+    CheckoutFlow.tsx              Estado y coordinación entre rutas
+    components/CheckoutStepper/  Indicador de avance
+    pages/                       Formularios y resumen
+    types/checkout.types.ts      Modelos TypeScript locales
+    utils/                       Validación y reglas de acceso
+    demo/                        Carrito y creación simulados
+    paymentMethods.ts            Opciones del mockup
+  shared/components/
+    CustomerHeader/              Header compartido
+```
 
-En Resumen, activar «Simular error de creación», crear y comprobar el mensaje.
-Desactivar la opción y reintentar: comprobar referencia DEMO y estado pendiente
-de pago. Durante la espera, el botón queda bloqueado. Tras crear, volver mediante
-el historial a Datos o Pago redirige al resumen para no editar el pedido creado.
-Al recargar se pierde también el pedido simulado; no existe persistencia real.
+`App.tsx` permanece en su ubicación original. `CheckoutFlow` mantiene el borrador,
+el método, el pedido y los estados de la operación asíncrona. Renderiza un único
+header y pasa valores y callbacks a las páginas por props. Esa comunicación es
+suficiente para tres pantallas; no requiere Context, Redux ni Zustand.
 
-El mockup de pago aprobado solo podrá mostrarse con una aprobación verificada.
-La creación local de este incremento no completa RF5 en producción.
+Las páginas representan la interfaz. Las funciones de validación y navegación
+contienen reglas comprobables sin renderizar React. `demo/createDemoOrder.ts`
+encapsula la simulación para sustituirla cuando haya un contrato real de backend;
+no representa un endpoint ni garantiza disponibilidad o concurrencia.
 
-### Protección de navegación durante la creación
+React Router ya estaba instalado. Playwright y axe se añadieron solo como dependencias de
+desarrollo para comprobar comportamiento real en navegador. No se añadieron otras
+bibliotecas de estado, formularios o peticiones.
 
-La operación asíncrona y sus estados viven en `CheckoutFlow`, por encima de las
-rutas. Mientras se crea el pedido, intentar volver a Datos o Pago redirige al
-Resumen para evitar editar el borrador enviado. Un resultado exitoso enfoca el
-título del pedido creado. Si falla, el error y el reintento permanecen disponibles.
-La fecha del pedido se presenta en la zona horaria `America/Bogota`.
+## Validación y accesibilidad
 
-Prueba manual adicional: crear un pedido e inmediatamente pulsar Atrás o el enlace
-Fashion. Debe mantenerse el Resumen y completarse una única creación. Repetir con
-el error simulado y comprobar que después del fallo se puede volver a editar.
+El formulario normaliza espacios antes de validar y continuar, conserva la
+semántica de los campos y usa `noValidate` para mostrar sus propios mensajes.
+Solo admite nombres de campo del modelo. Los errores incluyen `aria-invalid`,
+`aria-describedby` y foco en el primer campo inválido.
 
-`checkoutNavigation.test.ts` verifica las reglas de acceso directo, datos inválidos,
-método requerido, rutas desconocidas, pedido creado y operación en curso. Son
-pruebas de reglas; no sustituyen la verificación del navegador y su historial.
+Reglas iniciales de interfaz: nombre de al menos 3 caracteres, correo de formato
+básico, teléfono de 7 a 10 dígitos sin espacios, dirección de al menos 5 caracteres,
+ciudad y departamento obligatorios. No validan identidad, existencia del correo,
+entrega en una localidad ni formatos internacionales de teléfono.
+
+Hay labels, autocomplete, radios nativos, foco visible, salto al contenido y
+anuncios de creación. La fecha usa `time` y la zona `America/Bogota`. Búsqueda,
+perfil y carrito están identificados como pendientes y deshabilitados; el contador
+refleja las unidades del carrito de demostración.
+
+## Simulación y regla de inventario
+
+`demo/demoCart.ts` contiene tres productos del mockup. El subtotal de productos es
+**$219.700 COP**. El envío está pendiente de definir y no se incluye en el subtotal.
+
+La creación tarda medio segundo de forma explícitamente simulada. El checkbox
+«Simular error de creación» permite comprobar fallo y reintento. El éxito devuelve
+una copia de los datos con referencia `DEMO` y estado `pending_payment`.
+
+**Crear el pedido no aprueba el pago ni descuenta inventario.** El inventario se
+descuenta solo después de una aprobación verificada por el backend. No se
+implementaron reservas ni vencimientos. Un clic, una redirección y el estado local
+no constituyen evidencia de pago aprobado.
+
+Las opciones de pago proceden del mockup, incluida contra entrega; no acreditan
+su disponibilidad real. Su relación con el requisito de pago obligatorio debe
+confirmarse antes de integrar el flujo definitivo. No se recogen números de
+tarjeta ni CVV.
+
+## Pruebas y revisión
+
+Para instalar el navegador y ejecutar las pruebas:
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+```
+
+En esta sesión Chromium está en `/tmp/fashion-playwright`:
+
+```sh
+PLAYWRIGHT_BROWSERS_PATH=/tmp/fashion-playwright npm run test:e2e
+```
+
+Playwright inicia su propio Vite en el puerto 4173. Comprueba errores y foco,
+conservación del borrador, acceso directo, recarga, fallo/reintento, historial y
+desbordamiento horizontal. Son quince ejecuciones: cinco casos en escritorio,
+cinco en tablet y cinco en móvil emulado. No equivale a Safari ni a un iPhone físico.
+
+El caso de teclado guarda `datos.png` y `resumen.png` por proyecto en
+`test-results/`, junto a las trazas de fallos. Los artefactos se excluyen de Git.
+
+Para una demostración manual:
+
+1. Enviar el formulario vacío y corregir sus errores.
+2. Completar datos, continuar, elegir método y volver: comprobar conservación.
+3. Revisar productos y subtotal; simular un fallo y reintentar.
+4. Durante la creación pulsar Atrás: debe permanecer en Resumen.
+5. Comprobar referencia DEMO y estado pendiente de pago; recargar para demostrar
+   que no existe persistencia.
+6. Recorrer con Tab, Shift+Tab y flechas; comprobar los anuncios con lector de
+   pantalla. Esta última revisión sigue siendo manual.
+
+## Trabajo pendiente fuera de la demostración
+
+- Acordar el contrato real de creación y consulta del pedido con backend.
+- Recibir el carrito real de RF4 y validar en backend precios y disponibilidad.
+- Definir costo de envío y política de los métodos de pago.
+- Integrar RF6 y confirmar pagos desde una fuente verificada; después actualizar
+  inventario con control de concurrencia en backend.
+- Definir persistencia y autorización con el equipo antes de guardar datos.
+
+Catálogo, autenticación, administración y seguimiento no forman parte de este
+incremento. No se inventaron endpoints ni se publicaron cambios en Jira o hosting.
+
+La revisión visual y accesible, sus correcciones y la prueba auditiva pendiente están
+en [docs/checkout-review.md](docs/checkout-review.md). La suite de revisión añade
+18 análisis axe y capturas de Pago, errores y resultado en los tres tamaños.
