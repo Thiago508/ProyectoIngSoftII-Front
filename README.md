@@ -379,9 +379,32 @@ no es el SKU de una variante de inventario. No se modifican datos históricos de
 
 No hay autorización administrativa real ni persistencia. Recargar o abandonar
 Productos restaura sus ejemplos. No hay loading ficticio: el registro es síncrono.
-SWR-12 (editar), SWR-13 (desactivar) y la integración con backend quedan pendientes.
+SWR-12 (editar) y SWR-13 (desactivar) están implementados como operaciones locales; la integración con backend queda pendiente.
 
 Prueba: enviar vacío para ver errores y foco, intentar `demo-vest` para comprobar
 el duplicado y registrar `NUEVO-01` con nombre, descripción y `89900,50`. Comprobar
 la tarjeta activa, el aviso y el precio. Navegar a Inventario permite comprobar el
 header compartido; volver a Productos reinicia los datos locales.
+
+## F-03 / SWR-12–14: edición, desactivación e historial de pedidos
+
+«Editar» carga el registro en el mismo formulario y enfoca el identificador comercial.
+«Guardar cambios de demostración» valida los datos y la unicidad, excluyendo el propio
+producto; conserva el ID interno y el estado activo/inactivo. «Cancelar edición»
+descarta el borrador y devuelve el foco al botón de origen. No se crea una tarjeta
+nueva al editar. Los errores no modifican el registro.
+
+«Desactivar» marca el registro como inactivo, conserva sus datos y deshabilita repetir
+la acción desde la UI. Editar un producto inactivo no lo reactiva. No hay borrado,
+reactivación ni conexión con un catálogo público todavía; impedir nuevas compras
+requiere que F-04 y backend excluyan o rechacen productos inactivos.
+
+Las funciones `createDemoProduct` y `updateDemoProduct` reutilizan validación y
+normalización. `deactivateDemoProduct` devuelve el estado actualizado sin modificar
+los ejemplos. La prueba de SWR-14 registra un pedido, cambia nombre/precio y desactiva
+el producto; verifica que la copia histórica del pedido permanece igual. La garantía
+persistente de ese historial corresponde al backend.
+
+Prueba: editar DEMO-VEST, intentar usar DEMO-BLUSA para comprobar el duplicado,
+guardar nombre/precio nuevos y verificar que siguen dos productos. Desactivar y
+volver a editar conserva Inactivo. Recargar restaura la demostración original.

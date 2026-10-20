@@ -35,3 +35,37 @@ test('SWR-11 registra producto, valida duplicados y comparte navegación adminis
   await page.getByRole('link', { name: 'Productos', exact: true }).click();
   await expect(list.getByRole('listitem')).toHaveCount(2);
 });
+
+test('SWR-12 y SWR-13 editan, cancelan y desactivan sin borrar ni reactivar al editar', async ({ page }) => {
+  await page.goto('/admin/products');
+  const list = page.getByRole('region', { name: 'Productos de esta sesión' });
+  const product = list.getByRole('listitem').filter({ hasText: 'Identificador: DEMO-VEST' });
+  await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();
+  await expect(page.getByLabel('Identificador comercial')).toBeFocused();
+  await expect(page.getByLabel('Nombre del producto')).toHaveValue('Vestido midi estampado');
+  await page.getByLabel('Nombre del producto').fill('Cambio descartado');
+  await page.getByRole('button', { name: 'Cancelar edición' }).click();
+  await expect(page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true })).toBeFocused();
+  await expect(product).not.toContainText('Cambio descartado');
+  await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();
+  await page.getByLabel('Identificador comercial').fill('DEMO-BLUSA');
+  await page.getByRole('button', { name: 'Guardar cambios de demostración' }).click();
+  await expect(page.getByLabel('Identificador comercial')).toHaveAccessibleDescription(/Ya existe/);
+  await page.getByLabel('Identificador comercial').fill('DEMO-VEST');
+  await page.getByLabel('Nombre del producto').fill('Vestido actualizado');
+  await page.getByLabel('Precio en COP').fill('99900,75');
+  await page.getByRole('button', { name: 'Guardar cambios de demostración' }).click();
+  await expect(list.getByRole('listitem')).toHaveCount(2);
+  await expect(product).toContainText('Vestido actualizado');
+  await expect(product).toContainText('99.900,75');
+  await expect(page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true }).click();
+  await expect(product).toContainText('Estado: Inactivo');
+  await expect(page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();
+  await page.getByLabel('Descripción del producto').fill('Descripción actualizada de un producto inactivo');
+  await page.getByRole('button', { name: 'Guardar cambios de demostración' }).click();
+  await expect(product).toContainText('Estado: Inactivo');
+  await expect(product).toContainText('Descripción actualizada');
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+});
