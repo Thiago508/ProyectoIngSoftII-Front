@@ -18,12 +18,17 @@ import type { DemoNotification } from "./features/notifications/notificationsDem
 import { recordRegisteredNotification } from "./features/notifications/recordRegisteredNotification";
 
 import { OrderDetailPage } from "./features/orders/OrderDetailPage";
-import type { DemoOrder } from "./features/checkout/types/checkout.types";
+import type { CheckoutData, DemoOrder } from "./features/checkout/types/checkout.types";
+
+function emptyCheckoutData(): CheckoutData {
+  return { fullName: "", email: "", phone: "", address: "", city: "", department: "" };
+}
 
 function App() {
   const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
   const [orderSession, setOrderSession] = useState<{ orders: readonly DemoOrder[]; notifications: readonly DemoNotification[] }>({ orders: [], notifications: [] });
   const { orders, notifications } = orderSession;
+  const [checkoutDraft, setCheckoutDraft] = useState<CheckoutData>(emptyCheckoutData);
   const [cart, setCart] = useState<CartLine[]>([]);
   const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
   function handleAddToCart(productId: string, sku: string, quantity: string) {
@@ -42,6 +47,7 @@ function App() {
     return { ok: result.ok, message: result.message };
   }
   function handleDemoOrderCreated(order: DemoOrder) {
+    setCheckoutDraft(emptyCheckoutData());
     const snapshot = { ...order, customer: { ...order.customer }, items: order.items.map((item) => ({ ...item })) };
     setOrderSession((previous) => ({
       orders: previous.orders.some((saved) => saved.id === order.id) ? previous.orders : [snapshot, ...previous.orders],
@@ -61,7 +67,7 @@ function App() {
         <Route path="/catalog/:productId" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
         <Route path="/admin/inventory" element={<InventoryPage />} />
-        <Route path="/checkout/*" element={<CheckoutFlow lines={cart} products={products} onDemoOrderCreated={handleDemoOrderCreated} />} />
+        <Route path="/checkout/*" element={<CheckoutFlow lines={cart} products={products} data={checkoutDraft} onDataChange={setCheckoutDraft} onDemoOrderCreated={handleDemoOrderCreated} />} />
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>

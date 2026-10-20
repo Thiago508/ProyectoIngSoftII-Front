@@ -15,16 +15,12 @@ import { prepareCheckoutCart } from "../cart/checkoutCart";
 
 import { CheckoutPaymentResultPage } from "./pages/CheckoutPaymentResultPage";
 
-const emptyData: CheckoutData = {
-  fullName: "", email: "", phone: "", address: "", city: "", department: "",
-};
-
-export function CheckoutFlow({ lines, products, onDemoOrderCreated }: {
+export function CheckoutFlow({ lines, products, data, onDataChange, onDemoOrderCreated }: {
   lines: readonly CartLine[]; products: readonly Product[];
+  data: CheckoutData; onDataChange: (data: CheckoutData) => void;
   onDemoOrderCreated: (order: DemoOrder) => void;
 }) {
   const [demoMode] = useState(() => new URLSearchParams(window.location.search).get("demo") === "1");
-  const [data, setData] = useState<CheckoutData>(emptyData);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentPreview, setPaymentPreview] = useState<PaymentPreviewStatus>("pending");
   const [order, setOrder] = useState<DemoOrder | null>(null);
@@ -79,8 +75,8 @@ export function CheckoutFlow({ lines, products, onDemoOrderCreated }: {
       <CustomerHeader cartItemCount={demoMode ? items.reduce((count, item) => count + item.quantity, 0) : lines.reduce((count, line) => count + line.quantity, 0)} cartTo={demoMode ? undefined : "/cart"} homeTo={demoMode ? undefined : "/catalog"} />
       <div ref={contentRef}>
         {redirect ? <Navigate to={redirect} replace /> : !demoMode && !order && (cartError || !items.length) ? <main className="checkout-page"><div className="checkout-page__container checkout-form"><h1 id="checkout-heading" tabIndex={-1}>Revisa tu carrito</h1><p role="alert">{cartError ?? "El carrito está vacío. Agrega productos antes de continuar."}</p><Link to="/cart">Volver al carrito</Link></div></main> : <Routes>
-          <Route index element={<CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {
-            setData(normalizedData);
+          <Route index element={<CheckoutDataPage formData={data} onChange={onDataChange} onContinue={(normalizedData) => {
+            onDataChange(normalizedData);
             navigate("/checkout/summary");
           }} />} />
           <Route path="payment" element={

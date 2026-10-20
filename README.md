@@ -66,10 +66,11 @@ src/
     CustomerHeader/              Header compartido
 ```
 
-`App.tsx` permanece en su ubicación original. `CheckoutFlow` mantiene el borrador,
-el método, el pedido y los estados de la operación asíncrona. Renderiza un único
-header y pasa valores y callbacks a las páginas por props. Esa comunicación es
-suficiente para tres pantallas; no requiere Context, Redux ni Zustand.
+`App.tsx` permanece en su ubicación original y conserva el borrador de datos y
+envío junto al estado compartido de la sesión. `CheckoutFlow` recibe ese borrador
+y su callback de cambio; mantiene el método, el resultado visual del pago y los
+estados de la operación asíncrona. Renderiza un único header y comunica valores
+y callbacks por props. No requiere Context, Redux ni Zustand.
 
 Las páginas representan la interfaz. Las funciones de validación y navegación
 contienen reglas comprobables sin renderizar React. `demo/createDemoOrder.ts`
@@ -496,7 +497,8 @@ vacío se bloquea; los artículos inactivos, variantes inválidas o cantidades q
 superen la disponibilidad de la instantánea impiden continuar. La comprobación
 definitiva, reservas y precios del servidor siguen pendientes de integración.
 El pedido creado conserva una copia de sus líneas. El carrito no se vacía ni se
-persiste automáticamente. Salir de checkout descarta su borrador y la selección visual de pago. El pedido
+persiste automáticamente. Salir de checkout conserva el borrador de datos y envío hasta crear un pedido
+o recargar; la selección visual de pago se descarta. El pedido
 creado queda disponible en el detalle de la sesión hasta recargar.
 Los escenarios originales del mockup siguen disponibles entrando expresamente por
 `/checkout?demo=1`; las pruebas anteriores usan ese modo aislado.
@@ -533,8 +535,8 @@ ese subtotal no se presenta como importe autorizado por el servidor.
 a la navegación entre resultado, método de pago y resumen. `PaymentResultPreview`
 recibe ese escenario y el pedido para mostrar su referencia e importe, sin funciones
 que puedan modificar el pedido. No tiene carga artificial: cambiar el selector es una operación
-síncrona. Salir de todo el checkout o recargar descarta el resultado y el pedido
-locales. La ruta de resultado exige un pedido creado; durante su creación no se
+síncrona. Salir del checkout descarta el resultado visual; el pedido creado
+permanece en el detalle de la sesión hasta recargar. La ruta de resultado exige un pedido creado; durante su creación no se
 puede abandonar el resumen. Esta
 separación permite revisar la interfaz de SWR-26 sin convertir una selección del
 cliente en aprobación de pago.
@@ -703,3 +705,25 @@ Prueba manual: crear un pedido desde el carrito, abrir su detalle desde el resum
 volver a notificaciones y abrir el mismo pedido. Comprobar referencia, fecha,
 productos y datos de envío. Recargar muestra el estado no disponible. Los ejemplos
 fijos de notificaciones no enlazan a un detalle inexistente.
+
+
+## Conservar datos y envío al editar el carrito
+
+El borrador de `CheckoutData` se mantiene en memoria en `App`, por encima de las
+rutas de carrito y checkout. `CheckoutFlow` lo recibe por props y comunica los
+cambios mediante `onDataChange`. Así «Editar carrito» ya no borra nombre, correo,
+teléfono o dirección al desmontar checkout. Al volver, se validan los datos y el
+resumen usa las cantidades actuales del carrito.
+
+Un error de creación conserva el borrador para corregir y reintentar. Crear el
+pedido correctamente lo limpia para la próxima compra; el pedido histórico sigue
+mostrando su propia copia de los datos de envío. Los errores de campo, los estados
+de carga y los escenarios de demostración siguen siendo locales a sus pantallas.
+No hay localStorage, sessionStorage, cookies ni envío de datos a una API. Recargar
+descarta el borrador, incluso si estaba incompleto.
+
+Prueba manual: agregar un producto, completar datos y envío y pasar al resumen.
+Elegir «Editar carrito», guardar otra cantidad y continuar la compra. Comprobar que
+los seis campos siguen completos y que el resumen refleja la cantidad nueva. Tras
+crear el pedido y abrir su detalle, volver al carrito e iniciar otra compra: los
+campos comienzan vacíos, mientras el detalle anterior conserva sus datos.
