@@ -29,3 +29,11 @@ test("ruta desconocida vuelve al formulario o al pedido creado", () => {
   assert.equal(getCheckoutRedirect("/checkout/unknown", valid, false), "/checkout");
   assert.equal(getCheckoutRedirect("/checkout/unknown", valid, true), "/checkout/summary");
 });
+
+test("resultado de pago requiere pedido y no permite abandonar resumen durante la creación", () => {
+  const path = "/checkout/payment/result";
+  assert.equal(getCheckoutRedirect(path, empty, false), "/checkout");
+  assert.equal(getCheckoutRedirect(path, valid, false), "/checkout/summary");
+  assert.equal(getCheckoutRedirect(path, valid, true), null);
+  assert.equal(getCheckoutRedirect(path, valid, false, true), "/checkout/summary");
+});

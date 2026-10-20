@@ -1,7 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test('F-06 muestra los tres resultados sin aplicar un pago al pedido', async ({ page }) => {
+test('F-06 muestra los tres resultados sin aplicar un pago al pedido', async ({ page }, testInfo) => {
   await page.goto('/checkout?demo=1');
   await page.getByLabel('Nombre completo').fill('Karen Martínez');
   await page.getByLabel('Correo electrónico').fill('karen@example.com');
@@ -14,6 +14,9 @@ test('F-06 muestra los tres resultados sin aplicar un pago al pedido', async ({ 
   const reference = await page.getByText(/^Referencia: DEMO-/).textContent();
   await page.getByRole('link', { name: 'Seleccionar método de pago (demostración)' }).click();
 
+  await page.getByRole('radio', { name: 'Nequi / Daviplata' }).check();
+  await page.getByRole('link', { name: 'Ver resultados de pago (demostración)' }).click();
+  await expect(page.getByRole('heading', { name: 'Resultado de pago (demostración)', exact: true })).toBeFocused();
   const preview = page.getByRole('region', { name: 'Vista previa del resultado de pago' });
   const scenario = preview.getByLabel('Resultado a visualizar (demostración)');
   await expect(preview.getByRole('status')).toContainText('Pago pendiente (simulación)');
@@ -27,11 +30,27 @@ test('F-06 muestra los tres resultados sin aplicar un pago al pedido', async ({ 
   await expect(preview).toContainText('Moneda: COP');
   await scenario.selectOption('rejected');
   await expect(preview.getByRole('status')).toContainText('Pago rechazado (simulación)');
+  await page.screenshot({ path: testInfo.outputPath('resultado-pago.png'), fullPage: true });
+  await page.getByRole('link', { name: 'Volver al método de pago' }).click();
+  await expect(page.getByRole('radio', { name: 'Nequi / Daviplata' })).toBeChecked();
+  await page.goBack();
+  await expect(scenario).toHaveValue('rejected');
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.getByRole('link', { name: 'Volver al pedido', exact: true }).click();
   await expect(page.getByText('Estado: pendiente de pago.', { exact: false })).toBeVisible();
   await expect(page.getByText(reference!, { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Seleccionar método de pago (demostración)' }).click();
-  await expect(page.getByLabel('Resultado a visualizar (demostración)')).toHaveValue('pending');
+  await page.getByRole('link', { name: 'Ver resultados de pago (demostración)' }).click();
+  await expect(page.getByLabel('Resultado a visualizar (demostración)')).toHaveValue('rejected');
+  await page.reload();
+  await expect(page).toHaveURL(/\/checkout$/);
+  await expect(page.getByRole('heading', { name: 'Revisa tu carrito' })).toBeVisible();
+});
+
+test('el acceso directo al resultado requiere un pedido creado', async ({ page }) => {
+  await page.goto('/checkout/payment/result');
+  await expect(page).toHaveURL(/\/checkout$/);
+  await expect(page.getByRole('heading', { name: 'Revisa tu carrito' })).toBeVisible();
+  await expect(page.getByLabel('Resultado a visualizar (demostración)')).toHaveCount(0);
 });

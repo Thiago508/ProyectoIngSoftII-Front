@@ -1,9 +1,6 @@
-import { useState } from 'react';
-import type { DemoOrder } from '../types/checkout.types';
+import type { DemoOrder, PaymentPreviewStatus } from '../types/checkout.types';
 
-type PreviewStatus = 'pending' | 'approved' | 'rejected';
-
-const results: Record<PreviewStatus, { title: string; description: string }> = {
+const results: Record<PaymentPreviewStatus, { title: string; description: string }> = {
   pending: {
     title: 'Pago pendiente (simulación)',
     description: 'El resultado sigue en proceso. Un resultado pendiente no permite considerar pagado el pedido.',
@@ -21,8 +18,9 @@ const results: Record<PreviewStatus, { title: string; description: string }> = {
 const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 2 });
 
 // Laboratorio visual: no inicia intentos ni aplica resultados al pedido.
-export function PaymentResultPreview({ order }: { order: DemoOrder }) {
-  const [status, setStatus] = useState<PreviewStatus>('pending');
+export function PaymentResultPreview({ order, status, onStatusChange }: {
+  order: DemoOrder; status: PaymentPreviewStatus; onStatusChange: (status: PaymentPreviewStatus) => void;
+}) {
   const result = results[status];
 
   return <section className="checkout-form checkout-payment-preview" aria-labelledby="payment-preview-heading">
@@ -34,7 +32,7 @@ export function PaymentResultPreview({ order }: { order: DemoOrder }) {
       <label htmlFor="payment-preview-status">Resultado a visualizar (demostración)</label>
       <select id="payment-preview-status" value={status} onChange={(event) => {
         const next = event.currentTarget.value;
-        if (next === 'pending' || next === 'approved' || next === 'rejected') setStatus(next);
+        if (next === 'pending' || next === 'approved' || next === 'rejected') onStatusChange(next);
       }}>
         <option value="pending">Pendiente</option>
         <option value="approved">Aprobado</option>

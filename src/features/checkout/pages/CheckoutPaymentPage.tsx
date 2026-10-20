@@ -2,7 +2,6 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CheckoutStepper } from "../components/CheckoutStepper/CheckoutStepper";
 import type { DemoOrder, PaymentMethod } from "../types/checkout.types";
-import { PaymentResultPreview } from "../components/PaymentResultPreview";
 import "./CheckoutDataPage.css";
 
 import { paymentMethods } from "../paymentMethods";
@@ -50,7 +49,7 @@ export function CheckoutPaymentPage({ order, method, onChange, onContinue }: Che
           <button className="checkout-form__submit" type="submit">Guardar selección de demostración</button>
           <Link className="checkout-form__back" to="/checkout/summary">Volver al pedido</Link>
         </form>
-        {order && <PaymentResultPreview key={order.id} order={order} />}
+        {order && <p><Link className="checkout-form__back" to="/checkout/payment/result">Ver resultados de pago (demostración)</Link></p>}
       </div>
     </main>
   );

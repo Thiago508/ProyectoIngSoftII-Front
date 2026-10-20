@@ -31,3 +31,6 @@ export interface DemoOrder {
   items: CheckoutItem[];
   subtotal: number;
 }
+
+// Estado del laboratorio visual; no representa una confirmación de la pasarela.
+export type PaymentPreviewStatus = "pending" | "approved" | "rejected";

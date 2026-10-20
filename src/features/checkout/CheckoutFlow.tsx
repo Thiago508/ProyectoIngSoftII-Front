@@ -4,7 +4,7 @@ import { CustomerHeader } from "../../shared/components/CustomerHeader/CustomerH
 import { CheckoutDataPage } from "./pages/CheckoutDataPage";
 import { CheckoutPaymentPage } from "./pages/CheckoutPaymentPage";
 import { CheckoutSummaryPage } from "./pages/CheckoutSummaryPage";
-import type { CheckoutData, CheckoutItem, DemoOrder, PaymentMethod } from "./types/checkout.types";
+import type { CheckoutData, CheckoutItem, DemoOrder, PaymentMethod, PaymentPreviewStatus } from "./types/checkout.types";
 import { getCheckoutRedirect } from "./utils/checkoutNavigation";
 import { createDemoOrder, DemoAvailabilityError } from "./demo/createDemoOrder";
 import { demoCart, type DemoCartScenario } from "./demo/demoCart";
@@ -12,6 +12,8 @@ import { demoCart, type DemoCartScenario } from "./demo/demoCart";
 import type { CartLine } from "../cart/cart";
 import type { Product } from "../products/demo/productsDemo";
 import { prepareCheckoutCart } from "../cart/checkoutCart";
+
+import { CheckoutPaymentResultPage } from "./pages/CheckoutPaymentResultPage";
 
 const emptyData: CheckoutData = {
   fullName: "", email: "", phone: "", address: "", city: "", department: "",
@@ -21,6 +23,7 @@ export function CheckoutFlow({ lines, products }: { lines: readonly CartLine[]; 
   const [demoMode] = useState(() => new URLSearchParams(window.location.search).get("demo") === "1");
   const [data, setData] = useState<CheckoutData>(emptyData);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentPreview, setPaymentPreview] = useState<PaymentPreviewStatus>("pending");
   const [order, setOrder] = useState<DemoOrder | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
@@ -79,6 +82,7 @@ export function CheckoutFlow({ lines, products }: { lines: readonly CartLine[]; 
           <Route path="payment" element={
             <CheckoutPaymentPage order={order} method={paymentMethod} onChange={setPaymentMethod} onContinue={() => navigate("/checkout/summary")} />
           } />
+          <Route path="payment/result" element={order ? <CheckoutPaymentResultPage order={order} status={paymentPreview} onStatusChange={setPaymentPreview} /> : <Navigate to="/checkout/summary" replace />} />
           <Route path="summary" element={(
             <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={paymentMethod}
               items={items} demoMode={demoMode} scenario={scenario} onScenarioChange={handleScenarioChange} unavailableItemIds={unavailableItemIds}
