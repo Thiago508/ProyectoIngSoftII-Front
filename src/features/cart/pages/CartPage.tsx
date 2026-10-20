@@ -52,7 +52,7 @@ export function CartPage({ lines, products, onUpdate, onRemove }: {
     <CustomerHeader cartItemCount={lines.reduce((sum, line) => sum + line.quantity, 0)} cartTo="/cart" homeTo="/catalog" contentHeadingId="cart-heading" skipLabel="Saltar al carrito" />
     <main className="cart-page">
       <h1 id="cart-heading" ref={headingRef} tabIndex={-1}>Tu carrito</h1>
-      <p>Selección de demostración en memoria. No reserva inventario y se pierde al recargar. Todavía no está conectada con el carrito simulado del checkout.</p>
+      <p>Selección de demostración en memoria. No reserva inventario y se pierde al recargar. El checkout utiliza esta selección para crear un pedido de demostración.</p>
       {!lines.length ? <p>Tu carrito está vacío. Explora el catálogo para agregar productos.</p> : <ul ref={listRef} className="cart-page__items" aria-label="Productos del carrito">
         {lines.map((line) => {
           const product = products.find((candidate) => candidate.id === line.productId);
@@ -69,6 +69,7 @@ export function CartPage({ lines, products, onUpdate, onRemove }: {
       <p role="status" aria-atomic="true">{status}</p>
       {subtotal === null ? <p role="alert" className="cart-add__error">No se puede calcular el subtotal con los datos actuales. Revisa los artículos del carrito.</p> : <p className="cart-page__subtotal">Subtotal de productos: {currency.format(subtotal / 100)}</p>}
       <p>Envío no incluido. Precios informativos del catálogo local; el importe definitivo corresponde al servidor.</p>
+      {lines.length > 0 && subtotal !== null && lines.every((line) => products.some((product) => product.id === line.productId && product.active)) && <p><Link className="checkout-form__submit" to="/checkout">Continuar con la compra</Link></p>}
       <Link to="/catalog">Seguir explorando el catálogo</Link>
     </main>
   </>;

@@ -1,19 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { CustomerHeader } from "../../shared/components/CustomerHeader/CustomerHeader";
 import { CheckoutDataPage } from "./pages/CheckoutDataPage";
 import { CheckoutPaymentPage } from "./pages/CheckoutPaymentPage";
 import { CheckoutSummaryPage } from "./pages/CheckoutSummaryPage";
-import type { CheckoutData, DemoOrder, PaymentMethod } from "./types/checkout.types";
+import type { CheckoutData, CheckoutItem, DemoOrder, PaymentMethod } from "./types/checkout.types";
 import { getCheckoutRedirect } from "./utils/checkoutNavigation";
 import { createDemoOrder, DemoAvailabilityError } from "./demo/createDemoOrder";
 import { demoCart, type DemoCartScenario } from "./demo/demoCart";
+
+import type { CartLine } from "../cart/cart";
+import type { Product } from "../products/demo/productsDemo";
+import { prepareCheckoutCart } from "../cart/checkoutCart";
 
 const emptyData: CheckoutData = {
   fullName: "", email: "", phone: "", address: "", city: "", department: "",
 };
 
-export function CheckoutFlow() {
+export function CheckoutFlow({ lines, products }: { lines: readonly CartLine[]; products: readonly Product[] }) {
+  const [demoMode] = useState(() => new URLSearchParams(window.location.search).get("demo") === "1");
   const [data, setData] = useState<CheckoutData>(emptyData);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [order, setOrder] = useState<DemoOrder | null>(null);
@@ -21,7 +26,11 @@ export function CheckoutFlow() {
   const [creationError, setCreationError] = useState<string | null>(null);
   const [scenario, setScenario] = useState<DemoCartScenario>("available");
   const [unavailableItemIds, setUnavailableItemIds] = useState<readonly string[]>([]);
-  const items = scenario === "empty" ? [] : demoCart;
+  let cartError: string | null = null;
+  let selectedItems: readonly CheckoutItem[] = [];
+  try { selectedItems = prepareCheckoutCart(lines, products); }
+  catch (cause: unknown) { cartError = cause instanceof Error ? cause.message : "Revisa el carrito."; }
+  const items = demoMode ? (scenario === "empty" ? [] : demoCart) : selectedItems;
   const inFlight = useRef(false);
 
   function handleScenarioChange(next: DemoCartScenario) {
@@ -36,13 +45,13 @@ export function CheckoutFlow() {
   const redirect = getCheckoutRedirect(pathname, data, Boolean(order), isSubmitting);
 
   async function handleCreate(simulateFailure: boolean) {
-    if (inFlight.current || order) return;
+    if (inFlight.current || order || (!demoMode && (cartError || !items.length))) return;
     inFlight.current = true;
     setIsSubmitting(true);
     setCreationError(null);
     setUnavailableItemIds([]);
     try {
-      const created = await createDemoOrder(data, items, simulateFailure, scenario === "unavailable" ? [demoCart[0].id] : []);
+      const created = await createDemoOrder(data, items, simulateFailure, demoMode && scenario === "unavailable" ? [demoCart[0].id] : []);
       setOrder(created);
       navigate("/checkout/summary", { replace: true });
     } catch (cause: unknown) {
@@ -60,9 +69,9 @@ export function CheckoutFlow() {
 
   return (
     <>
-      <CustomerHeader cartItemCount={items.reduce((count, item) => count + item.quantity, 0)} />
+      <CustomerHeader cartItemCount={demoMode ? items.reduce((count, item) => count + item.quantity, 0) : lines.reduce((count, line) => count + line.quantity, 0)} cartTo={demoMode ? undefined : "/cart"} homeTo={demoMode ? undefined : "/catalog"} />
       <div ref={contentRef}>
-        {redirect ? <Navigate to={redirect} replace /> : <Routes>
+        {redirect ? <Navigate to={redirect} replace /> : !demoMode && !order && (cartError || !items.length) ? <main className="checkout-page"><div className="checkout-page__container checkout-form"><h1 id="checkout-heading" tabIndex={-1}>Revisa tu carrito</h1><p role="alert">{cartError ?? "El carrito está vacío. Agrega productos antes de continuar."}</p><Link to="/cart">Volver al carrito</Link></div></main> : <Routes>
           <Route index element={<CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {
             setData(normalizedData);
             navigate("/checkout/summary");
@@ -72,7 +81,7 @@ export function CheckoutFlow() {
           } />
           <Route path="summary" element={(
             <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={paymentMethod}
-              items={items} scenario={scenario} onScenarioChange={handleScenarioChange} unavailableItemIds={unavailableItemIds}
+              items={items} demoMode={demoMode} scenario={scenario} onScenarioChange={handleScenarioChange} unavailableItemIds={unavailableItemIds}
               order={order} isSubmitting={isSubmitting} error={creationError} onCreate={handleCreate} />
           )} />
         </Routes>}

@@ -489,9 +489,16 @@ pero su cantidad no puede modificarse. Retirar mueve el foco al siguiente artíc
 al anterior si era el último, o al título del carrito cuando queda vacío. Estas
 operaciones tampoco alteran inventario ni reservas.
 
-El checkout conserva temporalmente su carrito simulado anterior: este incremento
-no ofrece continuar desde `/cart` hacia él para evitar confirmar otra selección.
-Conectar el carrito con F-01 es el próximo bloque. Recargar reinicia el carrito; no se añadió persistencia,
+«Continuar con la compra» conecta `/cart` con `/checkout`: el resumen recibe SKU,
+talla, unidades, nombre y precio actuales de esta selección. El acceso con carrito
+vacío se bloquea; los artículos inactivos, variantes inválidas o cantidades que
+superen la disponibilidad de la instantánea impiden continuar. La comprobación
+definitiva, reservas y precios del servidor siguen pendientes de integración.
+El pedido creado conserva una copia de sus líneas. El carrito no se vacía ni se
+persiste automáticamente. Salir de checkout descarta su borrador y resultado local.
+Los escenarios originales del mockup siguen disponibles entrando expresamente por
+`/checkout?demo=1`; las pruebas anteriores usan ese modo aislado.
+Recargar reinicia el carrito; no se añadió persistencia,
 Context, dependencias de estado ni endpoints.
 
 Prueba: abrir el vestido en catálogo, seleccionar M y agregar 2 unidades, agregar
@@ -504,3 +511,9 @@ Verificación de SWR-20: build, lint y pruebas unitarias correctos; los 12 casos
 carrito en Playwright pasan en escritorio, tablet y móvil, incluyendo cantidades
 inválidas, descarte, subtotal, retirada, foco y productos desactivados. La revisión
 automatizada con axe no sustituye la prueba manual con lector de pantalla.
+
+Verificación de la conexión con F-01: build, lint y pruebas unitarias correctos.
+Los 36 casos de carrito y checkout pasan en escritorio, tablet y móvil tras repetir
+la revisión de accesibilidad con 60 segundos para sus múltiples auditorías y capturas.
+El flujo del catálogo confirma únicamente las líneas elegidas; el acceso vacío
+queda bloqueado y se preservan los centavos al calcular el subtotal.

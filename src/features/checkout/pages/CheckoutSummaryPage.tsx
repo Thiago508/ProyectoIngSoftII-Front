@@ -6,10 +6,11 @@ import { calculateSubtotal } from "../demo/createDemoOrder";
 import { paymentMethods } from "../paymentMethods";
 import type { CheckoutData, CheckoutItem, DemoOrder, PaymentMethod } from "../types/checkout.types";
 
-const currency = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+const currency = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 2 });
 
 interface CheckoutSummaryPageProps {
   items: readonly CheckoutItem[];
+  demoMode: boolean;
   scenario: DemoCartScenario;
   onScenarioChange: (scenario: DemoCartScenario) => void;
   unavailableItemIds: readonly string[];
@@ -21,7 +22,7 @@ interface CheckoutSummaryPageProps {
   onCreate: (simulateFailure: boolean) => Promise<void>;
 }
 
-export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, error, onCreate, items: cartItems, scenario, onScenarioChange, unavailableItemIds }: CheckoutSummaryPageProps) {
+export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, error, onCreate, items: cartItems, demoMode, scenario, onScenarioChange, unavailableItemIds }: CheckoutSummaryPageProps) {
   const [simulateFailure, setSimulateFailure] = useState(false);
   const items = order?.items ?? cartItems;
 
@@ -33,13 +34,13 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, 
       <div className="checkout-page__container checkout-form checkout-summary" aria-busy={isSubmitting}>
         <CheckoutStepper currentStep="summary" />
         <h1 id="checkout-heading" tabIndex={-1}>{order ? "Pedido de demostración creado" : "Revisa tu pedido"}</h1>
-        <p>Carrito simulado. Los precios y la disponibilidad definitivos deben ser comprobados por el backend.</p>
+        <p>Selección local de demostración. Los precios y la disponibilidad definitivos deben ser comprobados por el backend.</p>
         {order && <section aria-label="Resultado del pedido">
           <p>Estado: pendiente de pago. No se ha realizado ningún cobro ni descontado inventario.</p>
           <p>Referencia: {order.id}</p>
           <p>Fecha: <time dateTime={order.createdAt}>{new Date(order.createdAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</time></p>
         </section>}
-        {!order && <div className="checkout-form__field">
+        {!order && demoMode && <div className="checkout-form__field">
           <label htmlFor="demo-cart-scenario">Escenario del carrito (demostración)</label>
           <select id="demo-cart-scenario" value={scenario} disabled={isSubmitting} onChange={(event) => {
             const value = event.currentTarget.value;
@@ -68,7 +69,7 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, 
           <h2>Datos y envío</h2>
           <p>{data.fullName}<br />{data.email}<br />{data.phone}</p>
           <p>{data.address}<br />{data.city}, {data.department}</p>
-          {!order && !isSubmitting && <Link to="/checkout">Editar datos y envío</Link>}
+          {!order && !isSubmitting && <><Link to="/checkout">Editar datos y envío</Link>{!demoMode && <p><Link to="/cart">Editar carrito</Link></p>}</>}
         </section>
         {order && <section className="checkout-form__section">
           <h2>Método de pago seleccionado</h2>

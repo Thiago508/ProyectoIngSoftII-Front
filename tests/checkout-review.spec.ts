@@ -11,7 +11,8 @@ async function audit(page: Page, testInfo: TestInfo, state: string) {
 }
 
 test('revisión visual y accesible de datos, pago, errores y resultado', async ({ page }, testInfo) => {
-  await page.goto('/checkout');
+  test.setTimeout(60_000);
+  await page.goto('/checkout?demo=1');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByLabel('Correo electrónico')).toHaveAccessibleDescription('Escribe un correo electrónico válido.');
   await audit(page, testInfo, 'datos-errores');

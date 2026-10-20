@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('datos largos y texto ampliado conservan el flujo sin desbordamiento', async ({ page }, testInfo) => {
   test.setTimeout(60000);
   if (testInfo.project.name === 'mobile') await page.setViewportSize({ width: 320, height: 740 });
-  await page.goto('/checkout');
+  await page.goto('/checkout?demo=1');
   if (testInfo.project.name !== 'mobile') {
     await page.addStyleTag({ content: 'html { font-size: 200%; }' });
   }

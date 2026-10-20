@@ -90,3 +90,28 @@ test('un artículo desactivado se puede retirar pero no cambiar de cantidad', as
   await page.getByRole('button', { name: 'Retirar Vestido midi estampado, talla M', exact: true }).click();
   await expect(page.getByText('Tu carrito está vacío.', { exact: false })).toBeVisible();
 });
+
+test('el checkout confirma exactamente la selección del catálogo y bloquea el carrito vacío', async ({ page }) => {
+  await page.goto('/checkout');
+  await expect(page.getByRole('heading', { name: 'Revisa tu carrito' })).toBeVisible();
+  await page.goto('/catalog/demo-dress');
+  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
+  await page.getByLabel('Cantidad', { exact: true }).fill('2');
+  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
+  await page.getByRole('link', { name: 'Carrito de compras: 2 unidades', exact: true }).click();
+  await page.getByRole('link', { name: 'Continuar con la compra' }).click();
+  await page.getByLabel('Nombre completo').fill('Karen Martínez');
+  await page.getByLabel('Correo electrónico').fill('karen@example.com');
+  await page.getByLabel('Teléfono').fill('3001234567');
+  await page.getByLabel('Dirección', { exact: true }).fill('Calle 14 # 23 - 45');
+  await page.getByLabel('Ciudad').fill('Armenia');
+  await page.getByLabel('Departamento').fill('Quindío');
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  await expect(page.getByText('Talla: M · Cantidad: 2')).toBeVisible();
+  await expect(page.getByText('$ 179.800', { exact: true })).toHaveCount(2);
+  await expect(page.getByLabel('Escenario del carrito')).toHaveCount(0);
+  await expect(page.getByText('Blusa manga larga', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Crear pedido de demostración', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Pedido de demostración creado' })).toBeVisible();
+  await expect(page.getByText('Talla: M · Cantidad: 2')).toBeVisible();
+});

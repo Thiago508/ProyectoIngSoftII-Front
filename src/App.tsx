@@ -36,7 +36,7 @@ function App() {
         <Route path="/catalog/:productId" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
         <Route path="/admin/inventory" element={<InventoryPage />} />
-        <Route path="/checkout/*" element={<CheckoutFlow />} />
+        <Route path="/checkout/*" element={<CheckoutFlow lines={cart} products={products} />} />
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>

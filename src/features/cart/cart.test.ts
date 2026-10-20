@@ -77,3 +77,24 @@ test('retira una sola variante, incluso inactiva, y no modifica inventario al ed
   assert.deepEqual(productsDemo, productsBefore);
   assert.equal(both.lines.length, 2);
 });
+
+test('checkout usa SKU, cantidades y centavos actuales; rechaza variantes e inactivos sin alterar inventario', async () => {
+  const { prepareCheckoutCart } = await import('./checkoutCart.ts');
+  const inventory = JSON.stringify(inventoryDemo);
+  const line = { productId: 'demo-dress', sku: 'DEMO-VEST-M', size: 'M', quantity: 2 };
+  const products = productsDemo.map((product) => ({ ...product, priceCents: 12345 }));
+  const items = prepareCheckoutCart([line], products);
+  assert.deepEqual(items, [{ id: 'DEMO-VEST-M', name: 'Vestido midi estampado', size: 'M', quantity: 2, unitPrice: 123.45 }]);
+  products[0].name = 'Otro nombre';
+  assert.equal(items[0].name, 'Vestido midi estampado');
+  assert.deepEqual(prepareCheckoutCart([], products), []);
+  assert.throws(() => prepareCheckoutCart([{ ...line, quantity: 13 }], products));
+  assert.throws(() => prepareCheckoutCart([{ ...line, size: 'L' }], products));
+  assert.throws(() => prepareCheckoutCart([line], products.map((product) => ({ ...product, active: false }))));
+  assert.equal(JSON.stringify(inventoryDemo), inventory);
+});
+
+test('el subtotal de checkout conserva centavos del catálogo', async () => {
+  const { calculateSubtotal } = await import('../checkout/demo/createDemoOrder.ts');
+  assert.equal(calculateSubtotal([{ id: 'sku', name: 'Producto', size: 'M', quantity: 3, unitPrice: 123.45 }]), 370.35);
+});

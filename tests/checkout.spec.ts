@@ -11,12 +11,12 @@ async function fillData(page: Page) {
 }
 
 async function reachSummary(page: Page) {
-  await page.goto('/checkout');
+  await page.goto('/checkout?demo=1');
   await fillData(page);
 }
 
 test('errores propios, foco y conservación del borrador entre rutas', async ({ page }) => {
-  await page.goto('/checkout');
+  await page.goto('/checkout?demo=1');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByLabel('Nombre completo')).toBeFocused();
   await expect(page.getByText('Escribe un correo electrónico válido.')).toBeVisible();
@@ -41,7 +41,7 @@ test('acceso directo y recarga de una etapa requieren datos previos', async ({ p
   await reachSummary(page);
   await page.reload();
   await expect(page).toHaveURL(/\/checkout$/);
-  await expect(page.getByLabel('Nombre completo')).toHaveValue('');
+  await expect(page.getByRole('heading', { name: 'Revisa tu carrito' })).toBeVisible();
 });
 
 test('error, reintento y pedido pendiente de pago con protección del historial', async ({ page }) => {
@@ -63,7 +63,7 @@ test('error, reintento y pedido pendiente de pago con protección del historial'
 });
 
 test('salto de teclado y ausencia de desbordamiento horizontal', async ({ page }, testInfo) => {
-  await page.goto('/checkout');
+  await page.goto('/checkout?demo=1');
   await page.screenshot({ path: testInfo.outputPath('datos.png'), fullPage: true });
   await page.getByRole('link', { name: 'Saltar al contenido del checkout' }).focus();
   await page.keyboard.press('Enter');
