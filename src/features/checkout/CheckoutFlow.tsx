@@ -19,7 +19,10 @@ const emptyData: CheckoutData = {
   fullName: "", email: "", phone: "", address: "", city: "", department: "",
 };
 
-export function CheckoutFlow({ lines, products }: { lines: readonly CartLine[]; products: readonly Product[] }) {
+export function CheckoutFlow({ lines, products, onDemoOrderCreated }: {
+  lines: readonly CartLine[]; products: readonly Product[];
+  onDemoOrderCreated: (orderId: string, createdAt: string) => void;
+}) {
   const [demoMode] = useState(() => new URLSearchParams(window.location.search).get("demo") === "1");
   const [data, setData] = useState<CheckoutData>(emptyData);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
@@ -55,6 +58,7 @@ export function CheckoutFlow({ lines, products }: { lines: readonly CartLine[]; 
     setUnavailableItemIds([]);
     try {
       const created = await createDemoOrder(data, items, simulateFailure, demoMode && scenario === "unavailable" ? [demoCart[0].id] : []);
+      onDemoOrderCreated(created.id, created.createdAt);
       setOrder(created);
       navigate("/checkout/summary", { replace: true });
     } catch (cause: unknown) {

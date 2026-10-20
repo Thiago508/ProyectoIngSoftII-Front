@@ -14,8 +14,12 @@ import { LoginPage } from "./features/auth/LoginPage";
 
 import { NotificationsPage } from "./features/notifications/NotificationsPage";
 
+import type { DemoNotification } from "./features/notifications/notificationsDemo";
+import { recordRegisteredNotification } from "./features/notifications/recordRegisteredNotification";
+
 function App() {
   const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
+  const [notifications, setNotifications] = useState<readonly DemoNotification[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
   const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
   function handleAddToCart(productId: string, sku: string, quantity: string) {
@@ -33,10 +37,13 @@ function App() {
     if (result.ok) setCart(result.lines);
     return { ok: result.ok, message: result.message };
   }
+  function handleDemoOrderCreated(orderId: string, createdAt: string) {
+    setNotifications((previous) => recordRegisteredNotification(previous, orderId, createdAt));
+  }
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} />} />
+        <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} sessionNotices={notifications} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
         <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
@@ -45,7 +52,7 @@ function App() {
         <Route path="/catalog/:productId" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
         <Route path="/admin/inventory" element={<InventoryPage />} />
-        <Route path="/checkout/*" element={<CheckoutFlow lines={cart} products={products} />} />
+        <Route path="/checkout/*" element={<CheckoutFlow lines={cart} products={products} onDemoOrderCreated={handleDemoOrderCreated} />} />
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>

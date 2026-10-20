@@ -10,6 +10,7 @@ test('F-08 muestra pedido, estado y fecha de cada ejemplo; admite una bandeja va
   await expect(page).toHaveURL(/\/notifications$/);
   await expect(page.getByRole('heading', { name: 'Notificaciones', exact: true })).toBeFocused();
   await expect(page).toHaveTitle('Notificaciones | Fashion Online Store');
+  await page.getByLabel('Escenario de notificaciones (demostración)').selectOption('examples');
   const list = page.getByRole('list', { name: 'Notificaciones de pedidos de demostración' });
   const items = list.getByRole('listitem');
   await expect(items).toHaveCount(4);
@@ -37,7 +38,7 @@ test('F-08 muestra pedido, estado y fecha de cada ejemplo; admite una bandeja va
   await expect(items).toHaveCount(4);
 });
 
-test('la bandeja no altera el carrito y recargar restaura solo los ejemplos', async ({ page }) => {
+test('la bandeja no altera el carrito y recargar vuelve a la sesión vacía', async ({ page }) => {
   await page.goto('/catalog/demo-dress');
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
   await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
@@ -48,6 +49,58 @@ test('la bandeja no altera el carrito y recargar restaura solo los ejemplos', as
   await page.goto('/notifications');
   await page.getByLabel('Escenario de notificaciones (demostración)').selectOption('empty');
   await page.reload();
-  await expect(page.getByLabel('Escenario de notificaciones (demostración)')).toHaveValue('examples');
-  await expect(page.getByRole('listitem')).toHaveCount(4);
+  await expect(page.getByLabel('Escenario de notificaciones (demostración)')).toHaveValue('session');
+  await expect(page.getByRole('listitem')).toHaveCount(0);
+});
+
+async function reachOrderSummary(page: import('@playwright/test').Page) {
+  await page.goto('/checkout?demo=1');
+  await page.getByLabel('Nombre completo').fill('Karen Martínez');
+  await page.getByLabel('Correo electrónico').fill('karen@example.com');
+  await page.getByLabel('Teléfono').fill('3001234567');
+  await page.getByLabel('Dirección', { exact: true }).fill('Calle 14 # 23 - 45');
+  await page.getByLabel('Ciudad').fill('Armenia');
+  await page.getByLabel('Departamento').fill('Quindío');
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+}
+
+test('un error de creación no genera un aviso de registro', async ({ page }) => {
+  await reachOrderSummary(page);
+  await page.getByLabel('Simular error de creación').check();
+  await page.getByRole('button', { name: 'Crear pedido de demostración', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('No se pudo crear');
+  await page.getByRole('link', { name: 'Notificaciones (demostración)', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('No hay notificaciones');
+  await expect(page.getByRole('listitem')).toHaveCount(0);
+});
+
+test('crear tras un reintento genera un único aviso; la vista de pago aprobado no genera otro', async ({ page }) => {
+  await reachOrderSummary(page);
+  const submit = page.getByRole('button', { name: 'Crear pedido de demostración', exact: true });
+  await page.getByLabel('Simular error de creación').check();
+  await submit.click();
+  await expect(page.getByRole('alert')).toContainText('No se pudo crear');
+  await page.getByLabel('Simular error de creación').uncheck();
+  await submit.click();
+  await expect(page.getByRole('heading', { name: 'Pedido de demostración creado' })).toBeVisible();
+  const orderId = (await page.getByText(/^Referencia: DEMO-/).innerText()).replace('Referencia: ', '');
+  const createdAt = await page.locator('time').getAttribute('datetime');
+  await page.getByRole('link', { name: 'Seleccionar método de pago (demostración)' }).click();
+  await page.getByRole('link', { name: 'Ver resultados de pago (demostración)' }).click();
+  await page.getByLabel('Resultado a visualizar (demostración)').selectOption('approved');
+  await page.getByRole('link', { name: 'Notificaciones (demostración)', exact: true }).click();
+  const notices = page.getByRole('listitem');
+  await expect(notices).toHaveCount(1);
+  await expect(notices).toContainText(orderId);
+  await expect(notices).toContainText('Registrado');
+  await expect(notices.locator('time')).toHaveAttribute('datetime', createdAt!);
+  await page.getByLabel('Escenario de notificaciones (demostración)').selectOption('empty');
+  await expect(notices).toHaveCount(0);
+  await page.getByLabel('Escenario de notificaciones (demostración)').selectOption('session');
+  await expect(notices).toHaveCount(1);
+  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Notificaciones (demostración)', exact: true }).click();
+  await expect(notices).toHaveCount(1);
+  await page.reload();
+  await expect(notices).toHaveCount(0);
 });

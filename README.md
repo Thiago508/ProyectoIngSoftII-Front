@@ -622,8 +622,9 @@ la contraseña queda vacía. Navegar entre ambos formularios y volver al catálo
 
 ## F-08: bandeja de notificaciones de demostración
 
-La campana del encabezado abre `/notifications`. El primer bloque de interfaz
-muestra ejemplos de pedidos registrados, pagados, cancelados y enviados. Cada aviso
+La campana del encabezado abre `/notifications`. Por defecto muestra los avisos
+creados durante esta sesión de demostración. El selector permite revisar también
+ejemplos independientes de pedidos registrados, pagados, cancelados y enviados. Cada aviso
 incluye identificador del pedido, estado resultante y fecha y hora del cambio
 (SWR-32, presentación con datos locales). La lista está ordenada del cambio más
 reciente al más antiguo. Las fechas usan `time` con su valor ISO y se muestran en
@@ -631,12 +632,13 @@ reciente al más antiguo. Las fechas usan `time` con su valor ISO y se muestran 
 
 `features/notifications/notificationsDemo.ts` separa los ejemplos del componente.
 `NotificationsPage` reutiliza el encabezado y los valores visuales compartidos;
-solo guarda el escenario visual de lista o bandeja vacía. El selector anuncia el
+solo guarda el escenario visual de avisos de sesión, ejemplos o bandeja vacía. El selector anuncia el
 resultado sin mover el foco. La ruta tiene título de documento, encabezado enfocable
 y salto al contenido. No introduce dependencias ni almacenamiento persistente.
 
-Los ejemplos no pertenecen a una cuenta ni se generan al crear pedidos o cambiar
-el resultado visual del pago. No hay envío de correos, notificaciones del navegador,
+Los ejemplos visuales no pertenecen a una cuenta y permanecen separados de los
+avisos generados al crear pedidos de demostración. Cambiar el resultado visual
+del pago no genera notificaciones. No hay envío de correos, notificaciones del navegador,
 registro de entrega ni acciones para abrir pedidos inexistentes. El acceso a esta
 ruta no modifica carrito, pedidos, reservas ni inventario.
 
@@ -647,6 +649,27 @@ La bandeja pública contiene únicamente ejemplos identificados como demostraci�
 No representa una bandeja privada protegida por autenticación.
 
 Prueba manual: abrir catálogo y pulsar la campana. Revisar los cuatro avisos,
-sus estados, identificadores y fechas. Elegir «Bandeja vacía», comprobar el mensaje
-y volver a «Mostrar ejemplos». Volver al catálogo conserva las unidades del carrito;
-recargar restaura los ejemplos y reinicia el estado local de la aplicación.
+sus estados, identificadores y fechas mediante «Mostrar ejemplos». Elegir «Bandeja
+vacía», comprobar el mensaje y volver a los avisos de sesión. Volver al catálogo
+conserva las unidades del carrito; recargar elimina los avisos locales y deja la
+bandeja de sesión vacía.
+
+
+### Aviso local al crear un pedido de demostración
+
+`CheckoutFlow` informa a `App` de una creación correcta mediante una función que
+recibe únicamente referencia y fecha, sin datos personales. `App` conserva los
+avisos en memoria para que sobrevivan a la navegación fuera de checkout. La bandeja
+solo recibe esa lista para presentarla; no necesita Context ni nuevas dependencias.
+
+`recordRegisteredNotification` añade un aviso «Registrado» al principio de la lista.
+Su clave combina evento y pedido: repetir la misma creación no duplica el aviso ni
+cambia su fecha original. Es una deduplicación local, no una garantía de SWR-34
+frente a concurrencia o reintentos del servidor. Fallar al crear, visualizar un pago
+aprobado o cambiar de escenario no genera avisos ni modifica inventario.
+
+Prueba: crear un pedido de demostración y abrir la campana. En «Avisos creados en
+esta sesión» aparece un único aviso con la referencia y fecha del pedido. Navegar
+al catálogo y volver lo conserva; «Bandeja vacía» solo oculta la lista. Recargar la
+elimina. La generación desde cambios confirmados, destinatarios autenticados,
+entrega y registro de intentos siguen pendientes del backend.

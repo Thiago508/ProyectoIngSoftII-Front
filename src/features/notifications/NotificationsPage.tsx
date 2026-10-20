@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CustomerHeader } from '../../shared/components/CustomerHeader/CustomerHeader';
-import { notificationsDemo, notificationStatusLabels } from './notificationsDemo';
+import { notificationsDemo, notificationStatusLabels, type DemoNotification } from './notificationsDemo';
 import './NotificationsPage.css';
 
 const dateTime = new Intl.DateTimeFormat('es-CO', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Bogota',
 });
 
-export function NotificationsPage({ cartCount }: { cartCount: number }) {
-  const [showExamples, setShowExamples] = useState(true);
+export function NotificationsPage({ cartCount, sessionNotices }: {
+  cartCount: number; sessionNotices: readonly DemoNotification[];
+}) {
+  const [scenario, setScenario] = useState<'session' | 'examples' | 'empty'>('session');
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const notices = showExamples ? notificationsDemo : [];
+  const notices = scenario === 'session' ? sessionNotices : scenario === 'examples' ? notificationsDemo : [];
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -24,14 +26,19 @@ export function NotificationsPage({ cartCount }: { cartCount: number }) {
     <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo="/catalog" contentHeadingId="notifications-heading" skipLabel="Saltar a las notificaciones" />
     <main className="notifications-page">
       <h1 id="notifications-heading" ref={headingRef} tabIndex={-1}>Notificaciones</h1>
-      <p>Ejemplos de demostración. No pertenecen a una cuenta autenticada ni reflejan cambios reales de tus pedidos.</p>
+      <p>Avisos locales de demostración, sin cuenta autenticada. Los avisos de esta sesión provienen de pedidos creados en el checkout simulado y se pierden al recargar.</p>
       <div className="notifications-page__scenario">
         <label htmlFor="notifications-scenario">Escenario de notificaciones (demostración)</label>
-        <select id="notifications-scenario" value={showExamples ? 'examples' : 'empty'} onChange={(event) => setShowExamples(event.currentTarget.value === 'examples')}>
+        <select id="notifications-scenario" value={scenario} onChange={(event) => {
+          const next = event.currentTarget.value;
+          if (next === 'session' || next === 'examples' || next === 'empty') setScenario(next);
+        }}>
+          <option value="session">Avisos creados en esta sesión</option>
           <option value="examples">Mostrar ejemplos</option>
           <option value="empty">Bandeja vacía</option>
         </select>
       </div>
+      <p>{scenario === 'session' ? 'Solo se registra la creación correcta del pedido simulado. Elegir un resultado visual de pago no genera avisos.' : scenario === 'examples' ? 'Ejemplos visuales independientes de los pedidos creados en esta sesión.' : 'Vista vacía para revisar la interfaz; no borra los avisos de la sesión.'}</p>
       <p role="status" aria-atomic="true">{notices.length ? `${notices.length} notificaciones de demostración.` : 'No hay notificaciones en este escenario de demostración.'}</p>
       <p>Fechas y horas de Colombia (America/Bogota).</p>
       {notices.length > 0 && <ol className="notifications-page__list" aria-label="Notificaciones de pedidos de demostración">
