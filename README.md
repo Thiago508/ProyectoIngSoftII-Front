@@ -1,7 +1,7 @@
 # Fashion Online Store
 
 Proyecto académico de tienda de ropa femenina con React, TypeScript y Vite.
-El incremento actual desarrolla el frontend de **F-01: Realizar pedido** (antes RF5) mediante
+El proyecto desarrolla el frontend de **F-01: Realizar pedido** (antes RF5) mediante
 un carrito y una operación de creación explícitamente simulados. No completa F-01 en producción: todavía no existe una integración de backend.
 La referencia actual es `PR - TiendaRopa.xlsx`, recibida el 19 de octubre de 2026.
 
@@ -224,3 +224,31 @@ Las capturas `resumen-datos-largos.png`, `resultado-datos-largos.png` y
 `pago-texto-ampliado.png` se generan en `test-results/checkout-responsive-…`.
 No hicieron falta cambios de CSS para estos casos. La escucha con Orca sigue
 pendiente; esta revisión tampoco confirma compatibilidad con dispositivos físicos.
+
+## F-02: Gestionar inventario — consulta inicial
+
+Abrir `/admin/inventory`. El primer incremento cubre la presentación de SWR-06:
+existente, reservado y disponible por artículo vendible (SKU y talla), calculando
+`disponible = existente - reservado`.
+
+- `src/features/inventory/demo/inventoryDemo.ts`: modelo y ejemplos identificados
+  como DEMO; incluye un artículo con todas sus unidades reservadas y otro agotado.
+- `src/features/inventory/pages/InventoryPage.tsx`: tabla semántica y explicación
+  de cantidades; en móvil permite desplazamiento horizontal dentro de la tabla.
+- `tests/inventory.spec.ts`: comprueba cantidades, separación por talla, teclado,
+  accesibilidad automática y navegación al checkout en los tres tamaños.
+
+Esta ruta es una demostración administrativa sin protección real. No implementa
+login, autorización, ajustes, reservas ni movimientos y no modifica el carrito de
+F-01. No muestra un enlace de administrador en el checkout público. La autorización
+por rol deberá verificarse desde backend y después integrarse con F-07.
+
+Siguiente incremento: SWR-07, formulario de ajuste con enteros no negativos,
+prohibición de bajar de reservado y registro de cantidad anterior/nueva, motivo,
+usuario y fecha. Ese registro será explícitamente simulado hasta la integración.
+SWR-08–10 (reservar, liberar y convertir a salida una sola vez) requieren operación
+transaccional en backend; no se garantizan modificando contadores en React.
+
+Verificación manual: abrir la ruta, comparar vestido M (15 − 3 = 12) con vestido L
+(8 − 8 = 0), comprobar falda sin existencias y recorrer la tabla con teclado en
+móvil. Todos los valores son ejemplos locales y no representan stock de la tienda.
