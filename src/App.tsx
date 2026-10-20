@@ -8,6 +8,8 @@ import { ProductsPage } from "./features/products/pages/ProductsPage";
 import { InventoryPage } from "./features/inventory/pages/InventoryPage";
 import { CheckoutFlow } from "./features/checkout/CheckoutFlow";
 
+import { RegistrationPage } from "./features/auth/RegistrationPage";
+
 function App() {
   const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -30,6 +32,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
         <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
         <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="/catalog" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />

@@ -40,14 +40,9 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
           className="customer-header__actions"
           aria-label="Acciones del usuario"
         >
-          <button
-            type="button"
-            className="customer-header__action"
-            aria-label="Mi perfil (pendiente de implementar)"
-            disabled
-          >
-            ♙
-          </button>
+          <Link to="/register" className="customer-header__action" aria-label="Registro de cliente (demostración)">
+            <span aria-hidden="true">♙</span>
+          </Link>
 
           {cartTo ? <Link to={cartTo} className="customer-header__action customer-header__cart" aria-label={`Carrito de compras: ${cartItemCount} unidades`}>
             <span aria-hidden="true">♡</span><span className="customer-header__cart-count">{cartItemCount}</span>
@@ -55,7 +50,7 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
             ♡<span className="customer-header__cart-count">{cartItemCount}</span>
           </button>}
         </nav>
-        <p id="header-demo-note" className="customer-header__notice">{cartTo ? (search ? "Demo: catálogo y carrito en memoria. Perfil pendiente de implementar." : "Demo: vuelve al catálogo para buscar. Carrito en memoria; perfil pendiente.") : search ? "Demo: búsqueda por nombre disponible. Perfil y carrito pendientes de implementar." : homeTo === "/catalog" ? "Demo: vuelve al catálogo para buscar. Perfil y carrito pendientes de implementar." : "Demo: búsqueda, perfil y carrito pendientes de implementar."}</p>
+        <p id="header-demo-note" className="customer-header__notice">Demo: registro sin creación de cuentas. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
       </div>
     </header>
   );

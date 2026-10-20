@@ -93,9 +93,10 @@ ciudad y departamento obligatorios. No validan identidad, existencia del correo,
 entrega en una localidad ni formatos internacionales de teléfono.
 
 Hay labels, autocomplete, radios nativos, foco visible, salto al contenido y
-anuncios de creación. La fecha usa `time` y la zona `America/Bogota`. Búsqueda,
-perfil y carrito están identificados como pendientes y deshabilitados; el contador
-refleja las unidades del carrito de demostración.
+anuncios de creación. La fecha usa `time` y la zona `America/Bogota`. El encabezado
+enlaza al registro de cliente de demostración y al carrito en memoria. La búsqueda
+está disponible en catálogo; en el modo aislado `?demo=1` de checkout el contador
+corresponde al carrito fijo y su acción permanece deshabilitada.
 
 ## Simulación y regla de inventario
 
@@ -553,3 +554,36 @@ y rechazo del acceso directo o tras recargar sin un pedido creado.
 
 Las reglas de colaboración están en [AGENTS.md](AGENTS.md), incluida la instrucción
 de sugerir el commit al final de cada incremento sin ejecutar `git commit`.
+
+## F-07: formulario público de registro de cliente
+
+La acción de usuario del encabezado abre `/register`. Este primer bloque de SWR-27
+incluye correo, contraseña y confirmación; no permite elegir un rol. El registro
+público se presenta como registro de cliente. Se reutilizan `CustomerHeader` y los
+valores visuales de `index.css`, con estilos propios en `features/auth` para evitar
+que el formulario de registro dependa del CSS de checkout.
+
+`registration.ts` contiene una validación pura: correo con formato básico tras
+recortar espacios externos, contraseña obligatoria y confirmación exacta. Las
+contraseñas no se recortan ni normalizan. No se ha inventado una longitud mínima ni
+una política de complejidad: deberá definirse y validarse también en el backend.
+El formulario usa `noValidate` para mostrar sus mensajes propios, con labels,
+autocomplete, `aria-invalid`, descripción de errores y foco en el primer campo
+inválido. Permite mostrar y ocultar ambas contraseñas.
+
+«Validar registro (demostración)» solo comprueba esos campos; no envía solicitudes,
+no crea cuentas ni inicia sesión. Tras validar se limpian las contraseñas y se
+anuncia el resultado sin conservarlas en almacenamiento del navegador. Editar el
+formulario limpia el resultado anterior. Salir o recargar descarta el borrador.
+El carrito compartido se conserva al navegar por registro dentro de la SPA.
+No hay espera artificial ni dependencias nuevas.
+
+SWR-27 sigue parcial: unicidad del correo, creación del usuario y asignación del rol
+por el servidor están pendientes. Hash bcrypt (SWR-28), autenticación y emisión de
+JWT (SWR-29), y autorización de operaciones protegidas (SWR-30) no están implementados.
+El formulario no cambia el acceso de las pantallas administrativas de demostración.
+
+Prueba manual: desde catálogo abrir el icono de registro, enviar vacío y comprobar
+el foco y los errores. Completar el correo, escribir contraseñas diferentes y volver
+a validar. Corregirlas, probar «Mostrar contraseñas» y validar: aparece el aviso de
+que no se creó una cuenta y ambas contraseñas quedan vacías. Volver al catálogo conserva las unidades del carrito.

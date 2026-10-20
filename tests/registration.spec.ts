@@ -1,0 +1,52 @@
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+test('F-07 registro accesible con validación, confirmación y resultado explícitamente local', async ({ page }, testInfo) => {
+  await page.goto('/catalog');
+  await page.getByRole('link', { name: 'Registro de cliente (demostración)' }).click();
+  await expect(page).toHaveURL(/\/register$/);
+  await expect(page.getByRole('heading', { name: 'Registro de cliente', exact: true })).toBeFocused();
+  await expect(page.getByRole('combobox')).toHaveCount(0);
+  const email = page.getByLabel('Correo electrónico', { exact: true });
+  const password = page.getByLabel('Contraseña', { exact: true });
+  const confirmation = page.getByLabel('Confirmar contraseña', { exact: true });
+  const submit = page.getByRole('button', { name: 'Validar registro (demostración)' });
+  await submit.click();
+  await expect(email).toBeFocused();
+  await expect(email).toHaveAccessibleDescription('Escribe un correo electrónico válido.');
+  await expect(password).toHaveAttribute('aria-invalid', 'true');
+  await email.fill('cliente@example.com');
+  await password.fill(' clave demo ');
+  await confirmation.fill('clave demo');
+  await submit.click();
+  await expect(confirmation).toBeFocused();
+  await expect(confirmation).toHaveAccessibleDescription('Las contraseñas no coinciden.');
+  await confirmation.fill(' clave demo ');
+  await page.getByLabel('Mostrar contraseñas').check();
+  await expect(password).toHaveAttribute('type', 'text');
+  await expect(confirmation).toHaveAttribute('type', 'text');
+  await submit.click();
+  await expect(page.getByRole('status')).toContainText('No se creó una cuenta ni se inició sesión');
+  await expect(password).toHaveValue('');
+  await expect(confirmation).toHaveValue('');
+  await expect(password).toHaveAttribute('type', 'password');
+  await expect(page.getByLabel('Mostrar contraseñas')).not.toBeChecked();
+  expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('registro.png'), fullPage: true });
+  await email.fill('otro@example.com');
+  await expect(page.getByRole('status')).toBeEmpty();
+  await page.reload();
+  await expect(email).toHaveValue('');
+});
+
+test('abrir registro y volver al catálogo conserva las unidades del carrito', async ({ page }) => {
+  await page.goto('/catalog/demo-dress');
+  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
+  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
+  await page.getByRole('link', { name: 'Registro de cliente (demostración)' }).click();
+  await expect(page.getByRole('link', { name: 'Carrito de compras: 1 unidades', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Carrito de compras: 1 unidades', exact: true })).toBeVisible();
+});
