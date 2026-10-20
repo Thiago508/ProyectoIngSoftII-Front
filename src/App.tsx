@@ -20,11 +20,14 @@ import { recordRegisteredNotification } from "./features/notifications/recordReg
 import { OrderDetailPage } from "./features/orders/OrderDetailPage";
 import type { CheckoutData, DemoOrder } from "./features/checkout/types/checkout.types";
 
+import { createDemoInventorySession } from "./features/inventory/demo/inventorySession";
+
 function emptyCheckoutData(): CheckoutData {
   return { fullName: "", email: "", phone: "", address: "", city: "", department: "" };
 }
 
 function App() {
+  const [inventory, setInventory] = useState(createDemoInventorySession);
   const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
   const [orderSession, setOrderSession] = useState<{ orders: readonly DemoOrder[]; notifications: readonly DemoNotification[] }>({ orders: [], notifications: [] });
   const { orders, notifications } = orderSession;
@@ -32,7 +35,7 @@ function App() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
   function handleAddToCart(productId: string, sku: string, quantity: string) {
-    const result = addCartItem(products, cart, productId, sku, quantity);
+    const result = addCartItem(products, cart, productId, sku, quantity, inventory.items);
     if (result.ok) setCart(result.lines);
     return { ok: result.ok, message: result.message };
   }
@@ -63,11 +66,11 @@ function App() {
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
         <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
         <Route path="/" element={<Navigate to="/catalog" replace />} />
-        <Route path="/catalog" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
-        <Route path="/catalog/:productId" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
+        <Route path="/catalog" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
+        <Route path="/catalog/:productId" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
-        <Route path="/admin/inventory" element={<InventoryPage />} />
-        <Route path="/checkout/*" element={<CheckoutFlow lines={cart} products={products} data={checkoutDraft} onDataChange={setCheckoutDraft} onDemoOrderCreated={handleDemoOrderCreated} />} />
+        <Route path="/admin/inventory" element={<InventoryPage inventory={inventory} onInventoryChange={setInventory} />} />
+        <Route path="/checkout/*" element={<CheckoutFlow inventoryItems={inventory.items} lines={cart} products={products} data={checkoutDraft} onDataChange={setCheckoutDraft} onDemoOrderCreated={handleDemoOrderCreated} />} />
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>

@@ -2,7 +2,7 @@
 
 Referencia: PR - TiendaRopa.xlsx, hoja Priorización de Requerimientos, SWR-06–10.
 Ruta: `/admin/inventory`. Todos los datos y eventos son simulados en memoria;
-recargar o salir restaura el ejemplo. No existe una sesión de administrador real.
+navegar conserva los cambios y recargar restaura el ejemplo. No existe una sesión de administrador real.
 
 | Requisito | Demostración implementada | Pendiente real |
 | --- | --- | --- |
@@ -35,7 +35,8 @@ No se establece una duración de reserva ni se infiere aprobación real de un cl
 - `demo/reserveDemoInventory.ts`: reserva de todas las líneas y pedidos ficticios.
 - `demo/releaseDemoReservation.ts`: liberación por cancelación/expiración.
 - `demo/convertDemoReservation.ts`: salida asociada al evento confirmado simulado.
-- `InventoryPage`: aplica artículos e historial/reservas en un mismo estado React.
+- `inventorySession.ts`: modelo e inicialización del estado compartido que conserva `App`.
+- `InventoryPage`: comunica artículos e historial/reservas en una misma actualización.
 - `InventoryReservationPanel`: controles del laboratorio y mensajes accesibles.
 
 Las funciones puras respecto a sus entradas devuelven copias; las fechas y los
@@ -44,4 +45,5 @@ Los tests de lógica verifican invariantes y repetición; `tests/inventory.spec.
 comprueba UI, errores, tabla, historial y axe en escritorio, tablet y móvil.
 
 F-02 puede entregarse como **demostración frontend**, con la autorización por rol
-y la integración explícitamente pendientes. El laboratorio es independiente de F-01.
+y la integración explícitamente pendientes. El laboratorio comparte cantidades con catálogo y la comprobación local de checkout,
+pero sus reservas siguen ligadas a pedidos ficticios y no se generan al crear F-01.

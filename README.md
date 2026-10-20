@@ -276,13 +276,14 @@ de JavaScript para no perder precisión; no se inventó un máximo de negocio.
 
 `demo/adjustDemoInventory.ts` valida y devuelve los artículos actualizados junto
 al registro del ajuste, sin modificar los datos de entrada. `InventoryPage` aplica
-ambos en una sola actualización de estado. Reservado no cambia y disponible se
+ambos en una sola actualización del estado compartido de sesión. Reservado no cambia y disponible se
 recalcula. No se añade un loading, porque es una operación local síncrona.
 
 El historial presenta SKU, nombre, talla, cantidad anterior/nueva, motivo recortado,
 usuario fijo «Administrador de demostración» y fecha en `America/Bogota`. No es una
-auditoría persistente ni prueba de autorización. Recargar o salir de la pantalla
-restaura los ejemplos y elimina el historial. El checkout continúa independiente.
+auditoría persistente ni prueba de autorización. Navegar conserva cantidades e
+historial; recargar restaura los ejemplos. Catálogo y checkout consultan ahora
+estas cantidades. La creación de pedidos no genera reservas automáticamente.
 
 Prueba: vestido M tiene 15 existentes y 3 reservados. Intentar guardar 2 debe dar
 error; guardar 20 con un motivo deja 17 disponibles y añade el registro 15 → 20.
@@ -421,7 +422,7 @@ limpieza restaura el listado. No se eliminaron diferencias de acentuación no
 especificadas en el requisito.
 
 `/catalog/:productId` muestra descripción, precio y disponibilidad por talla de
-los ejemplos iniciales (SWR-16). Un producto desconocido o inactivo muestra «Producto
+los artículos asociados en el inventario de sesión (SWR-16). Un producto desconocido o inactivo muestra «Producto
 no disponible», sin sus datos comerciales. La búsqueda usa `q` en la URL para
 conservarla al ir al detalle y volver; escribir no añade una entrada de historial
 por letra. Solo se habilita el buscador del header en el listado de catálogo.
@@ -431,11 +432,11 @@ Crear, editar o desactivar en administración se refleja al navegar sin recargar
 No se añadió Context, estado global externo ni almacenamiento persistente.
 
 `features/catalog/demo/catalogDemo.ts` separa filtro y disponibilidad de ejemplo.
-La asociación por ID interno es explícitamente local: no es un contrato de API ni
-refleja ajustes del laboratorio de Inventario. Un producto nuevo indica disponibilidad
+La asociación por ID interno es explícitamente local, no un contrato de API.
+El catálogo refleja los ajustes y reservas del laboratorio de Inventario. Un producto nuevo indica disponibilidad
 sin confirmar en lugar de recibir stock inventado. F-05 incorpora selección de talla y cantidad y un carrito local en el incremento
 posterior. El carrito del header es navegable desde catálogo y carrito; el checkout
-conserva por ahora su propia demostración separada.
+usa la selección compartida, salvo el modo aislado `?demo=1`.
 
 Prueba: abrir `/catalog`, buscar `MiDi`, abrir el vestido y volver: se conserva la
 consulta. Buscar algo inexistente muestra el mensaje y permite limpiar. En
@@ -465,8 +466,8 @@ assets y prompts están en [docs/catalog-images.md](docs/catalog-images.md).
 
 Desde el detalle de un producto activo en `/catalog/:productId`, elegir talla y una
 cantidad entera mayor que cero y pulsar «Agregar al carrito» (SWR-19). En esta
-simulación solo las variantes asociadas a los ejemplos y con disponibilidad inicial
-positiva pueden seleccionarse. La cantidad no se compara contra un stock real ni
+simulación solo las variantes asociadas a los ejemplos y con disponibilidad positiva
+en el inventario de sesión pueden seleccionarse. La cantidad no se compara contra un stock real ni
 se inventa un máximo comercial; el backend deberá comprobar disponibilidad al
 confirmar. Un producto nuevo sin variantes no ofrece la acción.
 
@@ -494,7 +495,7 @@ operaciones tampoco alteran inventario ni reservas.
 «Continuar con la compra» conecta `/cart` con `/checkout`: el resumen recibe SKU,
 talla, unidades, nombre y precio actuales de esta selección. El acceso con carrito
 vacío se bloquea; los artículos inactivos, variantes inválidas o cantidades que
-superen la disponibilidad de la instantánea impiden continuar. La comprobación
+superen la disponibilidad del inventario de sesión impiden continuar. La comprobación
 definitiva, reservas y precios del servidor siguen pendientes de integración.
 El pedido creado conserva una copia de sus líneas. El carrito no se vacía ni se
 persiste automáticamente. Salir de checkout conserva el borrador de datos y envío hasta crear un pedido
@@ -739,3 +740,25 @@ Las pantallas administrativas siguen siendo de demostración, sin autorización 
 Se corrigió el enlace «Continuar con la compra» del carrito: clase propia, texto
 blanco, fondo principal y hover con contraste. Ya no reutiliza una clase de
 checkout que podía ser sobrescrita por el estilo de los enlaces del carrito.
+
+
+## Inventario compartido con catálogo y checkout
+
+`App` conserva un `InventorySession` con artículos, historial y reservas, inicializado
+mediante `createDemoInventorySession`. La página administrativa comunica sus cambios
+por props; navegar ya no reinicia los ajustes. `getDemoAvailability` recibe las
+cantidades de sesión y las usa tanto para mostrar tallas como para validar agregar
+y preparar checkout. La aplicación pasa siempre esa fuente; los valores iniciales
+por defecto quedan para ejemplos y pruebas de las funciones puras.
+
+Ejemplo verificable: en administración, cambiar el vestido M de 15 a 6 existentes
+con un motivo. Como hay 3 reservados, catálogo debe mostrar 3 disponibles. Una
+selección previa de 4 se bloquea al entrar en checkout hasta corregirla. Cambiar
+existente a 3 deja disponible en cero y esa talla no permite nuevas adiciones.
+Agregar al carrito no cambia ninguna cantidad. Recargar reinicia toda la demo.
+
+Este bloque prepara una fuente común para el siguiente: asociar productos nuevos
+con sus tallas/SKU y después registrar sus existencias explícitamente. La asociación
+actual todavía corresponde a los ejemplos; no se crea stock automático para un
+producto nuevo. Tampoco se conectó la creación de pedidos a las reservas del
+laboratorio ni se procesan pagos o transacciones reales.

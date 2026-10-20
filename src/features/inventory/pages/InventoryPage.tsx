@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { AdminHeader } from '../../../shared/components/AdminHeader/AdminHeader';
-import { inventoryDemo, type InventoryItem } from '../demo/inventoryDemo';
-import { adjustDemoInventory, type AdjustmentErrors, type InventoryAdjustment } from '../demo/adjustDemoInventory';
-import { reserveDemoInventory, reservationOrders, type DemoReservation } from '../demo/reserveDemoInventory';
+import type { InventorySession } from '../demo/inventorySession';
+import { adjustDemoInventory, type AdjustmentErrors } from '../demo/adjustDemoInventory';
+import { reserveDemoInventory, reservationOrders } from '../demo/reserveDemoInventory';
 import { releaseDemoReservation, type ReleaseReason } from '../demo/releaseDemoReservation';
 import { convertDemoReservation } from '../demo/convertDemoReservation';
 import { InventoryReservationPanel } from '../components/InventoryReservationPanel';
 import './InventoryPage.css';
 
-export function InventoryPage() {
-  const [inventory, setInventory] = useState<{ items: InventoryItem[]; history: InventoryAdjustment[]; reservations: DemoReservation[] }>(() => ({ items: inventoryDemo.map((item) => ({ ...item })), history: [], reservations: [] }));
-  const [sku, setSku] = useState(inventoryDemo[0].sku);
-  const [quantity, setQuantity] = useState(String(inventoryDemo[0].existing));
+export function InventoryPage({ inventory, onInventoryChange }: {
+  inventory: InventorySession; onInventoryChange: (inventory: InventorySession) => void;
+}) {
+  const [sku, setSku] = useState(inventory.items[0]?.sku ?? '');
+  const [quantity, setQuantity] = useState(String(inventory.items[0]?.existing ?? ''));
   const [reason, setReason] = useState('');
   const [errors, setErrors] = useState<AdjustmentErrors>({});
   const [status, setStatus] = useState('');
@@ -28,7 +29,7 @@ export function InventoryPage() {
       formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
-    setInventory({ ...inventory, items: result.items, history: [result.adjustment, ...inventory.history] });
+    onInventoryChange({ ...inventory, items: result.items, history: [result.adjustment, ...inventory.history] });
     setErrors({});
     setReason('');
     setStatus(`Ajuste simulado guardado para ${result.adjustment.sku}: ${result.adjustment.previousQuantity} → ${result.adjustment.newQuantity} unidades. Las reservas no cambian.`);
@@ -39,7 +40,7 @@ export function InventoryPage() {
     if (!order) return { ok: false, message: 'Pedido de demostración desconocido.' };
     const result = reserveDemoInventory(inventory.items, inventory.reservations, order);
     if (!result.ok) return { ok: false, message: result.message };
-    setInventory({ ...inventory, items: result.items, reservations: result.reservations });
+    onInventoryChange({ ...inventory, items: result.items, reservations: result.reservations });
     setStatus('');
     setErrors({});
     return { ok: true, message: result.repeated
@@ -50,7 +51,7 @@ export function InventoryPage() {
   function handleRelease(orderId: string, reason: ReleaseReason) {
     const result = releaseDemoReservation(inventory.items, inventory.reservations, orderId, reason);
     if (!result.ok) return { ok: false, message: result.message };
-    setInventory({ ...inventory, items: result.items, reservations: result.reservations });
+    onInventoryChange({ ...inventory, items: result.items, reservations: result.reservations });
     setStatus('');
     setErrors({});
     return { ok: true, message: result.repeated
@@ -61,7 +62,7 @@ export function InventoryPage() {
   function handleConversion(orderId: string) {
     const result = convertDemoReservation(inventory.items, inventory.reservations, orderId);
     if (!result.ok) return { ok: false, message: result.message };
-    setInventory({ ...inventory, items: result.items, reservations: result.reservations });
+    onInventoryChange({ ...inventory, items: result.items, reservations: result.reservations });
     setStatus('');
     setErrors({});
     return { ok: true, message: result.repeated
@@ -123,7 +124,7 @@ export function InventoryPage() {
         </div>
         <section className="inventory-page__panel" aria-labelledby="adjustment-heading">
           <h2 id="adjustment-heading">Ajustar existencias</h2>
-          <p>Simulación en memoria. El usuario del registro es «Administrador de demostración» y no corresponde a una sesión autenticada. Los ajustes y el historial se pierden al recargar o salir de esta pantalla.</p>
+          <p>Simulación en memoria. El usuario del registro es «Administrador de demostración» y no corresponde a una sesión autenticada. Los ajustes, reservas e historial se conservan al navegar y se pierden al recargar. La disponibilidad se refleja en el catálogo de esta sesión.</p>
           <form className="inventory-page__form" ref={formRef} onSubmit={handleAdjustment} noValidate>
             <div className="inventory-page__field">
               <label htmlFor="adjustment-sku">Artículo a ajustar</label>

@@ -15,7 +15,10 @@ import { prepareCheckoutCart } from "../cart/checkoutCart";
 
 import { CheckoutPaymentResultPage } from "./pages/CheckoutPaymentResultPage";
 
-export function CheckoutFlow({ lines, products, data, onDataChange, onDemoOrderCreated }: {
+import type { InventoryItem } from "../inventory/demo/inventoryDemo";
+
+export function CheckoutFlow({ inventoryItems, lines, products, data, onDataChange, onDemoOrderCreated }: {
+  inventoryItems: readonly InventoryItem[];
   lines: readonly CartLine[]; products: readonly Product[];
   data: CheckoutData; onDataChange: (data: CheckoutData) => void;
   onDemoOrderCreated: (order: DemoOrder) => void;
@@ -30,7 +33,7 @@ export function CheckoutFlow({ lines, products, data, onDataChange, onDemoOrderC
   const [unavailableItemIds, setUnavailableItemIds] = useState<readonly string[]>([]);
   let cartError: string | null = null;
   let selectedItems: readonly CheckoutItem[] = [];
-  try { selectedItems = prepareCheckoutCart(lines, products); }
+  try { selectedItems = prepareCheckoutCart(lines, products, inventoryItems); }
   catch (cause: unknown) { cartError = cause instanceof Error ? cause.message : "Revisa el carrito."; }
   const items = demoMode ? (scenario === "empty" ? [] : demoCart) : selectedItems;
   const inFlight = useRef(false);

@@ -18,3 +18,12 @@ test('SWR-16 muestra disponibilidad por talla a partir del ejemplo y no inventa 
   ]);
   assert.deepEqual(getDemoAvailability('new-product'), []);
 });
+
+test('la disponibilidad usa el inventario de sesión recibido sin volver al ejemplo fijo', async () => {
+  const { inventoryDemo } = await import('../../inventory/demo/inventoryDemo.ts');
+  const items = inventoryDemo.map((item) => item.sku === 'DEMO-VEST-M' ? { ...item, existing: 6 } : { ...item });
+  assert.equal(getDemoAvailability('demo-dress', items)[0].available, 3);
+  assert.equal(getDemoAvailability('demo-dress')[0].available, 12);
+  assert.deepEqual(getDemoAvailability('demo-dress', []), []);
+  assert.equal(items[0].existing, 6);
+});

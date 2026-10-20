@@ -1,13 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { getDemoAvailability } from '../../catalog/demo/catalogDemo';
+import type { DemoAvailability } from '../../catalog/demo/catalogDemo';
 
 interface AddToCartFormProps {
-  productId: string;
+  variants: readonly DemoAvailability[];
   onAdd: (sku: string, quantity: string) => { ok: boolean; message: string };
 }
 
-export function AddToCartForm({ productId, onAdd }: AddToCartFormProps) {
-  const variants = getDemoAvailability(productId);
+export function AddToCartForm({ variants, onAdd }: AddToCartFormProps) {
   const [sku, setSku] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [error, setError] = useState('');

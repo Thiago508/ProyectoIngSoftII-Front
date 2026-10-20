@@ -1,6 +1,8 @@
 import type { Product } from '../products/demo/productsDemo';
 import { getDemoAvailability } from '../catalog/demo/catalogDemo.ts';
 
+import { inventoryDemo, type InventoryItem } from '../inventory/demo/inventoryDemo.ts';
+
 export interface CartLine { productId: string; sku: string; size: string; quantity: number }
 export type CartResult = { ok: false; message: string } | { ok: true; lines: CartLine[]; message: string };
 
@@ -16,10 +18,10 @@ export function cartSubtotalCents(lines: readonly CartLine[], products: readonly
 
 // Solo prepara selección de compra; no modifica productos ni inventario.
 export function addCartItem(products: readonly Product[], lines: readonly CartLine[], productId: string,
-  sku: string, quantityText: string): CartResult {
+  sku: string, quantityText: string, inventoryItems: readonly InventoryItem[] = inventoryDemo): CartResult {
   const product = products.find((candidate) => candidate.id === productId && candidate.active);
   if (!product) return { ok: false, message: 'El producto no está activo o ya no existe.' };
-  const variant = getDemoAvailability(productId).find((candidate) => candidate.sku === sku);
+  const variant = getDemoAvailability(productId, inventoryItems).find((candidate) => candidate.sku === sku);
   if (!variant) return { ok: false, message: 'Selecciona una talla disponible para este producto.' };
   if (variant.available <= 0) return { ok: false, message: 'Esta talla no tiene disponibilidad en los datos de demostración.' };
   const quantity = Number(quantityText.trim());

@@ -8,16 +8,18 @@ import type { Product } from '../../products/demo/productsDemo';
 import { filterActiveProducts, getDemoAvailability } from '../demo/catalogDemo';
 import './CatalogPage.css';
 
+import type { InventoryItem } from "../../inventory/demo/inventoryDemo";
+
 const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function CatalogPage({ products, cartCount, onAddToCart }: { products: readonly Product[]; cartCount: number; onAddToCart: (productId: string, sku: string, quantity: string) => { ok: boolean; message: string } }) {
+export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }: { inventoryItems: readonly InventoryItem[]; products: readonly Product[]; cartCount: number; onAddToCart: (productId: string, sku: string, quantity: string) => { ok: boolean; message: string } }) {
   const { productId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
   const headingRef = useRef<HTMLHeadingElement>(null);
   const product = productId ? products.find((candidate) => candidate.id === productId && candidate.active) : undefined;
   const matches = filterActiveProducts(products, query);
-  const availability = product ? getDemoAvailability(product.id) : [];
+  const availability = product ? getDemoAvailability(product.id, inventoryItems) : [];
   const title = productId ? product?.name ?? 'Producto no disponible' : 'Catálogo';
   const backToCatalog = `/catalog${searchParams.size ? `?${searchParams}` : ''}`;
 
@@ -45,8 +47,8 @@ export function CatalogPage({ products, cartCount, onAddToCart }: { products: re
         <h2>Descripción</h2><p>{product.description}</p>
         <h2>Disponibilidad por talla — demostración</h2>
         {availability.length ? <ul>{availability.map((item) => <li key={item.sku}>Talla {item.size}: {item.available > 0 ? `${item.available} unidades disponibles` : 'Sin disponibilidad'}</li>)}</ul> : <p>Disponibilidad sin confirmar: este producto no tiene artículos de inventario asociados en la demostración.</p>}
-        <p>Disponibilidad tomada de los ejemplos iniciales; no refleja ajustes del laboratorio de Inventario. El backend deberá confirmarla antes de registrar la compra.</p>
-        <AddToCartForm key={product.id} productId={product.id} onAdd={(sku, quantity) => onAddToCart(product.id, sku, quantity)} />
+        <p>Disponibilidad de esta sesión: refleja los ajustes y reservas del laboratorio de Inventario. El backend deberá confirmarla antes de registrar la compra.</p>
+        <AddToCartForm key={product.id} variants={availability} onAdd={(sku, quantity) => onAddToCart(product.id, sku, quantity)} />
         <Link to={backToCatalog}>Volver al catálogo</Link>
         </div>
       </article> : <section className="catalog-page__detail" aria-label="Producto no disponible">

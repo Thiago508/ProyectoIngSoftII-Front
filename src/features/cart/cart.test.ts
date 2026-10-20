@@ -98,3 +98,16 @@ test('el subtotal de checkout conserva centavos del catálogo', async () => {
   const { calculateSubtotal } = await import('../checkout/demo/createDemoOrder.ts');
   assert.equal(calculateSubtotal([{ id: 'sku', name: 'Producto', size: 'M', quantity: 3, unitPrice: 123.45 }]), 370.35);
 });
+
+test('agregar y confirmar consultan el inventario suministrado y no modifican sus cantidades', async () => {
+  const { prepareCheckoutCart } = await import('./checkoutCart.ts');
+  const items = inventoryDemo.map((item) => item.sku === 'DEMO-VEST-M' ? { ...item, existing: 6 } : { ...item });
+  const before = JSON.stringify(items);
+  const line = { productId: 'demo-dress', sku: 'DEMO-VEST-M', size: 'M', quantity: 4 };
+  assert.throws(() => prepareCheckoutCart([line], productsDemo, items));
+  assert.equal(prepareCheckoutCart([{ ...line, quantity: 3 }], productsDemo, items)[0].quantity, 3);
+  const zero = items.map((item) => ({ ...item, existing: item.reserved }));
+  assert.equal(addCartItem(productsDemo, [], 'demo-dress', 'DEMO-VEST-M', '1', zero).ok, false);
+  assert.equal(addCartItem(productsDemo, [], 'demo-dress', 'DEMO-VEST-M', '1', items).ok, true);
+  assert.equal(JSON.stringify(items), before);
+});
