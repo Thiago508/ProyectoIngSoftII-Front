@@ -1,18 +1,20 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CheckoutStepper } from "../components/CheckoutStepper/CheckoutStepper";
-import type { PaymentMethod } from "../types/checkout.types";
+import type { DemoOrder, PaymentMethod } from "../types/checkout.types";
+import { PaymentResultPreview } from "../components/PaymentResultPreview";
 import "./CheckoutDataPage.css";
 
 import { paymentMethods } from "../paymentMethods";
 
 interface CheckoutPaymentPageProps {
+  order: DemoOrder | null;
   method: PaymentMethod | null;
   onChange: (method: PaymentMethod) => void;
   onContinue: () => void;
 }
 
-export function CheckoutPaymentPage({ method, onChange, onContinue }: CheckoutPaymentPageProps) {
+export function CheckoutPaymentPage({ order, method, onChange, onContinue }: CheckoutPaymentPageProps) {
   const [error, setError] = useState(false);
   const firstMethodRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +50,7 @@ export function CheckoutPaymentPage({ method, onChange, onContinue }: CheckoutPa
           <button className="checkout-form__submit" type="submit">Guardar selección de demostración</button>
           <Link className="checkout-form__back" to="/checkout/summary">Volver al pedido</Link>
         </form>
+        {order && <PaymentResultPreview key={order.id} order={order} />}
       </div>
     </main>
   );

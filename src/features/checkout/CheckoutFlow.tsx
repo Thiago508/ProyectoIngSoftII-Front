@@ -77,7 +77,7 @@ export function CheckoutFlow({ lines, products }: { lines: readonly CartLine[]; 
             navigate("/checkout/summary");
           }} />} />
           <Route path="payment" element={
-            <CheckoutPaymentPage method={paymentMethod} onChange={setPaymentMethod} onContinue={() => navigate("/checkout/summary")} />
+            <CheckoutPaymentPage order={order} method={paymentMethod} onChange={setPaymentMethod} onContinue={() => navigate("/checkout/summary")} />
           } />
           <Route path="summary" element={(
             <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={paymentMethod}

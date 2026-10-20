@@ -212,3 +212,31 @@
 .checkout-summary__total {
   flex-wrap: wrap;
 }
+
+.checkout-payment-preview {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  gap: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+}
+
+.checkout-payment-preview h2,
+.checkout-payment-preview h3,
+.checkout-payment-preview p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.checkout-payment-preview h2,
+.checkout-payment-preview h3 {
+  font-size: 1.1rem;
+}
+
+.checkout-payment-preview [role="status"] {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background-color: var(--color-primary-soft);
+  border-radius: var(--radius-control);
+}

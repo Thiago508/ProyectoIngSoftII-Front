@@ -517,3 +517,33 @@ Los 36 casos de carrito y checkout pasan en escritorio, tablet y móvil tras rep
 la revisión de accesibilidad con 60 segundos para sus múltiples auditorías y capturas.
 El flujo del catálogo confirma únicamente las líneas elegidas; el acceso vacío
 queda bloqueado y se preservan los centavos al calcular el subtotal.
+
+## F-06: vista previa de resultados de pago
+
+Después de crear un pedido de demostración, abrir «Seleccionar método de pago
+(demostración)». Debajo del formulario se puede visualizar un resultado pendiente,
+aprobado o rechazado. Cada estado tiene texto propio y una región de estado
+accesible. Se muestra la referencia del pedido, el subtotal local y la moneda COP;
+ese subtotal no se presenta como importe autorizado por el servidor.
+
+`PaymentResultPreview` mantiene únicamente el escenario visual con `useState`.
+Recibe el pedido para mostrar su referencia e importe, sin funciones que puedan
+modificarlo. No tiene carga artificial: cambiar el selector es una operación
+síncrona. Salir de la pantalla y volver restaura el escenario pendiente. Esta
+separación permite revisar la interfaz de SWR-26 sin convertir una selección del
+cliente en aprobación de pago.
+
+F-06 sigue parcial: no hay intento de pago, registro de resultados, comprobación
+de reserva vigente ni importe del servidor (SWR-23); tampoco verificación de una
+confirmación (SWR-24) ni aplicación de efectos una sola vez (SWR-25). Esas garantías
+requieren backend. El laboratorio conserva el pedido pendiente y no altera stock,
+reservas ni métodos de pago seleccionados. No recoge datos de tarjeta.
+
+Prueba manual: crear un pedido, abrir la selección de pago y cambiar «Resultado a
+visualizar (demostración)» entre sus tres opciones. Comprobar los mensajes, volver
+al pedido y verificar que conserva su referencia y estado pendiente de pago.
+La prueba de navegador cubre los tres tamaños, teclado, ausencia de desbordamiento,
+axe, conservación del pedido y reinicio del escenario al regresar a pago.
+
+Las reglas de colaboración están en [AGENTS.md](AGENTS.md), incluida la instrucción
+de sugerir el commit al final de cada incremento sin ejecutar `git commit`.
