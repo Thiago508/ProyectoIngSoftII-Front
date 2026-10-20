@@ -16,3 +16,14 @@ test('valida correo con espacios externos y exige confirmación exacta sin trans
   assert.ok(validateRegistration({ ...data, confirmation: 'clave con espacios' }).confirmation);
   assert.deepEqual(validateRegistration({ email: 'cliente@example.com', password: 'a', confirmation: 'a' }), {});
 });
+
+test('la validación compartida de acceso solo comprueba campos y conserva la contraseña exacta', async () => {
+  const { validateCredentials } = await import('./credentials.ts');
+  assert.deepEqual(validateCredentials({ email: '', password: '' }), {
+    email: 'Escribe un correo electrónico válido.', password: 'Escribe una contraseña.',
+  });
+  const data = { email: ' cliente@example.com ', password: ' contraseña exacta ' };
+  assert.deepEqual(validateCredentials(data), {});
+  assert.deepEqual(data, { email: ' cliente@example.com ', password: ' contraseña exacta ' });
+  assert.ok(validateCredentials({ ...data, email: 'correo@' }).email);
+});

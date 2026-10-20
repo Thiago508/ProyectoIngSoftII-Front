@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { CustomerHeader } from '../../shared/components/CustomerHeader/CustomerHeader';
 import { validateRegistration, type RegistrationData, type RegistrationErrors } from './registration';
-import './RegistrationPage.css';
+import './AuthPage.css';
 
 const empty: RegistrationData = { email: '', password: '', confirmation: '' };
 
@@ -45,31 +45,32 @@ export function RegistrationPage({ cartCount }: { cartCount: number }) {
 
   return <>
     <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo="/catalog" contentHeadingId="registration-heading" skipLabel="Saltar al registro" />
-    <main className="registration-page">
-      <div className="registration-page__panel">
+    <main className="auth-page">
+      <div className="auth-page__panel">
         <h1 id="registration-heading" ref={headingRef} tabIndex={-1}>Registro de cliente</h1>
         <p>Formulario de demostración. No crea cuentas ni inicia sesión.</p>
         <p>El registro público corresponde a clientes. La validación definitiva y la comprobación de un correo único se realizarán en el servidor.</p>
         <form ref={formRef} onSubmit={submit} noValidate>
-          <div className="registration-page__field">
+          <div className="auth-page__field">
             <label htmlFor="registration-email">Correo electrónico</label>
             <input id="registration-email" name="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required value={data.email} onChange={(event) => update('email', event.currentTarget.value)} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'registration-email-error' : undefined} />
-            {errors.email && <p id="registration-email-error" className="registration-page__error">{errors.email}</p>}
+            {errors.email && <p id="registration-email-error" className="auth-page__error">{errors.email}</p>}
           </div>
-          <div className="registration-page__field">
+          <div className="auth-page__field">
             <label htmlFor="registration-password">Contraseña</label>
             <input id="registration-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" autoCapitalize="none" spellCheck={false} required value={data.password} onChange={(event) => update('password', event.currentTarget.value)} aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'registration-password-error' : undefined} />
-            {errors.password && <p id="registration-password-error" className="registration-page__error">{errors.password}</p>}
+            {errors.password && <p id="registration-password-error" className="auth-page__error">{errors.password}</p>}
           </div>
-          <div className="registration-page__field">
+          <div className="auth-page__field">
             <label htmlFor="registration-confirmation">Confirmar contraseña</label>
             <input id="registration-confirmation" name="confirmation" type={showPassword ? 'text' : 'password'} autoComplete="new-password" autoCapitalize="none" spellCheck={false} required value={data.confirmation} onChange={(event) => update('confirmation', event.currentTarget.value)} aria-invalid={Boolean(errors.confirmation)} aria-describedby={errors.confirmation ? 'registration-confirmation-error' : undefined} />
-            {errors.confirmation && <p id="registration-confirmation-error" className="registration-page__error">{errors.confirmation}</p>}
+            {errors.confirmation && <p id="registration-confirmation-error" className="auth-page__error">{errors.confirmation}</p>}
           </div>
-          <label className="registration-page__visibility"><input type="checkbox" checked={showPassword} onChange={(event) => setShowPassword(event.currentTarget.checked)} /> Mostrar contraseñas</label>
+          <label className="auth-page__visibility"><input type="checkbox" checked={showPassword} onChange={(event) => setShowPassword(event.currentTarget.checked)} /> Mostrar contraseñas</label>
           <button type="submit">Validar registro (demostración)</button>
           <p role="status" aria-atomic="true">{validated ? 'Datos válidos para la demostración. No se creó una cuenta ni se inició sesión. Las contraseñas se limpiaron del formulario.' : ''}</p>
         </form>
+        <p>¿Ya tienes una cuenta? <Link to="/login">Ir al inicio de sesión</Link></p>
         <Link to="/catalog">Volver al catálogo</Link>
       </div>
     </main>

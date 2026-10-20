@@ -587,3 +587,35 @@ Prueba manual: desde catálogo abrir el icono de registro, enviar vacío y compr
 el foco y los errores. Completar el correo, escribir contraseñas diferentes y volver
 a validar. Corregirlas, probar «Mostrar contraseñas» y validar: aparece el aviso de
 que no se creó una cuenta y ambas contraseñas quedan vacías. Volver al catálogo conserva las unidades del carrito.
+
+## F-07: formulario de inicio de sesión
+
+`/login` presenta correo y contraseña; se puede acceder desde «Ir al inicio de
+sesión» en registro y volver mediante «Ir al registro». Comparte `AuthPage.css` con
+registro para mantener la misma distribución centrada, colores y controles en los
+tres tamaños. Este archivo sustituye a `RegistrationPage.css` porque ahora sirve
+a dos pantallas de la misma funcionalidad.
+
+`credentials.ts` contiene los tipos y la validación común de los campos. Registro
+la reutiliza y añade la confirmación de contraseña. Inicio de sesión usa
+`autocomplete="username"` para el correo y `current-password` para la contraseña;
+registro conserva `email` y `new-password`. No se transforma la contraseña ni se
+interpreta que un formato válido implique credenciales correctas.
+
+«Validar acceso (demostración)» comprueba correo y contraseña obligatorios, muestra
+errores asociados y enfoca el primer campo inválido. El control «Mostrar contraseña»
+funciona con teclado. Al validar se limpia la contraseña y se vuelve a ocultar;
+el aviso explica que no se verificaron credenciales ni se inició sesión. Editar
+campos limpia el aviso. No hay llamadas a una API, espera artificial, tokens,
+almacenamiento de credenciales ni acceso nuevo a operaciones administrativas.
+
+La interfaz de SWR-29 sigue parcial: autenticación, rechazo de credenciales
+incorrectas y JWT con vencimiento requieren integración con el backend. La
+validación local no sustituye la autorización de SWR-30. Los formularios mantienen
+sus borradores únicamente mientras están montados; navegar entre registro y acceso
+o recargar los descarta, conservando el carrito al navegar dentro de la SPA.
+
+Prueba manual: abrir `/register`, entrar en «Ir al inicio de sesión», validar vacío
+y comprobar foco y errores. Escribir un correo de formato válido y una contraseña,
+probar mostrarla y validar. Comprobar que el resultado no anuncia una sesión y que
+la contraseña queda vacía. Navegar entre ambos formularios y volver al catálogo.
