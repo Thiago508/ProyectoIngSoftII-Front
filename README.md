@@ -239,7 +239,7 @@ existente, reservado y disponible por artículo vendible (SKU y talla), calculan
   accesibilidad automática y navegación al checkout en los tres tamaños.
 
 Esta ruta es una demostración administrativa sin protección real. No implementa
-login, autorización, reservas ni movimientos de pedidos y no modifica el carrito de
+login, autorización ni movimientos reales de pedidos y no modifica el carrito de
 F-01. No muestra un enlace de administrador en el checkout público. La autorización
 por rol deberá verificarse desde backend y después integrarse con F-07.
 
@@ -286,3 +286,30 @@ Prueba: vestido M tiene 15 existentes y 3 reservados. Intentar guardar 2 debe da
 error; guardar 20 con un motivo deja 17 disponibles y añade el registro 15 → 20.
 Guardar 3 después deja 0 disponibles y añade 20 → 3. Los tests de lógica y navegador
 cubren esos límites, el motivo, el historial, las reservas y el reinicio al recargar.
+
+## F-02 / SWR-08: laboratorio de reservas
+
+En `/admin/inventory`, «Reservas de pedidos — laboratorio de demostración» ofrece
+dos pedidos ficticios independientes del checkout:
+
+- `DEMO-PED-001`: vestido M (2) y blusa S (1). Aumenta reservado y reduce disponible,
+  manteniendo existente. Repetirlo devuelve un aviso sin sumar otra reserva.
+- `DEMO-PED-002`: blusa S (1) y falda M (1). Con los ejemplos iniciales se rechaza
+  por falta de falda, y tampoco se reserva la blusa. Si se reabastece la falda con
+  el ajuste local, puede reservarse el pedido completo.
+
+`demo/reserveDemoInventory.ts` agrupa cantidades por SKU y comprueba todas las
+líneas antes de devolver una copia con la reserva. `InventoryPage` aplica artículos
+y reservas en un único estado; los ajustes administrativos conservan ese registro.
+`components/InventoryReservationPanel.tsx` contiene solo el laboratorio y sus avisos.
+La separación permite revisar la regla sin introducir una API inventada.
+
+Esto ilustra la operación todo-o-nada de SWR-08, no garantiza una transacción entre
+compradores. Las reservas reales, autorización y repetición de solicitudes deben
+resolverse en backend. No hay vencimiento inventado, descuentos de existencias,
+aprobación de pagos ni enlace con pedidos del checkout. Recargar o salir elimina
+las reservas simuladas. SWR-09 y SWR-10 siguen pendientes de su siguiente incremento.
+
+Comprobar: reservar el pedido 001 deja vestido M en 15 existentes / 5 reservados /
+10 disponibles. Repetir conserva esas cantidades; intentar ajustar existente a 4
+se rechaza. Probar el pedido 002 confirma que no se aplica una reserva parcial.

@@ -65,3 +65,10 @@
 .inventory-page__history h3 { font-size: 1rem; }
 .inventory-page__panel p, .inventory-page__history h3 { overflow-wrap: anywhere; }
 @media (max-width: 640px) { .inventory-page__panel { padding: 1rem; } }
+
+.inventory-page__reservation-orders { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem; }
+.inventory-page__reservation-orders > li { min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 1rem; }
+.inventory-page__reservation-orders h3 { font-size: 1rem; }
+.inventory-page__reservation-orders ul { padding-left: 1.25rem; overflow-wrap: anywhere; }
+.inventory-page__reservation-orders button { width: 100%; }
+.inventory-page__panel button:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }

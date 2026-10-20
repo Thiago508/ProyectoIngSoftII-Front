@@ -46,7 +46,7 @@ test('SWR-07 valida, ajusta existencias y conserva historial local', async ({ pa
   await quantity.fill('20');
   await reason.fill(' Conteo físico ');
   await save.click();
-  await expect(page.getByRole('status')).toContainText('15 → 20');
+  await expect(page.getByRole('region', { name: 'Ajustar existencias' }).getByRole('status')).toContainText('15 → 20');
   const row = page.getByRole('row').filter({ hasText: 'DEMO-VEST-M' });
   await expect(row.getByRole('cell')).toHaveText(['M', '20', '3', '17', 'Disponible']);
   const history = page.getByRole('region', { name: 'Historial de ajustes de esta sesión' });
@@ -65,4 +65,32 @@ test('SWR-07 valida, ajusta existencias y conserva historial local', async ({ pa
   await page.reload();
   await expect(page.getByText('Todavía no hay ajustes registrados.')).toBeVisible();
   await expect(row.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
+});
+
+
+test('SWR-08 reserva todo o nada, protege ajustes y no duplica un pedido', async ({ page }) => {
+  await page.goto('/admin/inventory');
+  const panel = page.getByRole('region', { name: 'Reservas de pedidos — laboratorio de demostración' });
+  const blouse = page.getByRole('row').filter({ hasText: 'DEMO-BLUSA-S' });
+  const dress = page.getByRole('row').filter({ hasText: 'DEMO-VEST-M' });
+  await panel.getByRole('button', { name: 'Reservar DEMO-PED-002 (simulación)' }).click();
+  await expect(panel.getByRole('alert')).toContainText('No se reservó ninguna línea');
+  await expect(blouse.getByRole('cell')).toHaveText(['S', '25', '0', '25', 'Disponible']);
+  await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
+  await expect(panel.getByRole('status')).toContainText('se reservaron todas las líneas');
+  await expect(dress.getByRole('cell')).toHaveText(['M', '15', '5', '10', 'Disponible']);
+  await expect(blouse.getByRole('cell')).toHaveText(['S', '25', '1', '24', 'Disponible']);
+  await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
+  await expect(panel.getByRole('status')).toContainText('no se duplicaron unidades');
+  await expect(dress.getByRole('cell')).toHaveText(['M', '15', '5', '10', 'Disponible']);
+  await page.getByLabel('Nueva cantidad existente').fill('4');
+  await page.getByLabel('Motivo del ajuste').fill('Conteo');
+  await page.getByRole('button', { name: 'Guardar ajuste de demostración' }).click();
+  await expect(page.getByLabel('Nueva cantidad existente')).toHaveAccessibleDescription(/5 unidades reservadas/);
+  await page.getByLabel('Nueva cantidad existente').fill('20');
+  await page.getByRole('button', { name: 'Guardar ajuste de demostración' }).click();
+  await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
+  await expect(panel.getByRole('status')).toContainText('no se duplicaron unidades');
+  await expect(dress.getByRole('cell')).toHaveText(['M', '20', '5', '15', 'Disponible']);
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
 });

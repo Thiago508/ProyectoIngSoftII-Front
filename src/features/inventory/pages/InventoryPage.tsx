@@ -2,10 +2,12 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { inventoryDemo, type InventoryItem } from '../demo/inventoryDemo';
 import { adjustDemoInventory, type AdjustmentErrors, type InventoryAdjustment } from '../demo/adjustDemoInventory';
+import { reserveDemoInventory, reservationOrders, type DemoReservation } from '../demo/reserveDemoInventory';
+import { InventoryReservationPanel } from '../components/InventoryReservationPanel';
 import './InventoryPage.css';
 
 export function InventoryPage() {
-  const [inventory, setInventory] = useState<{ items: InventoryItem[]; history: InventoryAdjustment[] }>(() => ({ items: inventoryDemo.map((item) => ({ ...item })), history: [] }));
+  const [inventory, setInventory] = useState<{ items: InventoryItem[]; history: InventoryAdjustment[]; reservations: DemoReservation[] }>(() => ({ items: inventoryDemo.map((item) => ({ ...item })), history: [], reservations: [] }));
   const [sku, setSku] = useState(inventoryDemo[0].sku);
   const [quantity, setQuantity] = useState(String(inventoryDemo[0].existing));
   const [reason, setReason] = useState('');
@@ -24,10 +26,23 @@ export function InventoryPage() {
       formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
-    setInventory({ items: result.items, history: [result.adjustment, ...inventory.history] });
+    setInventory({ ...inventory, items: result.items, history: [result.adjustment, ...inventory.history] });
     setErrors({});
     setReason('');
     setStatus(`Ajuste simulado guardado para ${result.adjustment.sku}: ${result.adjustment.previousQuantity} → ${result.adjustment.newQuantity} unidades. Las reservas no cambian.`);
+  }
+
+  function handleReserve(orderId: string) {
+    const order = reservationOrders.find((candidate) => candidate.id === orderId);
+    if (!order) return { ok: false, message: 'Pedido de demostración desconocido.' };
+    const result = reserveDemoInventory(inventory.items, inventory.reservations, order);
+    if (!result.ok) return { ok: false, message: result.message };
+    setInventory({ ...inventory, items: result.items, reservations: result.reservations });
+    setStatus('');
+    setErrors({});
+    return { ok: true, message: result.repeated
+      ? `${orderId}: la reserva ya estaba registrada; no se duplicaron unidades.`
+      : `${orderId}: se reservaron todas las líneas. Las existencias no cambian.` };
   }
 
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -118,6 +133,7 @@ export function InventoryPage() {
           </form>
           <p role="status" aria-atomic="true">{status}</p>
         </section>
+        <InventoryReservationPanel reservations={inventory.reservations} onReserve={handleReserve} />
         <section className="inventory-page__panel" aria-labelledby="adjustment-history-heading">
           <h2 id="adjustment-history-heading">Historial de ajustes de esta sesión</h2>
           {!inventory.history.length ? <p>Todavía no hay ajustes registrados.</p> : <ol className="inventory-page__history">
