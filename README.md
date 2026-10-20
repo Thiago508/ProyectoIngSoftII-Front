@@ -356,3 +356,32 @@ Las pruebas comprueban también pago simulado después de cancelar o expirar.
 Estado de F-02: SWR-06–10 tienen demostración frontend y pruebas. La restricción de
 rol de SWR-07, persistencia, transacciones y efectos únicos entre solicitudes reales
 siguen pendientes de integración. Ver [trazabilidad F-02](docs/f02-traceability.md).
+
+## F-03 / SWR-11: registrar productos
+
+Ruta `/admin/products`, accesible desde la navegación administrativa compartida con
+Inventario. El primer incremento permite registrar un producto y consultar el
+listado local. Nombre, descripción e identificador son obligatorios y el precio
+debe ser mayor que cero. La normalización local guarda el código en mayúsculas y
+sin espacios exteriores, rechazando duplicados; esa convención debe acordarse con
+backend antes de integrar.
+
+`features/products/demo/productsDemo.ts` contiene el modelo, los ejemplos y la
+operación de registro. `ProductsPage` mantiene el estado de la pantalla, validación
+y mensajes. `shared/components/AdminHeader` se usa en Productos e Inventario;
+ambas pantallas conservan los colores y anchos comunes.
+
+El precio se introduce sin separadores de miles, con hasta dos decimales y coma o
+punto decimal, y se representa en centavos enteros. No se admiten valores fuera de
+la precisión segura de JavaScript. Registrar crea un producto activo de demostración,
+no unidades de inventario, tallas, fotos ni líneas de pedidos. El código del producto
+no es el SKU de una variante de inventario. No se modifican datos históricos de F-01.
+
+No hay autorización administrativa real ni persistencia. Recargar o abandonar
+Productos restaura sus ejemplos. No hay loading ficticio: el registro es síncrono.
+SWR-12 (editar), SWR-13 (desactivar) y la integración con backend quedan pendientes.
+
+Prueba: enviar vacío para ver errores y foco, intentar `demo-vest` para comprobar
+el duplicado y registrar `NUEVO-01` con nombre, descripción y `89900,50`. Comprobar
+la tarjeta activa, el aviso y el precio. Navegar a Inventario permite comprobar el
+header compartido; volver a Productos reinicia los datos locales.

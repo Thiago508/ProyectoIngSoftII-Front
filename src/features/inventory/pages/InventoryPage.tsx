@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { AdminHeader } from '../../../shared/components/AdminHeader/AdminHeader';
 import { inventoryDemo, type InventoryItem } from '../demo/inventoryDemo';
 import { adjustDemoInventory, type AdjustmentErrors, type InventoryAdjustment } from '../demo/adjustDemoInventory';
 import { reserveDemoInventory, reservationOrders, type DemoReservation } from '../demo/reserveDemoInventory';
@@ -81,12 +81,7 @@ export function InventoryPage() {
   return (
     <div className="inventory-page">
       <a className="inventory-page__skip" href="#inventory-heading">Saltar al inventario</a>
-      <header className="inventory-page__header">
-        <div className="inventory-page__header-inner">
-          <span className="inventory-page__brand">Fashion <span>Administración · Demo</span></span>
-          <Link to="/checkout">Ir al checkout de demostración</Link>
-        </div>
-      </header>
+      <AdminHeader />
       <main className="inventory-page__main">
         <h1 id="inventory-heading" ref={headingRef} tabIndex={-1}>Inventario</h1>
         <p className="inventory-page__notice">Datos de demostración. El acceso de administrador todavía no está protegido; no hay autenticación ni conexión a inventario real.</p>

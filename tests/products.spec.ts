@@ -1,0 +1,37 @@
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+test('SWR-11 registra producto, valida duplicados y comparte navegación administrativa', async ({ page }, testInfo) => {
+  await page.goto('/admin/products');
+  await expect(page.getByRole('heading', { name: 'Productos', exact: true })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Productos', exact: true })).toHaveAttribute('aria-current', 'page');
+  const save = page.getByRole('button', { name: 'Registrar producto de demostración' });
+  await save.click();
+  await expect(page.getByLabel('Identificador comercial')).toBeFocused();
+  await expect(page.getByLabel('Precio en COP')).toHaveAccessibleDescription(/mayor que cero/);
+  await page.getByLabel('Identificador comercial').fill(' demo-vest ');
+  await page.getByLabel('Nombre del producto').fill(' Blusa de prueba ');
+  await page.getByLabel('Descripción del producto').fill(' Descripción de prueba ');
+  await page.getByLabel('Precio en COP').fill('0');
+  await save.click();
+  await expect(page.getByLabel('Identificador comercial')).toHaveAccessibleDescription(/Ya existe/);
+  await page.getByLabel('Identificador comercial').fill(' NUEVO-01 ');
+  await page.getByLabel('Precio en COP').fill('89900,50');
+  await save.click();
+  await expect(page.getByRole('status')).toContainText('Producto NUEVO-01 registrado');
+  const list = page.getByRole('region', { name: 'Productos de esta sesión' });
+  await expect(list.getByRole('listitem')).toHaveCount(3);
+  const product = list.getByRole('listitem').filter({ hasText: 'NUEVO-01' });
+  await expect(product).toContainText('Blusa de prueba');
+  await expect(product).toContainText('Descripción de prueba');
+  await expect(product).toContainText('89.900,50');
+  await expect(product).toContainText('Estado: Activo');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: testInfo.outputPath('productos.png'), fullPage: true });
+  await page.getByRole('link', { name: 'Inventario', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/inventory$/);
+  await expect(page.getByRole('link', { name: 'Inventario', exact: true })).toHaveAttribute('aria-current', 'page');
+  await page.getByRole('link', { name: 'Productos', exact: true }).click();
+  await expect(list.getByRole('listitem')).toHaveCount(2);
+});

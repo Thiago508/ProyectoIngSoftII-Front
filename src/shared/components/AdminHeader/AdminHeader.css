@@ -1,0 +1,8 @@
+.admin-header { background: var(--color-admin); color: #fff; padding-block: 1rem; }
+.admin-header__inner { width: calc(100% - 2 * var(--page-gutter)); max-width: var(--content-width); margin-inline: auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.admin-header__brand { font: italic bold 1.5rem Georgia, serif; }
+.admin-header__brand span { display: block; font: 0.8rem Arial, sans-serif; }
+.admin-header nav { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.admin-header a { color: #fff; padding-block: 0.25rem; }
+.admin-header a[aria-current="page"] { text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.admin-header a:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
