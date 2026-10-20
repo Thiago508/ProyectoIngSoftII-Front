@@ -308,7 +308,7 @@ Esto ilustra la operación todo-o-nada de SWR-08, no garantiza una transacción 
 compradores. Las reservas reales, autorización y repetición de solicitudes deben
 resolverse en backend. No hay vencimiento inventado, descuentos de existencias,
 aprobación de pagos ni enlace con pedidos del checkout. Recargar o salir elimina
-las reservas simuladas. SWR-09 incorpora cancelación y expiración manuales; SWR-10 sigue pendiente.
+las reservas simuladas. SWR-09 incorpora cancelación y expiración manuales; SWR-10 incorpora la conversión simulada a salida.
 
 Comprobar: reservar el pedido 001 deja vestido M en 15 existentes / 5 reservados /
 10 disponibles. Repetir conserva esas cantidades; intentar ajustar existente a 4
@@ -334,3 +334,25 @@ transaccional. Estos botones no cancelan pedidos reales ni notifican a clientes.
 Prueba: reservar DEMO-PED-001 lleva vestido M de 3 a 5 reservados. Cancelar o
 expirar devuelve a 3 y deja 15 existentes / 12 disponibles. Repetir no libera las
 3 unidades iniciales. Recargar restaura todos los datos de demostración.
+
+## F-02 / SWR-10: convertir una reserva activa en salida
+
+«Simular evento de pago confirmado» ilustra únicamente el efecto sobre inventario,
+con una reserva activa del laboratorio. **No verifica ni aprueba un pago**, no
+procesa cobros y no cambia los pedidos del checkout. En producción la confirmación
+auténtica y la vigencia de la reserva deberán verificarse desde backend.
+
+`demo/convertDemoReservation.ts` comprueba todas las líneas antes de descontar
+existente y reservado. Conserva disponible y reservas ajenas. La reserva pasa a
+`converted` con fecha local; repetir el evento no duplica la salida. Se rechazan
+reservas inexistentes, canceladas, expiradas o inconsistentes. Después de convertir,
+no se permite liberar ni volver a reservar ese mismo pedido. Esto no implementa
+una devolución ni una política de reembolso.
+
+Prueba: reservar DEMO-PED-001 deja vestido M en 15 / 5 / 10. Simular el evento deja
+13 / 3 / 10. Repetir conserva 13 / 3 / 10. Cancelar o expirar después se rechaza.
+Las pruebas comprueban también pago simulado después de cancelar o expirar.
+
+Estado de F-02: SWR-06–10 tienen demostración frontend y pruebas. La restricción de
+rol de SWR-07, persistencia, transacciones y efectos únicos entre solicitudes reales
+siguen pendientes de integración. Ver [trazabilidad F-02](docs/f02-traceability.md).

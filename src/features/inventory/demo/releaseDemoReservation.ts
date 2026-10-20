@@ -14,6 +14,7 @@ export function releaseDemoReservation(items: readonly InventoryItem[], reservat
   orderId: string, reason: ReleaseReason): ReleaseResult {
   const reservation = reservations.find((candidate) => candidate.orderId === orderId);
   if (!reservation) return { ok: false, message: 'No hay una reserva registrada para este pedido. No se modificó el inventario.' };
+  if (reservation.status === 'converted') return { ok: false, message: 'La reserva ya se convirtió en salida simulada. No puede liberarse ni devolver existencias desde este laboratorio.' };
   if (reservation.status !== 'active') return { ok: true, items: [...items], reservations: [...reservations], repeated: true };
   for (const line of reservation.lines) {
     const item = items.find((candidate) => candidate.sku === line.sku);

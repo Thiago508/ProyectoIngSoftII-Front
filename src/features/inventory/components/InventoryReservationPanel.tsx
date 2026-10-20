@@ -4,11 +4,12 @@ import { reservationOrders, type DemoReservation } from '../demo/reserveDemoInve
 
 interface InventoryReservationPanelProps {
   reservations: readonly DemoReservation[];
+  onConvert: (orderId: string) => { ok: boolean; message: string };
   onRelease: (orderId: string, reason: ReleaseReason) => { ok: boolean; message: string };
   onReserve: (orderId: string) => { ok: boolean; message: string };
 }
 
-export function InventoryReservationPanel({ reservations, onReserve, onRelease }: InventoryReservationPanelProps) {
+export function InventoryReservationPanel({ reservations, onReserve, onRelease, onConvert }: InventoryReservationPanelProps) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -24,6 +25,12 @@ export function InventoryReservationPanel({ reservations, onReserve, onRelease }
     setError(result.ok ? '' : result.message);
   }
 
+  function handleConversion(orderId: string) {
+    const result = onConvert(orderId);
+    setMessage(result.ok ? result.message : '');
+    setError(result.ok ? '' : result.message);
+  }
+
   return (
     <section className="inventory-page__panel" aria-labelledby="reservation-heading">
       <h2 id="reservation-heading">Reservas de pedidos — laboratorio de demostración</h2>
@@ -35,6 +42,7 @@ export function InventoryReservationPanel({ reservations, onReserve, onRelease }
           <p>{(() => {
             const reservation = reservations.find((candidate) => candidate.orderId === order.id);
             if (!reservation) return 'Sin reserva registrada en este laboratorio';
+            if (reservation.status === 'converted') return 'Reserva convertida en salida simulada';
             if (reservation.status === 'cancelled') return 'Reserva liberada por cancelación simulada';
             if (reservation.status === 'expired') return 'Reserva liberada por expiración simulada';
             return 'Reserva simulada registrada';
@@ -43,12 +51,13 @@ export function InventoryReservationPanel({ reservations, onReserve, onRelease }
           <button type="button" className="inventory-page__submit" onClick={() => handleReserve(order.id)}>Reservar {order.id} (simulación)</button>
           <button type="button" className="inventory-page__secondary" onClick={() => handleRelease(order.id, 'cancelled')}>Simular cancelación {order.id}</button>
           <button type="button" className="inventory-page__secondary" onClick={() => handleRelease(order.id, 'expired')}>Simular expiración {order.id}</button>
+          <button type="button" className="inventory-page__secondary" onClick={() => handleConversion(order.id)}>Simular evento de pago confirmado {order.id}</button>
           </div>
         </li>)}
       </ul>
       <p role="status" aria-atomic="true">{message}</p>
       {error && <p className="inventory-page__error" role="alert">{error}</p>}
-      <p>Cancelación y expiración son eventos manuales de demostración; no se define un plazo ni se ejecuta un temporizador. Una reserva liberada no se reactiva para el mismo pedido. La conversión por pago sigue pendiente.</p>
+      <p>Cancelación y expiración son eventos manuales de demostración; no se define un plazo ni se ejecuta un temporizador. Una reserva liberada no se reactiva para el mismo pedido. «Simular evento de pago confirmado» aplica solo el efecto de inventario. No aprueba ni verifica pagos, no procesa cobros y no modifica los pedidos del checkout. En producción el evento debe venir verificado desde backend.</p>
     </section>
   );
 }

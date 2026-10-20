@@ -114,7 +114,32 @@ for (const event of ['cancelación', 'expiración']) {
     await expect(dress.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
     await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
     await expect(panel.getByRole('alert')).toContainText('No se crea una nueva reserva');
+    await panel.getByRole('button', { name: 'Simular evento de pago confirmado DEMO-PED-001' }).click();
+    await expect(panel.getByRole('alert')).toContainText('cancelada o expirada');
     await expect(dress.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
   });
 }
+
+test('SWR-10 convierte reserva activa una sola vez sin confundirlo con un pago real', async ({ page }) => {
+  await page.goto('/admin/inventory');
+  const panel = page.getByRole('region', { name: 'Reservas de pedidos — laboratorio de demostración' });
+  const convert = panel.getByRole('button', { name: 'Simular evento de pago confirmado DEMO-PED-001' });
+  await convert.click();
+  await expect(panel.getByRole('alert')).toContainText('No hay una reserva registrada');
+  await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
+  await convert.click();
+  await expect(panel.getByRole('status')).toContainText('reserva convertida en salida simulada');
+  await expect(panel.getByRole('status')).toContainText('no se procesó un pago real');
+  const dress = page.getByRole('row').filter({ hasText: 'DEMO-VEST-M' });
+  await expect(dress.getByRole('cell')).toHaveText(['M', '13', '3', '10', 'Disponible']);
+  const blouse = page.getByRole('row').filter({ hasText: 'DEMO-BLUSA-S' });
+  await expect(blouse.getByRole('cell')).toHaveText(['S', '24', '0', '24', 'Disponible']);
+  await convert.click();
+  await expect(panel.getByRole('status')).toContainText('no se descontó dos veces');
+  await panel.getByRole('button', { name: 'Simular cancelación DEMO-PED-001' }).click();
+  await expect(panel.getByRole('alert')).toContainText('No puede liberarse');
+  await panel.getByRole('button', { name: 'Simular expiración DEMO-PED-001' }).click();
+  await expect(dress.getByRole('cell')).toHaveText(['M', '13', '3', '10', 'Disponible']);
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+});

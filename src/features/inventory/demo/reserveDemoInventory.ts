@@ -2,7 +2,7 @@ import type { InventoryItem } from './inventoryDemo';
 
 export interface ReservationLine { sku: string; quantity: number }
 export interface ReservationOrder { id: string; lines: readonly ReservationLine[] }
-export interface DemoReservation { orderId: string; lines: ReservationLine[]; createdAt: string; status: 'active' | 'cancelled' | 'expired'; releasedAt?: string }
+export interface DemoReservation { orderId: string; lines: ReservationLine[]; createdAt: string; status: 'active' | 'cancelled' | 'expired' | 'converted'; releasedAt?: string; convertedAt?: string }
 
 export const reservationOrders: readonly ReservationOrder[] = [
   { id: 'DEMO-PED-001', lines: [{ sku: 'DEMO-VEST-M', quantity: 2 }, { sku: 'DEMO-BLUSA-S', quantity: 1 }] },
@@ -22,7 +22,7 @@ export function reserveDemoInventory(items: readonly InventoryItem[], reservatio
   if (!order.id || !order.lines.length) return { ok: false, message: 'El pedido de demostración no tiene líneas válidas.' };
   const previousReservation = reservations.find((reservation) => reservation.orderId === order.id);
   if (previousReservation && previousReservation.status !== 'active') {
-    return { ok: false, message: 'Este pedido de demostración ya terminó por cancelación o expiración. No se crea una nueva reserva para el mismo pedido.' };
+    return { ok: false, message: 'Este pedido de demostración ya tiene una reserva terminada. No se crea una nueva reserva para el mismo pedido.' };
   }
   if (previousReservation) {
     return { ok: true, items: [...items], reservations: [...reservations], repeated: true };
