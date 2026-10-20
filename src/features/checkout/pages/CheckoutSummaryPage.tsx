@@ -56,12 +56,12 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, 
           {!items.length && <p id="empty-cart-message" className="checkout-form__error">El carrito está vacío. Agrega productos antes de confirmar el pedido. Puedes restaurar el carrito válido en el selector de demostración.</p>}
           <ul className="checkout-summary__items">
             {items.map((item) => <li key={item.id}>
-              <div><strong>{item.name}</strong><p>Talla: {item.size} · Cantidad: {item.quantity}</p></div>
+              <div><strong>{item.name}</strong><p>Talla: {item.size} · Cantidad: {item.quantity}</p><p>Precio unitario: {currency.format(item.unitPrice)}</p></div>
               <span>{currency.format(item.unitPrice * item.quantity)}</span>
               {unavailableItemIds.includes(item.id) && <p className="checkout-form__error">{item.name}, talla {item.size}: disponibilidad insuficiente (simulada).</p>}
             </li>)}
           </ul>
-          <p className="checkout-summary__total"><strong>Subtotal de productos</strong><strong>{currency.format(order?.total ?? (items.length ? calculateSubtotal(items) : 0))}</strong></p>
+          <p className="checkout-summary__total"><strong>Subtotal de productos</strong><strong>{currency.format(order?.subtotal ?? (items.length ? calculateSubtotal(items) : 0))}</strong></p>
           <p>El costo de envío está pendiente de definir; no está incluido en este subtotal.</p>
         </section>
         <section className="checkout-form__section" aria-label="Datos de envío">

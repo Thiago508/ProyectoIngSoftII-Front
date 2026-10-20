@@ -26,7 +26,7 @@ export class DemoAvailabilityError extends Error {
 export async function createDemoOrder(customer: CheckoutData,
   items: readonly CheckoutItem[], simulateFailure = false, unavailableItemIds: readonly string[] = []): Promise<DemoOrder> {
   if (Object.keys(validateCheckoutData(customer)).length) throw new Error("Revisa los datos de compra.");
-  const total = calculateSubtotal(items);
+  const subtotal = calculateSubtotal(items);
   const snapshot = { customer: normalizeCheckoutData(customer), items: items.map((item) => ({ ...item })) };
   await new Promise<void>((resolve) => setTimeout(resolve, 500));
   const unavailable = snapshot.items.filter((item) => unavailableItemIds.includes(item.id)).map((item) => item.id);
@@ -34,6 +34,6 @@ export async function createDemoOrder(customer: CheckoutData,
   if (simulateFailure) throw new Error("No se pudo crear el pedido de demostración. Intenta nuevamente.");
   return {
     id: `DEMO-${crypto.randomUUID()}`, createdAt: new Date().toISOString(), status: "pending_payment",
-    ...snapshot, total,
+    ...snapshot, subtotal,
   };
 }

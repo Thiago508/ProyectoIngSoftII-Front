@@ -29,5 +29,5 @@ export interface DemoOrder {
   status: "pending_payment";
   customer: CheckoutData;
   items: CheckoutItem[];
-  total: number;
+  subtotal: number;
 }

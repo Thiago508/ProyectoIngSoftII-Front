@@ -24,6 +24,8 @@ test('errores propios, foco y conservación del borrador entre rutas', async ({ 
   await expect(page).toHaveURL(/\/checkout\/summary$/);
   await expect(page.getByRole('button', { name: 'Crear pedido de demostración', exact: true })).toBeEnabled();
   await expect(page.getByRole('radio')).toHaveCount(0);
+  await expect(page.getByText('Precio unitario:', { exact: false })).toHaveCount(3);
+  await expect(page.getByText('Subtotal de productos')).toBeVisible();
   await page.getByRole('link', { name: 'Editar datos y envío' }).click();
   await expect(page.getByLabel('Nombre completo')).toHaveValue('Karen Martínez');
   await expect(page.getByLabel('Teléfono')).toHaveValue('3001234567');

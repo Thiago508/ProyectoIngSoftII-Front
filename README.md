@@ -201,3 +201,12 @@ Resumen si hay datos válidos, o al formulario si no los hay.
 Este cambio sigue el orden del Excel actualizado (SWR-04, SWR-05 y SWR-23). No
 simula una reserva vigente ni habilita procesamiento real de pagos. La autorización,
 la reserva y el importe deben verificarse en backend antes de integrar F-06.
+
+## Evidencias de F-01 para la entrega
+
+Consultar [la matriz de trazabilidad](docs/f01-traceability.md) para relacionar
+SWR-01–05 con pantallas, pruebas y dependencias del backend. Incluye un guion de
+demostración y una agenda para acordar la integración, sin inventar endpoints.
+
+En el modelo local, `DemoOrder.subtotal` representa únicamente los productos;
+no es un total definitivo de compra. El resumen presenta también el precio unitario.
