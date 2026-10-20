@@ -135,8 +135,8 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/fashion-playwright npm run test:e2e
 
 Playwright inicia su propio Vite en el puerto 4173. Comprueba errores y foco,
 conservación del borrador, acceso directo, recarga, fallo/reintento, historial y
-desbordamiento horizontal. Son dieciocho ejecuciones: seis casos en escritorio,
-seis en tablet y seis en móvil emulado. No equivale a Safari ni a un iPhone físico.
+desbordamiento horizontal. Son veintiuna ejecuciones: siete casos en escritorio,
+siete en tablet y siete en móvil emulado. No equivale a Safari ni a un iPhone físico.
 
 El caso de teclado guarda `datos.png` y `resumen.png` por proyecto en
 `test-results/`, junto a las trazas de fallos. Los artefactos se excluyen de Git.
@@ -210,3 +210,17 @@ demostración y una agenda para acordar la integración, sin inventar endpoints.
 
 En el modelo local, `DemoOrder.subtotal` representa únicamente los productos;
 no es un total definitivo de compra. El resumen presenta también el precio unitario.
+
+## Pantallas estrechas y datos largos
+
+`tests/checkout-responsive.spec.ts` recorre edición, resumen, creación y selección
+posterior de pago con nombre, correo y dirección largos. Comprueba conservación de
+valores, foco y ausencia de desbordamiento horizontal. El caso móvil usa 320 px;
+escritorio y tablet amplían el tamaño de fuente raíz al 200 %. Esto prueba texto
+ampliado, no equivale a comprobar el zoom completo del navegador o todos los modos
+de ampliación de una tecnología de asistencia.
+
+Las capturas `resumen-datos-largos.png`, `resultado-datos-largos.png` y
+`pago-texto-ampliado.png` se generan en `test-results/checkout-responsive-…`.
+No hicieron falta cambios de CSS para estos casos. La escucha con Orca sigue
+pendiente; esta revisión tampoco confirma compatibilidad con dispositivos físicos.

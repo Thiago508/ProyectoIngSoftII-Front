@@ -83,3 +83,13 @@ En otro entorno, instalar Chromium con `npx playwright install chromium` y ejecu
 `test-results/checkout-review-…-desktop`, `…-tablet` y `…-mobile`. Los árboles y los
 resultados axe se adjuntan a los resultados de Playwright. `test-results/` se regenera
 en cada ejecución y se excluye de Git; no es un archivo permanente de evidencias.
+
+## Ampliación de la revisión — 19 de octubre de 2026
+
+Se añadió `checkout-responsive.spec.ts`: móvil a 320 px y fuente raíz al 200 %
+en escritorio y tablet, con nombre, correo y dirección largos. Las tres ejecuciones
+pasaron. Se inspeccionaron las capturas del resultado móvil, Pago en tablet y
+Resumen en escritorio: textos y controles se ajustan sin solapamientos observados.
+Los importes pueden pasar a una línea nueva cuando falta espacio.
+No se modificaron estilos; se conservaron las comprobaciones como regresión.
+La ampliación de fuente no equivale a una prueba exhaustiva de zoom de navegador.
