@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test src/features/checkout/utils/checkoutValidation.test.ts src/features/checkout/demo/createDemoOrder.test.ts src/features/checkout/utils/checkoutNavigation.test.ts",
+    "test": "node --experimental-strip-types --test src/features/checkout/utils/checkoutValidation.test.ts src/features/checkout/demo/createDemoOrder.test.ts src/features/checkout/utils/checkoutNavigation.test.ts src/features/inventory/demo/adjustDemoInventory.test.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {

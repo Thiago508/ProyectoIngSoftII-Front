@@ -239,13 +239,13 @@ existente, reservado y disponible por artículo vendible (SKU y talla), calculan
   accesibilidad automática y navegación al checkout en los tres tamaños.
 
 Esta ruta es una demostración administrativa sin protección real. No implementa
-login, autorización, ajustes, reservas ni movimientos y no modifica el carrito de
+login, autorización, reservas ni movimientos de pedidos y no modifica el carrito de
 F-01. No muestra un enlace de administrador en el checkout público. La autorización
 por rol deberá verificarse desde backend y después integrarse con F-07.
 
-Siguiente incremento: SWR-07, formulario de ajuste con enteros no negativos,
+SWR-07 ya incluye un formulario de ajuste con enteros no negativos,
 prohibición de bajar de reservado y registro de cantidad anterior/nueva, motivo,
-usuario y fecha. Ese registro será explícitamente simulado hasta la integración.
+usuario y fecha. Ese registro es explícitamente simulado hasta la integración.
 SWR-08–10 (reservar, liberar y convertir a salida una sola vez) requieren operación
 transaccional en backend; no se garantizan modificando contadores en React.
 
@@ -264,3 +264,25 @@ ocupa el espacio entre la marca y las acciones. El formulario conserva su ancho
 máximo de 620 px y está centrado de forma independiente. En inventario, cabecera
 y contenido comparten los mismos límites; la cabecera oscura distingue administración.
 El indicador de foco de los títulos usa el color principal y sigue siendo visible.
+
+## F-02 / SWR-07: ajustes administrativos simulados
+
+En `/admin/inventory`, el formulario permite seleccionar SKU y talla, introducir la
+**nueva cantidad total de existencias** y justificarla. Rechaza campos vacíos,
+negativos, decimales y cantidades inferiores a reservado. Se limita a enteros seguros
+de JavaScript para no perder precisión; no se inventó un máximo de negocio.
+
+`demo/adjustDemoInventory.ts` valida y devuelve los artículos actualizados junto
+al registro del ajuste, sin modificar los datos de entrada. `InventoryPage` aplica
+ambos en una sola actualización de estado. Reservado no cambia y disponible se
+recalcula. No se añade un loading, porque es una operación local síncrona.
+
+El historial presenta SKU, nombre, talla, cantidad anterior/nueva, motivo recortado,
+usuario fijo «Administrador de demostración» y fecha en `America/Bogota`. No es una
+auditoría persistente ni prueba de autorización. Recargar o salir de la pantalla
+restaura los ejemplos y elimina el historial. El checkout continúa independiente.
+
+Prueba: vestido M tiene 15 existentes y 3 reservados. Intentar guardar 2 debe dar
+error; guardar 20 con un motivo deja 17 disponibles y añade el registro 15 → 20.
+Guardar 3 después deja 0 disponibles y añade 20 → 3. Los tests de lógica y navegador
+cubren esos límites, el motivo, el historial, las reservas y el reinicio al recargar.

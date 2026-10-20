@@ -1,9 +1,35 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { inventoryDemo } from '../demo/inventoryDemo';
+import { inventoryDemo, type InventoryItem } from '../demo/inventoryDemo';
+import { adjustDemoInventory, type AdjustmentErrors, type InventoryAdjustment } from '../demo/adjustDemoInventory';
 import './InventoryPage.css';
 
 export function InventoryPage() {
+  const [inventory, setInventory] = useState<{ items: InventoryItem[]; history: InventoryAdjustment[] }>(() => ({ items: inventoryDemo.map((item) => ({ ...item })), history: [] }));
+  const [sku, setSku] = useState(inventoryDemo[0].sku);
+  const [quantity, setQuantity] = useState(String(inventoryDemo[0].existing));
+  const [reason, setReason] = useState('');
+  const [errors, setErrors] = useState<AdjustmentErrors>({});
+  const [status, setStatus] = useState('');
+  const formRef = useRef<HTMLFormElement>(null);
+  const selectedItem = inventory.items.find((item) => item.sku === sku);
+
+  function handleAdjustment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const result = adjustDemoInventory(inventory.items, sku, quantity, reason);
+    setStatus('');
+    if (!result.ok) {
+      setErrors(result.errors);
+      const firstInvalid = Object.keys(result.errors)[0];
+      formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus();
+      return;
+    }
+    setInventory({ items: result.items, history: [result.adjustment, ...inventory.history] });
+    setErrors({});
+    setReason('');
+    setStatus(`Ajuste simulado guardado para ${result.adjustment.sku}: ${result.adjustment.previousQuantity} → ${result.adjustment.newQuantity} unidades. Las reservas no cambian.`);
+  }
+
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -45,7 +71,7 @@ export function InventoryPage() {
               </tr>
             </thead>
             <tbody>
-              {inventoryDemo.map((item) => {
+              {inventory.items.map((item) => {
                 const available = item.existing - item.reserved;
                 return (
                   <tr key={item.sku}>
@@ -61,7 +87,50 @@ export function InventoryPage() {
             </tbody>
           </table>
         </div>
-        <p>Este incremento permite consultar cantidades (SWR-06). El ajuste administrativo y su historial se incorporarán en el siguiente bloque.</p>
+        <section className="inventory-page__panel" aria-labelledby="adjustment-heading">
+          <h2 id="adjustment-heading">Ajustar existencias</h2>
+          <p>Simulación en memoria. El usuario del registro es «Administrador de demostración» y no corresponde a una sesión autenticada. Los ajustes y el historial se pierden al recargar o salir de esta pantalla.</p>
+          <form className="inventory-page__form" ref={formRef} onSubmit={handleAdjustment} noValidate>
+            <div className="inventory-page__field">
+              <label htmlFor="adjustment-sku">Artículo a ajustar</label>
+              <select id="adjustment-sku" name="sku" value={sku} aria-invalid={Boolean(errors.sku)} aria-describedby={errors.sku ? 'adjustment-sku-error' : undefined} onChange={(event) => {
+                const nextSku = event.currentTarget.value;
+                setSku(nextSku);
+                setQuantity(String(inventory.items.find((item) => item.sku === nextSku)?.existing ?? ''));
+                setErrors({}); setStatus('');
+              }}>
+                {inventory.items.map((item) => <option key={item.sku} value={item.sku}>{item.name} · {item.size} · {item.sku}</option>)}
+              </select>
+              {errors.sku && <p className="inventory-page__error" id="adjustment-sku-error">{errors.sku}</p>}
+            </div>
+            <p id="adjustment-quantity-help">Existente: {selectedItem?.existing ?? '—'} · Reservado: {selectedItem?.reserved ?? '—'}. La nueva cantidad es el total de existencias, no una cantidad a sumar.</p>
+            <div className="inventory-page__field">
+              <label htmlFor="adjustment-quantity">Nueva cantidad existente</label>
+              <input id="adjustment-quantity" name="quantity" type="text" inputMode="numeric" value={quantity} required aria-invalid={Boolean(errors.quantity)} aria-describedby={`adjustment-quantity-help${errors.quantity ? ' adjustment-quantity-error' : ''}`} onChange={(event) => { setQuantity(event.currentTarget.value); setErrors((previous) => ({ ...previous, quantity: undefined })); setStatus(''); }} />
+              {errors.quantity && <p className="inventory-page__error" id="adjustment-quantity-error">{errors.quantity}</p>}
+            </div>
+            <div className="inventory-page__field">
+              <label htmlFor="adjustment-reason">Motivo del ajuste</label>
+              <textarea id="adjustment-reason" name="reason" value={reason} required rows={3} aria-invalid={Boolean(errors.reason)} aria-describedby={errors.reason ? 'adjustment-reason-error' : undefined} onChange={(event) => { setReason(event.currentTarget.value); setErrors((previous) => ({ ...previous, reason: undefined })); setStatus(''); }} />
+              {errors.reason && <p className="inventory-page__error" id="adjustment-reason-error">{errors.reason}</p>}
+            </div>
+            <button className="inventory-page__submit" type="submit">Guardar ajuste de demostración</button>
+          </form>
+          <p role="status" aria-atomic="true">{status}</p>
+        </section>
+        <section className="inventory-page__panel" aria-labelledby="adjustment-history-heading">
+          <h2 id="adjustment-history-heading">Historial de ajustes de esta sesión</h2>
+          {!inventory.history.length ? <p>Todavía no hay ajustes registrados.</p> : <ol className="inventory-page__history">
+            {inventory.history.map((adjustment) => <li key={adjustment.id}>
+              <h3>{adjustment.name} · Talla {adjustment.size}</h3>
+              <p>SKU: {adjustment.sku}</p>
+              <p>Cantidad anterior: {adjustment.previousQuantity} · Nueva cantidad: {adjustment.newQuantity}</p>
+              <p>Motivo: {adjustment.reason}</p>
+              <p>Usuario: {adjustment.actor}</p>
+              <p>Fecha: <time dateTime={adjustment.createdAt}>{new Date(adjustment.createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</time></p>
+            </li>)}
+          </ol>}
+        </section>
       </main>
     </div>
   );
