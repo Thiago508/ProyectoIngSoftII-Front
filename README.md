@@ -459,7 +459,7 @@ persisten tras recarga. El botón de guardar se bloquea únicamente durante la l
 real. No se agregaron dependencias para manejar imágenes. Los detalles, procedencia,
 assets y prompts están en [docs/catalog-images.md](docs/catalog-images.md).
 
-## F-05: carrito — agregar y consultar
+## F-05: carrito — agregar, consultar, actualizar y retirar
 
 Desde el detalle de un producto activo en `/catalog/:productId`, elegir talla y una
 cantidad entera mayor que cero y pulsar «Agregar al carrito» (SWR-19). En esta
@@ -481,12 +481,26 @@ mensaje recuperable en lugar de una pantalla blanca. Un producto desactivado que
 ya esté en el carrito se conserva con advertencia; no se considera válido para una
 nueva compra. No se crea un pedido ni se reserva stock al agregar.
 
+Cada línea permite guardar una nueva cantidad entera positiva o retirar el artículo
+(SWR-20). Una cantidad inválida conserva las unidades y el subtotal anteriores;
+«Descartar cambio de cantidad» recupera el valor guardado. Al actualizar o retirar,
+el subtotal y el contador se recalculan. Un producto desactivado puede retirarse,
+pero su cantidad no puede modificarse. Retirar mueve el foco al siguiente artículo,
+al anterior si era el último, o al título del carrito cuando queda vacío. Estas
+operaciones tampoco alteran inventario ni reservas.
+
 El checkout conserva temporalmente su carrito simulado anterior: este incremento
 no ofrece continuar desde `/cart` hacia él para evitar confirmar otra selección.
-Modificar cantidades y retirar artículos (SWR-20), y conectar el carrito con F-01,
-son los próximos bloques. Recargar reinicia el carrito; no se añadió persistencia,
+Conectar el carrito con F-01 es el próximo bloque. Recargar reinicia el carrito; no se añadió persistencia,
 Context, dependencias de estado ni endpoints.
 
 Prueba: abrir el vestido en catálogo, seleccionar M y agregar 2 unidades, agregar
 1 más y abrir el carrito desde el contador: una línea con 3 unidades y subtotal
 $269.700,00. Volver al catálogo conserva la selección; recargar la reinicia.
+Cambiar la cantidad a 0 muestra un error sin cambiar el subtotal; descartar restaura
+3. Guardar 2 cambia el subtotal a $179.800,00. Retirar deja el carrito vacío.
+
+Verificación de SWR-20: build, lint y pruebas unitarias correctos; los 12 casos de
+carrito en Playwright pasan en escritorio, tablet y móvil, incluyendo cantidades
+inválidas, descarte, subtotal, retirada, foco y productos desactivados. La revisión
+automatizada con axe no sustituye la prueba manual con lector de pantalla.

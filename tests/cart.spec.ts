@@ -39,3 +39,54 @@ test('sin variantes no ofrece compra y una talla agotada no se puede seleccionar
   await expect(page.getByRole('option', { name: 'L — Sin disponibilidad', exact: true })).toBeDisabled();
   await expect(page.getByRole('link', { name: 'Carrito de compras: 0 unidades', exact: true })).toBeVisible();
 });
+
+test('SWR-20 modifica cantidad, descarta errores, retira líneas y mantiene foco y subtotal', async ({ page }) => {
+  await page.goto('/catalog/demo-dress');
+  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
+  await page.getByLabel('Cantidad', { exact: true }).fill('2');
+  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
+  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Blusa manga larga', exact: true }).click();
+  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-BLUSA-S');
+  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
+  await page.getByRole('link', { name: 'Carrito de compras: 3 unidades', exact: true }).click();
+  const quantity = page.getByLabel('Cantidad de Vestido midi estampado, talla M', { exact: true });
+  await quantity.fill('0');
+  await page.getByRole('button', { name: 'Guardar cantidad de Vestido midi estampado, talla M' }).click();
+  await expect(quantity).toBeFocused();
+  await expect(quantity).toHaveAccessibleDescription(/entera mayor que cero/);
+  await expect(page.getByText('Subtotal de productos:', { exact: false })).toContainText('239.700,00');
+  await page.getByRole('button', { name: 'Descartar cambio de cantidad' }).click();
+  await expect(quantity).toHaveValue('2');
+  await quantity.fill('4');
+  await page.getByRole('button', { name: 'Guardar cantidad de Vestido midi estampado, talla M' }).click();
+  await expect(page.getByRole('status')).toContainText('actualizada a 4');
+  await expect(page.getByRole('link', { name: 'Carrito de compras: 5 unidades', exact: true })).toBeVisible();
+  await expect(page.getByText('Subtotal de productos:', { exact: false })).toContainText('419.500,00');
+  await page.getByRole('button', { name: 'Retirar Vestido midi estampado, talla M', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Blusa manga larga', exact: true })).toBeFocused();
+  await expect(page.getByText('Subtotal de productos:', { exact: false })).toContainText('59.900,00');
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await page.getByRole('button', { name: 'Retirar Blusa manga larga, talla S', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Tu carrito', exact: true })).toBeFocused();
+  await expect(page.getByText('Tu carrito está vacío.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Carrito de compras: 0 unidades', exact: true })).toBeVisible();
+  await expect(page.getByText('Subtotal de productos:', { exact: false })).toContainText('0,00');
+});
+
+test('un artículo desactivado se puede retirar pero no cambiar de cantidad', async ({ page }) => {
+  await page.goto('/admin/products');
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
+  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
+  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
+  await page.goBack();
+  await page.goBack();
+  await page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true }).click();
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Carrito de compras: 1 unidades', exact: true }).click();
+  await expect(page.getByText('Producto inactivo o no disponible.', { exact: false })).toBeVisible();
+  await expect(page.getByLabel('Cantidad de Vestido midi estampado, talla M', { exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Retirar Vestido midi estampado, talla M', exact: true }).click();
+  await expect(page.getByText('Tu carrito está vacío.', { exact: false })).toBeVisible();
+});

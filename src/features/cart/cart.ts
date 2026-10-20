@@ -2,7 +2,7 @@ import type { Product } from '../products/demo/productsDemo';
 import { getDemoAvailability } from '../catalog/demo/catalogDemo.ts';
 
 export interface CartLine { productId: string; sku: string; size: string; quantity: number }
-export type AddCartResult = { ok: false; message: string } | { ok: true; lines: CartLine[]; message: string };
+export type CartResult = { ok: false; message: string } | { ok: true; lines: CartLine[]; message: string };
 
 export function cartSubtotalCents(lines: readonly CartLine[], products: readonly Product[]): number {
   const subtotal = lines.reduce((sum, line) => {
@@ -16,7 +16,7 @@ export function cartSubtotalCents(lines: readonly CartLine[], products: readonly
 
 // Solo prepara selección de compra; no modifica productos ni inventario.
 export function addCartItem(products: readonly Product[], lines: readonly CartLine[], productId: string,
-  sku: string, quantityText: string): AddCartResult {
+  sku: string, quantityText: string): CartResult {
   const product = products.find((candidate) => candidate.id === productId && candidate.active);
   if (!product) return { ok: false, message: 'El producto no está activo o ya no existe.' };
   const variant = getDemoAvailability(productId).find((candidate) => candidate.sku === sku);
@@ -30,4 +30,23 @@ export function addCartItem(products: readonly Product[], lines: readonly CartLi
   const next = existing ? lines.map((line) => line.productId === productId && line.sku === sku ? { ...line, quantity: accumulated } : { ...line }) : [...lines, { productId, sku, size: variant.size, quantity }];
   try { cartSubtotalCents(next, products); } catch (cause: unknown) { return { ok: false, message: cause instanceof Error ? cause.message : 'No se pudo actualizar el carrito.' }; }
   return { ok: true, lines: next, message: `${product.name}, talla ${variant.size}: ${quantity} unidades agregadas al carrito. No se reservó inventario.` };
+}
+
+
+export function updateCartQuantity(products: readonly Product[], lines: readonly CartLine[], productId: string,
+  sku: string, quantityText: string): CartResult {
+  const current = lines.find((line) => line.productId === productId && line.sku === sku);
+  if (!current) return { ok: false, message: 'El artículo ya no está en el carrito.' };
+  if (!products.some((product) => product.id === productId && product.active)) return { ok: false, message: 'El producto no está activo. Puedes retirarlo del carrito.' };
+  const quantity = Number(quantityText.trim());
+  if (!/^\d+$/.test(quantityText.trim()) || !Number.isSafeInteger(quantity) || quantity <= 0) return { ok: false, message: 'Escribe una cantidad entera mayor que cero. Para eliminar la línea, usa Retirar artículo.' };
+  const next = lines.map((line) => line.productId === productId && line.sku === sku ? { ...line, quantity } : { ...line });
+  try { cartSubtotalCents(next, products); } catch (cause: unknown) { return { ok: false, message: cause instanceof Error ? cause.message : 'No se pudo actualizar el carrito.' }; }
+  return { ok: true, lines: next, message: `Cantidad de la talla ${current.size} actualizada a ${quantity}. El inventario no cambia.` };
+}
+
+export function removeCartItem(lines: readonly CartLine[], productId: string, sku: string): CartResult {
+  const current = lines.find((line) => line.productId === productId && line.sku === sku);
+  if (!current) return { ok: false, message: 'El artículo ya no está en el carrito.' };
+  return { ok: true, lines: lines.filter((line) => line.productId !== productId || line.sku !== sku), message: `Artículo de talla ${current.size} retirado del carrito. El inventario no cambia.` };
 }

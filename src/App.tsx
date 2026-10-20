@@ -1,4 +1,4 @@
-import { addCartItem, type CartLine } from "./features/cart/cart";
+import { addCartItem, updateCartQuantity, removeCartItem, type CartLine } from "./features/cart/cart";
 import { CartPage } from "./features/cart/pages/CartPage";
 import { useState } from "react";
 import { CatalogPage } from "./features/catalog/pages/CatalogPage";
@@ -17,10 +17,20 @@ function App() {
     if (result.ok) setCart(result.lines);
     return { ok: result.ok, message: result.message };
   }
+  function handleUpdateCart(productId: string, sku: string, quantity: string) {
+    const result = updateCartQuantity(products, cart, productId, sku, quantity);
+    if (result.ok) setCart(result.lines);
+    return { ok: result.ok, message: result.message };
+  }
+  function handleRemoveCart(productId: string, sku: string) {
+    const result = removeCartItem(cart, productId, sku);
+    if (result.ok) setCart(result.lines);
+    return { ok: result.ok, message: result.message };
+  }
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/cart" element={<CartPage lines={cart} products={products} />} />
+        <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
         <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="/catalog" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/catalog/:productId" element={<CatalogPage products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />

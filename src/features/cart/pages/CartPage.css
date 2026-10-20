@@ -14,3 +14,13 @@
 .cart-add__submit:hover { background: var(--color-primary-hover); }
 .cart-add :is(button,input,select):focus-visible, .cart-page a:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 @media (max-width: 480px) { .cart-page__items > li { grid-template-columns: minmax(0, 1fr); } .cart-page__items .product-photo { max-width: 200px; } }
+
+.cart-line-controls { display: grid; gap: 0.75rem; margin-block: 1rem; }
+.cart-line-controls form { display: grid; gap: 0.5rem; }
+.cart-line-controls__row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.cart-line-controls input { width: 7rem; max-width: 100%; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-control); color: var(--color-text); background: var(--color-surface); }
+.cart-line-controls [aria-invalid="true"] { border-color: #b42348; }
+.cart-line-controls__secondary { padding: 0.75rem; border: 1px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-primary); cursor: pointer; justify-self: start; }
+.cart-line-controls__secondary:hover { background: var(--color-primary-soft); }
+.cart-line-controls :is(input,button):focus-visible, .cart-page h2:focus { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.cart-line-controls button:disabled { opacity: 0.6; cursor: not-allowed; }
