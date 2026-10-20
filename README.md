@@ -1,10 +1,9 @@
 # Fashion Online Store
 
 Proyecto académico de tienda de ropa femenina con React, TypeScript y Vite.
-El incremento actual desarrolla el frontend de **RF5: Realizar pedidos** mediante
-un carrito y una operación de creación explícitamente simulados. No completa RF5
-en producción: el documento académico exige pago obligatorio y todavía no existe
-una integración de backend o pagos.
+El incremento actual desarrolla el frontend de **F-01: Realizar pedido** (antes RF5) mediante
+un carrito y una operación de creación explícitamente simulados. No completa F-01 en producción: todavía no existe una integración de backend.
+La referencia actual es `PR - TiendaRopa.xlsx`, recibida el 19 de octubre de 2026.
 
 ## Ejecutar el proyecto
 
@@ -107,13 +106,14 @@ La creación tarda medio segundo de forma explícitamente simulada. El checkbox
 una copia de los datos con referencia `DEMO` y estado `pending_payment`.
 
 **Crear el pedido no aprueba el pago ni descuenta inventario.** El inventario se
-descuenta solo después de una aprobación verificada por el backend. No se
-implementaron reservas ni vencimientos. Un clic, una redirección y el estado local
+descuenta solo después de una aprobación verificada por el backend. El documento actualizado exige reservar al registrar y liberar al cancelar o
+expirar; esa operación transaccional corresponde al backend. No se implementaron
+reservas en el frontend ni se inventó su duración. Un clic, una redirección y el estado local
 no constituyen evidencia de pago aprobado.
 
 Las opciones de pago proceden del mockup, incluida contra entrega; no acreditan
-su disponibilidad real. Su relación con el requisito de pago obligatorio debe
-confirmarse antes de integrar el flujo definitivo. No se recogen números de
+su disponibilidad real. El orden definitivo de creación y selección del método debe revisarse con el
+equipo: F-06 inicia el pago de un pedido pendiente con reserva vigente. No se recogen números de
 tarjeta ni CVV.
 
 ## Pruebas y revisión
@@ -164,4 +164,24 @@ incremento. No se inventaron endpoints ni se publicaron cambios en Jira o hostin
 
 La revisión visual y accesible, sus correcciones y la prueba auditiva pendiente están
 en [docs/checkout-review.md](docs/checkout-review.md). La suite de revisión añade
-18 análisis axe y capturas de Pago, errores y resultado en los tres tamaños.
+24 análisis axe y capturas de Pago, errores y resultado en los tres tamaños.
+
+## Incremento F-01: carrito vacío y disponibilidad
+
+En Resumen, el selector «Escenario del carrito (demostración)» permite probar:
+
+- Carrito válido: los tres productos del mockup.
+- Carrito vacío (SWR-01): muestra un mensaje, subtotal cero y botón de creación
+  deshabilitado. La función de creación también lo rechaza si se invoca directamente.
+- Disponibilidad insuficiente al confirmar (SWR-02): la operación simulada rechaza
+  la creación e identifica el vestido talla M. No genera referencia de pedido.
+
+Restaurar «Carrito válido» limpia el rechazo y permite reintentar. Los datos y el
+método se conservan. El selector y el error genérico son controles de demostración;
+no representan gestión del carrito F-05 ni una consulta real de existencias.
+
+La página recibe los artículos por props desde `CheckoutFlow`. El error específico
+`DemoAvailabilityError` pertenece a la simulación; no define un contrato de API.
+Los tests verifican rechazo, artículo afectado, ausencia de pedido, conservación del
+carrito y recuperación. La revisión de navegador incluye axe y capturas para los
+dos estados nuevos: ocho estados por tres tamaños (24 análisis).

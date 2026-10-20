@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateSubtotal, createDemoOrder } from "./createDemoOrder.ts";
+import { calculateSubtotal, createDemoOrder, DemoAvailabilityError } from "./createDemoOrder.ts";
 import { demoCart } from "./demoCart.ts";
 
 const customer = { fullName: " Karen Martínez ", email: "karen@example.com", phone: "3001234567", address: "Calle 14 # 23 - 45", city: "Armenia", department: "Quindío" };
@@ -34,4 +34,21 @@ test("permite simular un fallo y reintentar", async () => {
 
 test("rechaza datos inválidos antes de crear un pedido", async () => {
   await assert.rejects(createDemoOrder({ ...customer, email: "incorrecto" }, "card", demoCart), /Revisa los datos/);
+});
+
+test("SWR-01 rechaza un carrito vacío sin crear un pedido", async () => {
+  await assert.rejects(createDemoOrder(customer, "card", []), /El carrito está vacío/);
+});
+
+test("SWR-02 simula rechazo de disponibilidad y conserva los artículos originales", async () => {
+  const original = structuredClone(demoCart);
+  await assert.rejects(createDemoOrder(customer, "card", demoCart, false, [demoCart[0].id]), (cause: unknown) => {
+    assert.ok(cause instanceof DemoAvailabilityError);
+    assert.deepEqual(cause.itemIds, [demoCart[0].id]);
+    return true;
+  });
+  assert.deepEqual(demoCart, original);
+  const order = await createDemoOrder(customer, "card", demoCart);
+  assert.equal(order.status, "pending_payment");
+  assert.equal(order.total, 219700);
 });

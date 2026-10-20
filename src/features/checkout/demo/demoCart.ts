@@ -6,3 +6,5 @@ export const demoCart: readonly CheckoutItem[] = [
   { id: "demo-blouse", name: "Blusa manga larga", size: "S", unitPrice: 59900, quantity: 1 },
   { id: "demo-skirt", name: "Falda plisada", size: "M", unitPrice: 69900, quantity: 1 },
 ];
+
+export type DemoCartScenario = "available" | "empty" | "unavailable";

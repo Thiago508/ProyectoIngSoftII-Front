@@ -6,8 +6,8 @@ import { CheckoutPaymentPage } from "./pages/CheckoutPaymentPage";
 import { CheckoutSummaryPage } from "./pages/CheckoutSummaryPage";
 import type { CheckoutData, DemoOrder, PaymentMethod } from "./types/checkout.types";
 import { getCheckoutRedirect } from "./utils/checkoutNavigation";
-import { createDemoOrder } from "./demo/createDemoOrder";
-import { demoCart } from "./demo/demoCart";
+import { createDemoOrder, DemoAvailabilityError } from "./demo/createDemoOrder";
+import { demoCart, type DemoCartScenario } from "./demo/demoCart";
 
 const emptyData: CheckoutData = {
   fullName: "", email: "", phone: "", address: "", city: "", department: "",
@@ -19,7 +19,17 @@ export function CheckoutFlow() {
   const [order, setOrder] = useState<DemoOrder | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
+  const [scenario, setScenario] = useState<DemoCartScenario>("available");
+  const [unavailableItemIds, setUnavailableItemIds] = useState<readonly string[]>([]);
+  const items = scenario === "empty" ? [] : demoCart;
   const inFlight = useRef(false);
+
+  function handleScenarioChange(next: DemoCartScenario) {
+    if (inFlight.current || order) return;
+    setScenario(next);
+    setCreationError(null);
+    setUnavailableItemIds([]);
+  }
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -30,11 +40,13 @@ export function CheckoutFlow() {
     inFlight.current = true;
     setIsSubmitting(true);
     setCreationError(null);
+    setUnavailableItemIds([]);
     try {
-      const created = await createDemoOrder(data, paymentMethod, demoCart, simulateFailure);
+      const created = await createDemoOrder(data, paymentMethod, items, simulateFailure, scenario === "unavailable" ? [demoCart[0].id] : []);
       setOrder(created);
       navigate("/checkout/summary", { replace: true });
     } catch (cause: unknown) {
+      if (cause instanceof DemoAvailabilityError) setUnavailableItemIds(cause.itemIds);
       setCreationError(cause instanceof Error ? cause.message : "No se pudo crear el pedido de demostración.");
     } finally {
       inFlight.current = false;
@@ -48,7 +60,7 @@ export function CheckoutFlow() {
 
   return (
     <>
-      <CustomerHeader cartItemCount={demoCart.reduce((count, item) => count + item.quantity, 0)} />
+      <CustomerHeader cartItemCount={items.reduce((count, item) => count + item.quantity, 0)} />
       <div ref={contentRef}>
         {redirect ? <Navigate to={redirect} replace /> : <Routes>
           <Route index element={<CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {
@@ -60,6 +72,7 @@ export function CheckoutFlow() {
           } />
           <Route path="summary" element={paymentMethod && (
             <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={order?.paymentMethod ?? paymentMethod}
+              items={items} scenario={scenario} onScenarioChange={handleScenarioChange} unavailableItemIds={unavailableItemIds}
               order={order} isSubmitting={isSubmitting} error={creationError} onCreate={handleCreate} />
           )} />
         </Routes>}
