@@ -14,7 +14,7 @@ producción. Las pantallas y operaciones actuales usan datos en memoria.
 | F-05 · SWR-19–22 | Agregar, acumular variantes, modificar cantidad, retirar, subtotal y conexión con checkout; no altera inventario. | Definir con backend la fuente y duración del carrito, si debe persistirse; sincronizar productos, variantes y precios reales. La recarga vacía el carrito local. |
 | F-06 · SWR-23–26 | Selección de método y pantalla de resultado pendiente/aprobado/rechazado como vista previa separada. El resultado visual no paga el pedido. | Flujo de intento real elegible por pedido/reserva, importe del servidor, estados asíncronos y recuperación; verificación auténtica y aplicación única de efectos en backend. No hay procesamiento de pagos implementado. |
 | F-07 · SWR-27–30 | Registro y acceso accesibles, validación de campos y confirmación de contraseña, sin selector de rol. No almacenan credenciales. | Crear cuentas, correo único y rol Cliente en servidor, bcrypt, autenticación y JWT. En frontend faltan consumo de esos resultados, sesión/cierre, vencimiento y navegación según permisos; la autorización efectiva debe ser del backend. Las rutas administrativas actuales son públicas de demostración. |
-| F-08 · SWR-31–35 | Bandeja, estado vacío, referencia/estado/fecha, aviso local al crear un pedido y deduplicación en memoria. Avisos locales abren el detalle; ejemplos fijos no enlazan a pedidos inexistentes. | Eventos confirmados para pagado/cancelado/enviado; propietarios autenticados, protección API, deduplicación durable y registro de procesamiento/intentos fallidos. Falta consumir y presentar esos resultados reales; no hay envío ni historial de entrega. |
+| F-08 · SWR-31–35 | Bandeja, estado vacío, referencia/estado/fecha, aviso local al crear un pedido y deduplicación en memoria. Avisos locales abren el detalle; ejemplos fijos no enlazan a pedidos inexistentes. Consulta administrativa de resultados e intentos fallidos con ejemplos. | Eventos confirmados para pagado/cancelado/enviado; propietarios autenticados, protección API, deduplicación durable y registro de procesamiento/intentos fallidos. Falta consumir los resultados reales; la consulta administrativa de intentos es visual y no hay envío ni historial real de entrega. |
 
 ## Pendientes del propio frontend
 
@@ -30,7 +30,8 @@ producción. Las pantallas y operaciones actuales usan datos en memoria.
 4. Completar la interacción del intento de pago y la recepción de sus resultados
    verificados; los tres escenarios visuales actuales no realizan esa operación.
 5. Consumir notificaciones del propietario y los resultados de procesamiento que
-   exponga el backend; la bandeja actual no demuestra entrega o reintentos reales.
+   exponga el backend. La interfaz administrativa de consulta de intentos ya está
+   disponible con ejemplos; no demuestra procesamiento ni entrega reales.
 6. Completar la revisión manual con lector de pantalla y la validación visual con
    el usuario. Axe y pruebas de navegador cubren comportamiento automatizado,
    pero no sustituyen esa revisión.
@@ -54,3 +55,19 @@ CSS de checkout y la sobrescritura causada por el estilo general de enlaces.
 El encabezado incorpora «Administración (demo)», que abre `/admin/products` y
 permite navegar a inventario. Es un acceso a las pantallas locales existentes,
 no una autenticación o autorización administrativa.
+
+
+## Orden recomendado para los siguientes bloques
+
+- Preparar los estados de carga, error y recuperación de las consultas y formularios
+  cuando exista una fuente asíncrona definida. No convertir una validación local en
+  un registro o acceso supuestamente real.
+- Conectar sesión/cierre, vencimiento y navegación por rol con autenticación confiable.
+- Conectar inicio de pago, elegibilidad por pedido/reserva e importe del servidor;
+  recibir y presentar resultados verificados.
+- Conectar operaciones reales de pedidos, catálogo, productos, inventario y avisos,
+  incluyendo persistencia, errores y comprobaciones del servidor.
+- Completar revisión manual de accesibilidad y la validación de diseño con el usuario.
+
+Las tallas/SKU de productos nuevos, su ingreso de existencias y la consulta visual
+de intentos fallidos ya no están pendientes de interfaz en la demostración.

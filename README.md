@@ -790,3 +790,29 @@ Ajustar sus existencias a 5 con un motivo, volver a catálogo y agregar 2 unidad
 Revisar el subtotal en carrito y confirmar el pedido de demostración. Agregar y
 crear el pedido no descuentan stock; la reserva automática sigue pendiente.
 Todos los cambios se pierden al recargar y no existe autorización de servidor.
+
+
+## F-08: consulta administrativa del procesamiento
+
+Desde administración, «Notificaciones» abre `/admin/notifications`. Muestra ejemplos
+fijos con identificador de aviso y pedido, estado del pedido notificado, fecha del
+evento, resultado de procesamiento y cantidad de intentos. Se puede filtrar por
+pendiente, procesado o fallido, y desplegar los intentos con sus fechas, resultados
+y explicación. Un aviso lógico aparece una sola vez aunque tenga varios intentos.
+
+`notificationProcessingDemo.ts` separa los historiales ilustrativos de
+`NotificationProcessingPage`. La pantalla reutiliza `AdminHeader` y los estilos
+de tarjetas y metadatos de la bandeja de notificaciones, con HTML nativo `details`
+y `summary` para manejar el historial por teclado. No se introdujeron dependencias,
+servicios ficticios, datos de destinatarios ni contratos de API.
+
+Este bloque cubre la presentación de SWR-35; registrar los resultados reales y
+consultarlos con permisos sigue pendiente del backend. «Procesado» no prueba que
+un destinatario recibió el aviso. La pantalla no tiene acciones de envío o
+reintento y no genera avisos de sesión. Los ejemplos permanecen separados de los
+pedidos y notificaciones creados en el checkout de demostración.
+
+Prueba manual: Administración → Notificaciones → filtrar «Fallido» y abrir los
+intentos del aviso. Cambiar a «Procesado» y revisar el ejemplo con un fallo previo
+y un segundo intento procesado; cambiar a «Pendiente» para ver el caso sin intentos.
+Recargar restaura el filtro «Todos». No se modifica el estado de pedidos o inventario.
