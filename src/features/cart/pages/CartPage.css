@@ -24,3 +24,20 @@
 .cart-line-controls__secondary:hover { background: var(--color-primary-soft); }
 .cart-line-controls :is(input,button):focus-visible, .cart-page h2:focus { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 .cart-line-controls button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+.cart-page a.cart-page__checkout {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-surface);
+  text-decoration: none;
+  font-weight: 600;
+  text-align: center;
+}
+
+.cart-page a.cart-page__checkout:hover {
+  background: var(--color-primary-hover);
+}

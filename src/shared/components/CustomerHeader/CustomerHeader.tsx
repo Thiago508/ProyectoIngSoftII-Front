@@ -57,7 +57,10 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
             ♡<span className="customer-header__cart-count">{cartItemCount}</span>
           </button>}
         </nav>
-        <p id="header-demo-note" className="customer-header__notice">Demo: registro sin creación de cuentas. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
+        <div className="customer-header__secondary">
+          <p id="header-demo-note" className="customer-header__notice">Demo: registro sin creación de cuentas. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
+          <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>
+        </div>
       </div>
     </header>
   );

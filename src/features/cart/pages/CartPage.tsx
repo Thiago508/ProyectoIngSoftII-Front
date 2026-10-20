@@ -69,7 +69,7 @@ export function CartPage({ lines, products, onUpdate, onRemove }: {
       <p role="status" aria-atomic="true">{status}</p>
       {subtotal === null ? <p role="alert" className="cart-add__error">No se puede calcular el subtotal con los datos actuales. Revisa los artículos del carrito.</p> : <p className="cart-page__subtotal">Subtotal de productos: {currency.format(subtotal / 100)}</p>}
       <p>Envío no incluido. Precios informativos del catálogo local; el importe definitivo corresponde al servidor.</p>
-      {lines.length > 0 && subtotal !== null && lines.every((line) => products.some((product) => product.id === line.productId && product.active)) && <p><Link className="checkout-form__submit" to="/checkout">Continuar con la compra</Link></p>}
+      {lines.length > 0 && subtotal !== null && lines.every((line) => products.some((product) => product.id === line.productId && product.active)) && <p><Link className="cart-page__checkout" to="/checkout">Continuar con la compra</Link></p>}
       <Link to="/catalog">Seguir explorando el catálogo</Link>
     </main>
   </>;

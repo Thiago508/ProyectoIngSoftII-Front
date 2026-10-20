@@ -727,3 +727,15 @@ Elegir «Editar carrito», guardar otra cantidad y continuar la compra. Comproba
 los seis campos siguen completos y que el resumen refleja la cantidad nueva. Tras
 crear el pedido y abrir su detalle, volver al carrito e iniciar otra compra: los
 campos comienzan vacíos, mientras el detalle anterior conserva sus datos.
+
+## Estado actualizado de los requisitos y acceso administrativo
+
+Consultar [Estado de requisitos](docs/requirements-status.md) para la separación
+entre frontend implementado, integración pendiente y elementos de mockups ajenos
+a los 35 SWR del Excel. El encabezado ofrece «Administración (demo)» hacia productos;
+la navegación administrativa existente permite acceder también a inventario.
+Las pantallas administrativas siguen siendo de demostración, sin autorización real.
+
+Se corrigió el enlace «Continuar con la compra» del carrito: clase propia, texto
+blanco, fondo principal y hover con contraste. Ya no reutiliza una clase de
+checkout que podía ser sobrescrita por el estilo de los enlaces del carrito.
