@@ -11,8 +11,8 @@ const steps: Array<{
   label: string;
 }> = [
   { id: "data", label: "Datos y envío" },
-  { id: "payment", label: "Pago" },
   { id: "summary", label: "Resumen" },
+  { id: "payment", label: "Selección de pago" },
 ];
 
 export function CheckoutStepper({

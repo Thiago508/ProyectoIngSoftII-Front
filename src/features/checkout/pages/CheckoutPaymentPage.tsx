@@ -44,9 +44,9 @@ export function CheckoutPaymentPage({ method, onChange, onContinue }: CheckoutPa
             ))}
             {error && <p id="payment-error" className="checkout-form__error">Selecciona un método de pago.</p>}
           </fieldset>
-          <p className="checkout-form__status">Selección de demostración. No se realizan cobros. La información de tarjeta se solicitará cuando exista una integración de pagos.</p>
-          <button className="checkout-form__submit" type="submit">Revisar borrador</button>
-          <Link className="checkout-form__back" to="/checkout">Volver a Datos y envío</Link>
+          <p className="checkout-form__status">Selección de demostración para el pedido ya registrado. No inicia un intento de pago ni realiza cobros. La información de tarjeta se solicitará cuando exista una integración de pagos.</p>
+          <button className="checkout-form__submit" type="submit">Guardar selección de demostración</button>
+          <Link className="checkout-form__back" to="/checkout/summary">Volver al pedido</Link>
         </form>
       </div>
     </main>

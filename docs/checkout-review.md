@@ -1,5 +1,10 @@
 # Revisión del checkout — 7 de octubre de 2026
 
+> Actualización del flujo, 19 de octubre: F-01 ahora permite revisar y crear sin
+> método de pago. La selección se revisa después del pedido creado. El procedimiento
+> manual de esta revisión histórica debe seguir ese orden; las pruebas de navegador
+> ya lo usan. La escucha con Orca continúa pendiente.
+
 ## Alcance y método
 
 Se revisaron el frontend de demostración y sus estados: datos con errores, Pago,

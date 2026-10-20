@@ -13,8 +13,6 @@ async function fillData(page: Page) {
 async function reachSummary(page: Page) {
   await page.goto('/checkout');
   await fillData(page);
-  await page.getByRole('radio', { name: 'Tarjeta de crédito / débito' }).check();
-  await page.getByRole('button', { name: 'Revisar borrador' }).click();
 }
 
 test('errores propios, foco y conservación del borrador entre rutas', async ({ page }) => {
@@ -23,16 +21,14 @@ test('errores propios, foco y conservación del borrador entre rutas', async ({ 
   await expect(page.getByLabel('Nombre completo')).toBeFocused();
   await expect(page.getByText('Escribe un correo electrónico válido.')).toBeVisible();
   await fillData(page);
-  await expect(page).toHaveURL(/\/checkout\/payment$/);
-  await page.getByRole('button', { name: 'Revisar borrador' }).click();
-  await expect(page.getByRole('radio').first()).toBeFocused();
-  await expect(page.getByText('Selecciona un método de pago.')).toBeVisible();
-  await page.getByRole('radio', { name: 'Nequi / Daviplata' }).check();
-  await page.getByRole('link', { name: 'Volver a Datos y envío' }).click();
+  await expect(page).toHaveURL(/\/checkout\/summary$/);
+  await expect(page.getByRole('button', { name: 'Crear pedido de demostración', exact: true })).toBeEnabled();
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Editar datos y envío' }).click();
   await expect(page.getByLabel('Nombre completo')).toHaveValue('Karen Martínez');
   await expect(page.getByLabel('Teléfono')).toHaveValue('3001234567');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  await expect(page.getByRole('radio', { name: 'Nequi / Daviplata' })).toBeChecked();
+  await expect(page).toHaveURL(/\/checkout\/summary$/);
 });
 
 test('acceso directo y recarga de una etapa requieren datos previos', async ({ page }) => {
@@ -74,4 +70,22 @@ test('salto de teclado y ausencia de desbordamiento horizontal', async ({ page }
   await reachSummary(page);
   await page.screenshot({ path: testInfo.outputPath('resumen.png'), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+
+test('selección de pago disponible después de crear y sin alterar el estado pendiente', async ({ page }) => {
+  await reachSummary(page);
+  await expect(page.getByRole('link', { name: 'Seleccionar método de pago (demostración)' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Crear pedido de demostración', exact: true }).click();
+  await page.getByRole('link', { name: 'Seleccionar método de pago (demostración)' }).click();
+  await page.getByRole('button', { name: 'Guardar selección de demostración' }).click();
+  await expect(page.getByRole('radio').first()).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('radio', { name: 'Nequi / Daviplata' })).toBeChecked();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('Nequi / Daviplata', { exact: true })).toBeVisible();
+  await expect(page.getByText('Estado: pendiente de pago.')).toBeVisible();
+  await page.getByRole('link', { name: 'Seleccionar método de pago (demostración)' }).click();
+  await expect(page.getByRole('radio', { name: 'Nequi / Daviplata' })).toBeChecked();
 });

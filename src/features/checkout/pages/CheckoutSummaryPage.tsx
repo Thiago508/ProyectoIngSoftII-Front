@@ -14,7 +14,7 @@ interface CheckoutSummaryPageProps {
   onScenarioChange: (scenario: DemoCartScenario) => void;
   unavailableItemIds: readonly string[];
   data: CheckoutData;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   order: DemoOrder | null;
   isSubmitting: boolean;
   error: string | null;
@@ -70,15 +70,17 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, 
           <p>{data.address}<br />{data.city}, {data.department}</p>
           {!order && !isSubmitting && <Link to="/checkout">Editar datos y envío</Link>}
         </section>
-        <section className="checkout-form__section">
+        {order && <section className="checkout-form__section">
           <h2>Método de pago seleccionado</h2>
-          <p>{paymentMethods.find((method) => method.id === paymentMethod)?.label}</p>
-        </section>
+          <p>{paymentMethods.find((method) => method.id === paymentMethod)?.label ?? "Sin seleccionar"}</p>
+          <Link className="checkout-form__back" to="/checkout/payment">Seleccionar método de pago (demostración)</Link>
+          <p>Esta selección no inicia un pago. La reserva vigente y el importe deberán verificarse desde el backend.</p>
+        </section>}
         {!order && <>
           <label><input type="checkbox" checked={simulateFailure} disabled={isSubmitting} onChange={(event) => setSimulateFailure(event.currentTarget.checked)} /> Simular error de creación (demostración)</label>
           {error && <p className="checkout-form__error" role="alert">{error}</p>}
           <button className="checkout-form__submit" type="button" disabled={isSubmitting || !items.length} aria-describedby={!items.length ? "empty-cart-message" : undefined} onClick={() => { void onCreate(simulateFailure); }}>{isSubmitting ? "Creando pedido de demostración…" : "Crear pedido de demostración"}</button>
-          {!isSubmitting && <Link className="checkout-form__back" to="/checkout/payment">Volver a Pago</Link>}
+
         </>}
       </div>
     </main>

@@ -28,7 +28,6 @@ export interface DemoOrder {
   createdAt: string;
   status: "pending_payment";
   customer: CheckoutData;
-  paymentMethod: PaymentMethod;
   items: CheckoutItem[];
   total: number;
 }

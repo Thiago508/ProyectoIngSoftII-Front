@@ -32,10 +32,10 @@ Modificar archivos en `src/`; `dist/` es salida generada y se excluye de Git.
 | Ruta | Contenido | Condición de acceso |
 | --- | --- | --- |
 | `/checkout` | Datos personales y dirección de envío | Borrador editable |
-| `/checkout/payment` | Selección de método de pago de demostración | Datos válidos |
-| `/checkout/summary` | Productos, datos, método y creación simulada | Datos válidos y método seleccionado |
+| `/checkout/summary` | Productos, datos y creación simulada | Datos válidos, sin exigir método de pago |
+| `/checkout/payment` | Selección de método de pago de demostración | Pedido ya creado |
 
-El stepper usa **Datos y envío → Pago → Resumen**. Se unieron Datos y Envío porque
+El stepper usa **Datos y envío → Resumen → Selección de pago**. Se unieron Datos y Envío porque
 el mockup los presenta en el mismo formulario y no define otra pantalla de envío.
 La raíz y rutas desconocidas redirigen al checkout hasta que exista un inicio real.
 
@@ -46,7 +46,8 @@ correspondiente.
 
 Durante la creación, el botón bloquea envíos repetidos y la navegación a etapas
 anteriores vuelve al resumen. Tras un error se puede reintentar o editar. Después
-de crear, el historial vuelve al pedido creado para evitar modificarlo.
+de crear, se permite consultar el pedido o seleccionar un método; las rutas de
+edición vuelven al pedido creado para evitar modificarlo.
 
 ## Arquitectura para la entrega
 
@@ -112,8 +113,9 @@ reservas en el frontend ni se inventó su duración. Un clic, una redirección y
 no constituyen evidencia de pago aprobado.
 
 Las opciones de pago proceden del mockup, incluida contra entrega; no acreditan
-su disponibilidad real. El orden definitivo de creación y selección del método debe revisarse con el
-equipo: F-06 inicia el pago de un pedido pendiente con reserva vigente. No se recogen números de
+su disponibilidad real. La selección se ofrece después del registro del pedido. F-06 deberá verificar
+reserva vigente e importe del servidor antes de iniciar un intento de pago; la
+pantalla actual no realiza ese intento. No se recogen números de
 tarjeta ni CVV.
 
 ## Pruebas y revisión
@@ -133,8 +135,8 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/fashion-playwright npm run test:e2e
 
 Playwright inicia su propio Vite en el puerto 4173. Comprueba errores y foco,
 conservación del borrador, acceso directo, recarga, fallo/reintento, historial y
-desbordamiento horizontal. Son quince ejecuciones: cinco casos en escritorio,
-cinco en tablet y cinco en móvil emulado. No equivale a Safari ni a un iPhone físico.
+desbordamiento horizontal. Son dieciocho ejecuciones: seis casos en escritorio,
+seis en tablet y seis en móvil emulado. No equivale a Safari ni a un iPhone físico.
 
 El caso de teclado guarda `datos.png` y `resumen.png` por proyecto en
 `test-results/`, junto a las trazas de fallos. Los artefactos se excluyen de Git.
@@ -142,20 +144,21 @@ El caso de teclado guarda `datos.png` y `resumen.png` por proyecto en
 Para una demostración manual:
 
 1. Enviar el formulario vacío y corregir sus errores.
-2. Completar datos, continuar, elegir método y volver: comprobar conservación.
+2. Completar datos, continuar a Resumen y volver a editar: comprobar conservación.
 3. Revisar productos y subtotal; simular un fallo y reintentar.
 4. Durante la creación pulsar Atrás: debe permanecer en Resumen.
-5. Comprobar referencia DEMO y estado pendiente de pago; recargar para demostrar
-   que no existe persistencia.
+5. Comprobar referencia DEMO y estado pendiente de pago. Abrir la selección de
+   pago, elegir método y guardar: el pedido debe continuar pendiente, sin cobro.
+   Recargar para demostrar que no existe persistencia.
 6. Recorrer con Tab, Shift+Tab y flechas; comprobar los anuncios con lector de
    pantalla. Esta última revisión sigue siendo manual.
 
 ## Trabajo pendiente fuera de la demostración
 
 - Acordar el contrato real de creación y consulta del pedido con backend.
-- Recibir el carrito real de RF4 y validar en backend precios y disponibilidad.
+- Recibir el carrito real de F-05 y validar en backend precios y disponibilidad.
 - Definir costo de envío y política de los métodos de pago.
-- Integrar RF6 y confirmar pagos desde una fuente verificada; después actualizar
+- Integrar F-06 y confirmar pagos desde una fuente verificada; después actualizar
   inventario con control de concurrencia en backend.
 - Definir persistencia y autorización con el equipo antes de guardar datos.
 
@@ -185,3 +188,16 @@ La página recibe los artículos por props desde `CheckoutFlow`. El error espec�
 Los tests verifican rechazo, artículo afectado, ausencia de pedido, conservación del
 carrito y recuperación. La revisión de navegador incluye axe y capturas para los
 dos estados nuevos: ocho estados por tres tamaños (24 análisis).
+
+## Separación de F-01 y F-06
+
+F-01 ya no exige un método de pago: Datos y envío lleva directamente a Resumen.
+`DemoOrder` y `createDemoOrder` registran el borrador sin ese dato. Una vez creado,
+se ofrece la pantalla existente de selección como demostración separada. Guardar
+el método conserva una preferencia en memoria y vuelve al pedido, sin cambiar su
+estado ni su referencia. Acceder a `/checkout/payment` antes de crear redirige a
+Resumen si hay datos válidos, o al formulario si no los hay.
+
+Este cambio sigue el orden del Excel actualizado (SWR-04, SWR-05 y SWR-23). No
+simula una reserva vigente ni habilita procesamiento real de pagos. La autorización,
+la reserva y el importe deben verificarse en backend antes de integrar F-06.

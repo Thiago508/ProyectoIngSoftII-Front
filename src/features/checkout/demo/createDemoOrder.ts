@@ -1,4 +1,4 @@
-import type { CheckoutData, CheckoutItem, DemoOrder, PaymentMethod } from "../types/checkout.types";
+import type { CheckoutData, CheckoutItem, DemoOrder } from "../types/checkout.types";
 import { normalizeCheckoutData, validateCheckoutData } from "../utils/checkoutValidation.ts";
 
 export function calculateSubtotal(items: readonly CheckoutItem[]): number {
@@ -23,7 +23,7 @@ export class DemoAvailabilityError extends Error {
 }
 
 // Simulación explícita y sustituible. No realiza peticiones ni modifica inventario.
-export async function createDemoOrder(customer: CheckoutData, paymentMethod: PaymentMethod,
+export async function createDemoOrder(customer: CheckoutData,
   items: readonly CheckoutItem[], simulateFailure = false, unavailableItemIds: readonly string[] = []): Promise<DemoOrder> {
   if (Object.keys(validateCheckoutData(customer)).length) throw new Error("Revisa los datos de compra.");
   const total = calculateSubtotal(items);
@@ -34,6 +34,6 @@ export async function createDemoOrder(customer: CheckoutData, paymentMethod: Pay
   if (simulateFailure) throw new Error("No se pudo crear el pedido de demostración. Intenta nuevamente.");
   return {
     id: `DEMO-${crypto.randomUUID()}`, createdAt: new Date().toISOString(), status: "pending_payment",
-    ...snapshot, paymentMethod, total,
+    ...snapshot, total,
   };
 }

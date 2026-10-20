@@ -16,8 +16,9 @@ test("calcula el subtotal del mockup y multiplica cantidades", () => {
 test("crea una copia pendiente de pago sin mutar el carrito ni datos personales", async () => {
   const items = demoCart.map((item) => ({ ...item }));
   const original = structuredClone(items);
-  const order = await createDemoOrder(customer, "card", items);
+  const order = await createDemoOrder(customer, items);
   assert.equal(order.status, "pending_payment");
+  assert.equal("paymentMethod" in order, false);
   assert.equal(order.total, 219700);
   assert.match(order.id, /^DEMO-/);
   assert.equal(order.customer.fullName, "Karen Martínez");
@@ -28,27 +29,27 @@ test("crea una copia pendiente de pago sin mutar el carrito ni datos personales"
 });
 
 test("permite simular un fallo y reintentar", async () => {
-  await assert.rejects(createDemoOrder(customer, "transfer", demoCart, true), /No se pudo crear/);
-  assert.equal((await createDemoOrder(customer, "transfer", demoCart)).status, "pending_payment");
+  await assert.rejects(createDemoOrder(customer, demoCart, true), /No se pudo crear/);
+  assert.equal((await createDemoOrder(customer, demoCart)).status, "pending_payment");
 });
 
 test("rechaza datos inválidos antes de crear un pedido", async () => {
-  await assert.rejects(createDemoOrder({ ...customer, email: "incorrecto" }, "card", demoCart), /Revisa los datos/);
+  await assert.rejects(createDemoOrder({ ...customer, email: "incorrecto" }, demoCart), /Revisa los datos/);
 });
 
 test("SWR-01 rechaza un carrito vacío sin crear un pedido", async () => {
-  await assert.rejects(createDemoOrder(customer, "card", []), /El carrito está vacío/);
+  await assert.rejects(createDemoOrder(customer, []), /El carrito está vacío/);
 });
 
 test("SWR-02 simula rechazo de disponibilidad y conserva los artículos originales", async () => {
   const original = structuredClone(demoCart);
-  await assert.rejects(createDemoOrder(customer, "card", demoCart, false, [demoCart[0].id]), (cause: unknown) => {
+  await assert.rejects(createDemoOrder(customer, demoCart, false, [demoCart[0].id]), (cause: unknown) => {
     assert.ok(cause instanceof DemoAvailabilityError);
     assert.deepEqual(cause.itemIds, [demoCart[0].id]);
     return true;
   });
   assert.deepEqual(demoCart, original);
-  const order = await createDemoOrder(customer, "card", demoCart);
+  const order = await createDemoOrder(customer, demoCart);
   assert.equal(order.status, "pending_payment");
   assert.equal(order.total, 219700);
 });

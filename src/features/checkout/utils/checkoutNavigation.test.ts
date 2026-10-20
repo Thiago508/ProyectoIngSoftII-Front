@@ -5,37 +5,27 @@ import { getCheckoutRedirect } from "./checkoutNavigation.ts";
 const valid = { fullName: "Karen Martínez", email: "karen@example.com", phone: "3001234567", address: "Calle 14 # 23 - 45", city: "Armenia", department: "Quindío" };
 const empty = { fullName: "", email: "", phone: "", address: "", city: "", department: "" };
 
-test("acceso directo y recarga sin borrador regresan al formulario", () => {
-  for (const path of ["/checkout/payment", "/checkout/summary"]) {
-    assert.equal(getCheckoutRedirect(path, empty, null, false), "/checkout");
-  }
-  assert.equal(getCheckoutRedirect("/checkout", empty, null, false), null);
+test("acceso directo sin borrador regresa al formulario", () => {
+  for (const path of ["/checkout/payment", "/checkout/summary"]) assert.equal(getCheckoutRedirect(path, empty, false), "/checkout");
 });
 
-test("resumen requiere datos válidos y método; pago solo requiere datos", () => {
-  assert.equal(getCheckoutRedirect("/checkout/payment", valid, null, false), null);
-  assert.equal(getCheckoutRedirect("/checkout/summary", valid, null, false), "/checkout/payment");
-  assert.equal(getCheckoutRedirect("/checkout/summary", valid, "card", false), null);
-  assert.equal(getCheckoutRedirect("/checkout/summary", { ...valid, email: "incorrecto" }, "card", false), "/checkout");
+test("F-01 permite revisar con datos válidos sin método; selección de pago requiere pedido", () => {
+  assert.equal(getCheckoutRedirect("/checkout/summary", valid, false), null);
+  assert.equal(getCheckoutRedirect("/checkout/payment", valid, false), "/checkout/summary");
+  assert.equal(getCheckoutRedirect("/checkout/payment", valid, true), null);
+  assert.equal(getCheckoutRedirect("/checkout/summary", { ...valid, email: "incorrecto" }, false), "/checkout");
 });
 
-test("se permite volver a editar un borrador, pero un pedido creado vuelve al resumen", () => {
-  for (const path of ["/checkout", "/checkout/", "/checkout/payment"]) {
-    assert.equal(getCheckoutRedirect(path, valid, "card", false), null);
-    assert.equal(getCheckoutRedirect(path, valid, "card", true), "/checkout/summary");
-  }
-  assert.equal(getCheckoutRedirect("/checkout/summary", valid, "card", true), null);
-});
-
-test("una ruta desconocida vuelve a la etapa inicial o al pedido creado", () => {
-  assert.equal(getCheckoutRedirect("/checkout/unknown", valid, "card", false), "/checkout");
-  assert.equal(getCheckoutRedirect("/checkout/unknown", valid, "card", true), "/checkout/summary");
-});
-
-test("durante la creación no permite editar ni iniciar otra operación desde una etapa anterior", () => {
+test("pedido creado impide editar; operación en curso obliga a esperar en resumen", () => {
+  assert.equal(getCheckoutRedirect("/checkout", valid, false), null);
+  assert.equal(getCheckoutRedirect("/checkout", valid, true), "/checkout/summary");
   for (const path of ["/checkout", "/checkout/payment", "/checkout/unknown"]) {
-    assert.equal(getCheckoutRedirect(path, valid, "card", false, true), "/checkout/summary");
+    assert.equal(getCheckoutRedirect(path, valid, false, true), "/checkout/summary");
   }
-  assert.equal(getCheckoutRedirect("/checkout/summary", valid, "card", false, true), null);
-  assert.equal(getCheckoutRedirect("/checkout", valid, "card", false, false), null);
+  assert.equal(getCheckoutRedirect("/checkout/summary", valid, false, true), null);
+});
+
+test("ruta desconocida vuelve al formulario o al pedido creado", () => {
+  assert.equal(getCheckoutRedirect("/checkout/unknown", valid, false), "/checkout");
+  assert.equal(getCheckoutRedirect("/checkout/unknown", valid, true), "/checkout/summary");
 });

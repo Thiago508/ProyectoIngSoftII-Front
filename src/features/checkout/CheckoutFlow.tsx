@@ -33,16 +33,16 @@ export function CheckoutFlow() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const contentRef = useRef<HTMLDivElement>(null);
-  const redirect = getCheckoutRedirect(pathname, data, paymentMethod, Boolean(order), isSubmitting);
+  const redirect = getCheckoutRedirect(pathname, data, Boolean(order), isSubmitting);
 
   async function handleCreate(simulateFailure: boolean) {
-    if (inFlight.current || order || !paymentMethod) return;
+    if (inFlight.current || order) return;
     inFlight.current = true;
     setIsSubmitting(true);
     setCreationError(null);
     setUnavailableItemIds([]);
     try {
-      const created = await createDemoOrder(data, paymentMethod, items, simulateFailure, scenario === "unavailable" ? [demoCart[0].id] : []);
+      const created = await createDemoOrder(data, items, simulateFailure, scenario === "unavailable" ? [demoCart[0].id] : []);
       setOrder(created);
       navigate("/checkout/summary", { replace: true });
     } catch (cause: unknown) {
@@ -65,13 +65,13 @@ export function CheckoutFlow() {
         {redirect ? <Navigate to={redirect} replace /> : <Routes>
           <Route index element={<CheckoutDataPage formData={data} onChange={setData} onContinue={(normalizedData) => {
             setData(normalizedData);
-            navigate("/checkout/payment");
+            navigate("/checkout/summary");
           }} />} />
           <Route path="payment" element={
             <CheckoutPaymentPage method={paymentMethod} onChange={setPaymentMethod} onContinue={() => navigate("/checkout/summary")} />
           } />
-          <Route path="summary" element={paymentMethod && (
-            <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={order?.paymentMethod ?? paymentMethod}
+          <Route path="summary" element={(
+            <CheckoutSummaryPage data={order?.customer ?? data} paymentMethod={paymentMethod}
               items={items} scenario={scenario} onScenarioChange={handleScenarioChange} unavailableItemIds={unavailableItemIds}
               order={order} isSubmitting={isSubmitting} error={creationError} onCreate={handleCreate} />
           )} />
