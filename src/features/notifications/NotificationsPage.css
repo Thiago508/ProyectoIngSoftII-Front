@@ -1,0 +1,52 @@
+.notifications-page {
+  width: calc(100% - 2 * var(--page-gutter));
+  max-width: 760px;
+  margin-inline: auto;
+  padding-block: 2rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.notifications-page h1 { font-size: 1.5rem; }
+.notifications-page h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+
+.notifications-page__scenario {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 1.5rem;
+}
+
+.notifications-page__scenario select {
+  width: 100%;
+  padding: 0.75rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.notifications-page__list {
+  display: grid;
+  gap: 1rem;
+  margin-block: 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.notifications-page__list > li {
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+}
+
+.notifications-page dl { display: grid; gap: 0.75rem; margin: 0; }
+.notifications-page dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 0.5rem; }
+.notifications-page dt { color: var(--color-muted); }
+.notifications-page dd { margin: 0; }
+.notifications-page a { color: var(--color-primary); }
+.notifications-page :is(select, a):focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+
+@media (max-width: 480px) {
+  .notifications-page dl > div { grid-template-columns: minmax(0, 1fr); gap: 0.125rem; }
+}

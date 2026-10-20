@@ -619,3 +619,34 @@ Prueba manual: abrir `/register`, entrar en «Ir al inicio de sesión», validar
 y comprobar foco y errores. Escribir un correo de formato válido y una contraseña,
 probar mostrarla y validar. Comprobar que el resultado no anuncia una sesión y que
 la contraseña queda vacía. Navegar entre ambos formularios y volver al catálogo.
+
+## F-08: bandeja de notificaciones de demostración
+
+La campana del encabezado abre `/notifications`. El primer bloque de interfaz
+muestra ejemplos de pedidos registrados, pagados, cancelados y enviados. Cada aviso
+incluye identificador del pedido, estado resultante y fecha y hora del cambio
+(SWR-32, presentación con datos locales). La lista está ordenada del cambio más
+reciente al más antiguo. Las fechas usan `time` con su valor ISO y se muestran en
+`America/Bogota`, independientemente de la zona horaria del navegador.
+
+`features/notifications/notificationsDemo.ts` separa los ejemplos del componente.
+`NotificationsPage` reutiliza el encabezado y los valores visuales compartidos;
+solo guarda el escenario visual de lista o bandeja vacía. El selector anuncia el
+resultado sin mover el foco. La ruta tiene título de documento, encabezado enfocable
+y salto al contenido. No introduce dependencias ni almacenamiento persistente.
+
+Los ejemplos no pertenecen a una cuenta ni se generan al crear pedidos o cambiar
+el resultado visual del pago. No hay envío de correos, notificaciones del navegador,
+registro de entrega ni acciones para abrir pedidos inexistentes. El acceso a esta
+ruta no modifica carrito, pedidos, reservas ni inventario.
+
+F-08 sigue parcial: generar avisos desde cambios confirmados (SWR-31), entregarlos
+al propietario y protegerlos mediante la API (SWR-33), evitar duplicados por evento
+(SWR-34) y registrar los resultados e intentos fallidos (SWR-35) requieren backend.
+La bandeja pública contiene únicamente ejemplos identificados como demostración.
+No representa una bandeja privada protegida por autenticación.
+
+Prueba manual: abrir catálogo y pulsar la campana. Revisar los cuatro avisos,
+sus estados, identificadores y fechas. Elegir «Bandeja vacía», comprobar el mensaje
+y volver a «Mostrar ejemplos». Volver al catálogo conserva las unidades del carrito;
+recargar restaura los ejemplos y reinicia el estado local de la aplicación.

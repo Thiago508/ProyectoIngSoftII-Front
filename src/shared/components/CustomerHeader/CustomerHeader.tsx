@@ -44,6 +44,13 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
             <span aria-hidden="true">♙</span>
           </Link>
 
+          <Link to="/notifications" className="customer-header__action" aria-label="Notificaciones (demostración)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true" focusable="false">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
+              <path d="M10 21h4" />
+            </svg>
+          </Link>
+
           {cartTo ? <Link to={cartTo} className="customer-header__action customer-header__cart" aria-label={`Carrito de compras: ${cartItemCount} unidades`}>
             <span aria-hidden="true">♡</span><span className="customer-header__cart-count">{cartItemCount}</span>
           </Link> : <button type="button" className="customer-header__action customer-header__cart" aria-label={`Carrito de demostración: ${cartItemCount} unidades (pendiente de implementar)`} disabled>

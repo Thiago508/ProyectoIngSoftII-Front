@@ -12,6 +12,8 @@ import { RegistrationPage } from "./features/auth/RegistrationPage";
 
 import { LoginPage } from "./features/auth/LoginPage";
 
+import { NotificationsPage } from "./features/notifications/NotificationsPage";
+
 function App() {
   const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -34,6 +36,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
         <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
