@@ -252,3 +252,15 @@ transaccional en backend; no se garantizan modificando contadores en React.
 Verificación manual: abrir la ruta, comparar vestido M (15 − 3 = 12) con vestido L
 (8 − 8 = 0), comprobar falda sin existencias y recorrer la tabla con teclado en
 móvil. Todos los valores son ejemplos locales y no representan stock de la tienda.
+
+## Estilos compartidos y alineación
+
+`src/index.css` define variables de color, ancho de contenido, márgenes laterales y
+radios. Checkout e inventario consumen esos valores para mantener una apariencia
+coherente sin añadir una biblioteca de estilos ni componentes adicionales.
+
+El header de cliente centra su contenido en un máximo de 1120 px; el buscador
+ocupa el espacio entre la marca y las acciones. El formulario conserva su ancho
+máximo de 620 px y está centrado de forma independiente. En inventario, cabecera
+y contenido comparten los mismos límites; la cabecera oscura distingue administración.
+El indicador de foco de los títulos usa el color principal y sigue siendo visible.

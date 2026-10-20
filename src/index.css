@@ -1,3 +1,20 @@
+/* Valores visuales compartidos por cliente y administración. */
+:root {
+  --color-primary: #b52d59;
+  --color-primary-hover: #9b244b;
+  --color-primary-soft: #fff0f5;
+  --color-page: #faf8fa;
+  --color-surface: #ffffff;
+  --color-text: #222222;
+  --color-muted: #555555;
+  --color-border: #e4dfe3;
+  --color-admin: #1d2430;
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --content-width: 1120px;
+  --page-gutter: clamp(1rem, 3vw, 2rem);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -10,6 +27,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-page);
 }
 
 button,
@@ -17,4 +36,9 @@ input,
 select,
 textarea {
   font: inherit;
+}
+h1[tabindex="-1"]:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 6px;
+  border-radius: 2px;
 }

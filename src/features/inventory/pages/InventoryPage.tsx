@@ -17,8 +17,10 @@ export function InventoryPage() {
     <div className="inventory-page">
       <a className="inventory-page__skip" href="#inventory-heading">Saltar al inventario</a>
       <header className="inventory-page__header">
-        <span className="inventory-page__brand">Fashion <span>Administración · Demo</span></span>
-        <Link to="/checkout">Ir al checkout de demostración</Link>
+        <div className="inventory-page__header-inner">
+          <span className="inventory-page__brand">Fashion <span>Administración · Demo</span></span>
+          <Link to="/checkout">Ir al checkout de demostración</Link>
+        </div>
       </header>
       <main className="inventory-page__main">
         <h1 id="inventory-heading" ref={headingRef} tabIndex={-1}>Inventario</h1>
