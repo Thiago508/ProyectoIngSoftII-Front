@@ -28,3 +28,7 @@
 .products-page__secondary:hover { background: var(--color-primary-soft); }
 .products-page__secondary:disabled { color: var(--color-muted); border-color: var(--color-border); cursor: not-allowed; }
 .products-page__actions button:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+
+.products-page__photo-preview { max-width: 260px; display: grid; gap: 1rem; }
+.products-page__submit:disabled { opacity: 0.65; cursor: wait; }
+.products-page__list .product-photo { max-width: 280px; margin-inline: auto; }

@@ -18,7 +18,7 @@ test('SWR-11 registra producto, valida duplicados y comparte navegación adminis
   await page.getByLabel('Identificador comercial').fill(' NUEVO-01 ');
   await page.getByLabel('Precio en COP').fill('89900,50');
   await save.click();
-  await expect(page.getByRole('status')).toContainText('Producto NUEVO-01 registrado');
+  await expect(page.getByRole('status', { name: 'Registro de producto' })).toContainText('Producto NUEVO-01 registrado');
   const list = page.getByRole('region', { name: 'Productos de esta sesión' });
   await expect(list.getByRole('listitem')).toHaveCount(3);
   const product = list.getByRole('listitem').filter({ hasText: 'NUEVO-01' });

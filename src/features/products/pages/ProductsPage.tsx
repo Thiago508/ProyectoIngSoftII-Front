@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { ProductPhoto, type ProductPhotoData } from '../../../shared/components/ProductPhoto/ProductPhoto';
+import { readProductPhoto } from '../demo/readProductPhoto';
 import { AdminHeader } from '../../../shared/components/AdminHeader/AdminHeader';
 import { createDemoProduct, updateDemoProduct, deactivateDemoProduct, type Product, type ProductDraft, type ProductErrors } from '../demo/productsDemo';
 import './ProductsPage.css';
@@ -11,6 +13,11 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
   const [errors, setErrors] = useState<ProductErrors>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const editButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [photo, setPhoto] = useState<ProductPhotoData | null>(null);
+  const [photoErrors, setPhotoErrors] = useState<{ file?: string; alt?: string }>({});
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const readVersion = useRef(0);
   const [status, setStatus] = useState('');
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -19,7 +26,7 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
     headingRef.current?.focus();
     const previousTitle = document.title;
     document.title = 'Productos | Fashion Online Store';
-    return () => { document.title = previousTitle; };
+    return () => { document.title = previousTitle; readVersion.current += 1; };
   }, []);
 
   function changeField(field: keyof ProductDraft, value: string) {
@@ -29,7 +36,11 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
   }
 
   function beginEdit(product: Product, button: HTMLButtonElement) {
+    if (photoBusy) return;
     editButtonRef.current = button;
+    setPhoto(product.image ?? null);
+    setPhotoErrors({});
+    if (photoInputRef.current) photoInputRef.current.value = "";
     setEditingId(product.id);
     setDraft({ code: product.code, name: product.name, description: product.description, price: (product.priceCents / 100).toFixed(2) });
     setErrors({});
@@ -38,6 +49,7 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
   }
 
   function cancelEdit() {
+    clearPhoto();
     setEditingId(null);
     setDraft(emptyDraft);
     setErrors({});
@@ -52,9 +64,40 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
     setStatus(`Producto ${result.product.code} desactivado en la demostración. El registro se conserva y no se modificaron pedidos.`);
   }
 
+  function clearPhoto() {
+    readVersion.current += 1;
+    setPhoto(null);
+    setPhotoBusy(false);
+    setPhotoErrors({});
+    if (photoInputRef.current) photoInputRef.current.value = '';
+  }
+
+  async function selectPhoto(file: File | undefined) {
+    if (!file) return;
+    const version = ++readVersion.current;
+    setPhotoBusy(true);
+    setPhotoErrors({});
+    try {
+      const src = await readProductPhoto(file);
+      if (readVersion.current !== version) return;
+      setPhoto({ src, alt: draft.name.trim() ? `Foto de ${draft.name.trim()}` : 'Foto de la prenda', source: 'local' });
+    } catch (cause: unknown) {
+      if (readVersion.current === version) setPhotoErrors({ file: cause instanceof Error ? cause.message : 'No se pudo leer la foto.' });
+    } finally {
+      if (readVersion.current === version) setPhotoBusy(false);
+    }
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const result = editingId ? updateDemoProduct(products, editingId, draft) : createDemoProduct(products, draft);
+    if (photoBusy) return;
+    if (photoErrors.file) { photoInputRef.current?.focus(); return; }
+    if (photo && !photo.alt.trim()) {
+      setPhotoErrors({ alt: 'Describe la prenda para quienes no pueden ver la foto.' });
+      formRef.current?.querySelector<HTMLInputElement>('[name="photoAlt"]')?.focus();
+      return;
+    }
+    const result = editingId ? updateDemoProduct(products, editingId, draft, photo) : createDemoProduct(products, draft, photo);
     setStatus('');
     if (!result.ok) {
       setErrors(result.errors);
@@ -62,6 +105,7 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
       return;
     }
     onProductsChange(result.products);
+    clearPhoto();
     setDraft(emptyDraft);
     setErrors({});
     setStatus(editingId ? `Producto ${result.product.code} actualizado en la demostración. Los datos de pedidos anteriores no cambian.` : `Producto ${result.product.code} registrado en la demostración. No se crearon existencias.`);
@@ -94,18 +138,35 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
               {errors[field] && <p className="products-page__error" id={`product-${field}-error`}>{errors[field]}</p>}
             </div>;
           })}
-          <button type="submit" className="products-page__submit">{editingId ? "Guardar cambios de demostración" : "Registrar producto de demostración"}</button>
+          <div className="products-page__field">
+            <label htmlFor="product-photo">Foto del producto (opcional)</label>
+            <input ref={photoInputRef} id="product-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-invalid={Boolean(photoErrors.file)} aria-describedby={`product-photo-help${photoErrors.file ? ' product-photo-error' : ''}`} onChange={(event) => { void selectPhoto(event.currentTarget.files?.[0]); }} />
+            <p id="product-photo-help">JPG, PNG o WebP, hasta 5 MB para esta demostración. La foto se lee en este navegador; no se sube a un servidor.</p>
+            {photoErrors.file && <p className="products-page__error" id="product-photo-error">{photoErrors.file}</p>}
+            <p role="status" aria-label="Lectura de foto" aria-atomic="true">{photoBusy ? 'Leyendo foto…' : ''}</p>
+          </div>
+          {photo && <div className="products-page__photo-preview">
+            <ProductPhoto photo={photo} eager />
+            <div className="products-page__field">
+              <label htmlFor="product-photo-alt">Descripción de la foto</label>
+              <input id="product-photo-alt" name="photoAlt" type="text" value={photo.alt} required aria-invalid={Boolean(photoErrors.alt)} aria-describedby={photoErrors.alt ? 'product-photo-alt-error' : undefined} onChange={(event) => { const alt = event.currentTarget.value; setPhoto((previous) => previous ? { ...previous, alt } : null); setPhotoErrors((previous) => ({ ...previous, alt: undefined })); }} />
+              {photoErrors.alt && <p className="products-page__error" id="product-photo-alt-error">{photoErrors.alt}</p>}
+            </div>
+          </div>}
+          {(photo || photoErrors.file || photoBusy) && <button type="button" className="products-page__secondary" onClick={clearPhoto}>Quitar foto o selección</button>}
+          <button type="submit" className="products-page__submit" disabled={photoBusy}>{editingId ? "Guardar cambios de demostración" : "Registrar producto de demostración"}</button>
           {editingId && <button type="button" className="products-page__secondary" onClick={cancelEdit}>Cancelar edición</button>}
         </form>
-        <p role="status" aria-atomic="true">{status}</p>
+        <p role="status" aria-label="Registro de producto" aria-atomic="true">{status}</p>
       </section>
       <section className="products-page__panel" aria-labelledby="product-list-heading">
         <h2 id="product-list-heading">Productos de esta sesión</h2>
         <ul className="products-page__list">{products.map((product) => <li key={product.id}>
+          <ProductPhoto photo={product.image} />
           <h3>{product.name}</h3><p>Identificador: {product.code}</p><p>{product.description}</p>
           <p>Precio: {currency.format(product.priceCents / 100)}</p><p>Estado: {product.active ? 'Activo' : 'Inactivo'}</p>
           <div className="products-page__actions">
-            <button type="button" className="products-page__secondary" onClick={(event) => beginEdit(product, event.currentTarget)}>Editar {product.code}</button>
+            <button type="button" className="products-page__secondary" disabled={photoBusy} onClick={(event) => beginEdit(product, event.currentTarget)}>Editar {product.code}</button>
             <button type="button" className="products-page__secondary" disabled={!product.active} onClick={() => handleDeactivate(product.id)}>Desactivar {product.code}</button>
           </div>
         </li>)}</ul>

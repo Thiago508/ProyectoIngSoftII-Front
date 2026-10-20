@@ -1,3 +1,5 @@
+import type { ProductPhotoData } from '../../../shared/components/ProductPhoto/ProductPhoto';
+
 export interface Product {
   id: string;
   code: string;
@@ -5,17 +7,18 @@ export interface Product {
   description: string;
   priceCents: number;
   active: boolean;
+  image?: ProductPhotoData;
 }
 export interface ProductDraft { code: string; name: string; description: string; price: string }
 export type ProductErrors = Partial<Record<keyof ProductDraft, string>>;
 
 export const productsDemo: readonly Product[] = [
-  { id: 'demo-dress', code: 'DEMO-VEST', name: 'Vestido midi estampado', description: 'Vestido midi con estampado floral.', priceCents: 8990000, active: true },
-  { id: 'demo-blouse', code: 'DEMO-BLUSA', name: 'Blusa manga larga', description: 'Blusa femenina de manga larga.', priceCents: 5990000, active: true },
+  { id: 'demo-dress', code: 'DEMO-VEST', name: 'Vestido midi estampado', description: 'Vestido midi con estampado floral.', priceCents: 8990000, active: true, image: { src: '/images/products/vestido-midi-demo.png', alt: 'Vestido midi verde con flores crema y tirantes finos', source: 'generated' } },
+  { id: 'demo-blouse', code: 'DEMO-BLUSA', name: 'Blusa manga larga', description: 'Blusa femenina de manga larga.', priceCents: 5990000, active: true, image: { src: '/images/products/blusa-manga-larga-demo.png', alt: 'Blusa marfil de manga larga con escote en V y botones', source: 'generated' } },
 ];
 
 // Registro local de demostración. No autoriza administradores ni crea stock.
-function saveDemoProduct(products: readonly Product[], draft: ProductDraft, editingId?: string):
+function saveDemoProduct(products: readonly Product[], draft: ProductDraft, editingId?: string, image?: ProductPhotoData | null):
   { ok: false; errors: ProductErrors } | { ok: true; products: Product[]; product: Product } {
   const isEditing = editingId !== undefined;
   const existing = isEditing ? products.find((product) => product.id === editingId) : undefined;
@@ -34,17 +37,17 @@ function saveDemoProduct(products: readonly Product[], draft: ProductDraft, edit
   if (!description) errors.description = 'Escribe la descripción del producto.';
   if (!/^\d+(?:[.,]\d{1,2})?$/.test(rawPrice) || !Number.isSafeInteger(priceCents) || priceCents <= 0) errors.price = 'Escribe un precio mayor que cero, sin separadores de miles y con hasta dos decimales.';
   if (Object.keys(errors).length) return { ok: false, errors };
-  const product: Product = { id: existing?.id ?? crypto.randomUUID(), code, name, description, priceCents, active: existing?.active ?? true };
+  const product: Product = { id: existing?.id ?? crypto.randomUUID(), code, name, description, priceCents, active: existing?.active ?? true, image: image === undefined ? existing?.image : image ? { ...image, alt: image.alt.trim() } : undefined };
   return { ok: true, products: existing ? products.map((candidate) => candidate.id === editingId ? product : candidate) : [...products, product], product };
 }
 
 
-export function createDemoProduct(products: readonly Product[], draft: ProductDraft) {
-  return saveDemoProduct(products, draft);
+export function createDemoProduct(products: readonly Product[], draft: ProductDraft, image?: ProductPhotoData | null) {
+  return saveDemoProduct(products, draft, undefined, image);
 }
 
-export function updateDemoProduct(products: readonly Product[], productId: string, draft: ProductDraft) {
-  return saveDemoProduct(products, draft, productId);
+export function updateDemoProduct(products: readonly Product[], productId: string, draft: ProductDraft, image?: ProductPhotoData | null) {
+  return saveDemoProduct(products, draft, productId, image);
 }
 
 export function deactivateDemoProduct(products: readonly Product[], productId: string):

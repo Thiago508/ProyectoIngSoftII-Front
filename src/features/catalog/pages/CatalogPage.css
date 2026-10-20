@@ -12,3 +12,8 @@
 .catalog-page__clear { padding: 0.75rem; border: 1px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-primary); cursor: pointer; }
 .catalog-page :is(h1, h2, p, li) { overflow-wrap: anywhere; }
 @media (max-width: 640px) { .catalog-page { padding-block: 1rem; } .catalog-page__intro, .catalog-page__detail { padding: 1rem; } }
+
+.catalog-page__grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.catalog-page__detail--with-photo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 2rem; }
+.catalog-page__detail-info { min-width: 0; }
+@media (max-width: 640px) { .catalog-page__detail--with-photo { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }

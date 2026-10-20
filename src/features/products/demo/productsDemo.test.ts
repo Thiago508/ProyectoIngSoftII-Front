@@ -81,3 +81,21 @@ test('SWR-14 cambiar precio/nombre o desactivar no altera las líneas del pedido
   assert.equal(order.items[0].unitPrice, 89900);
   assert.equal(order.items[0].name, 'Vestido midi estampado');
 });
+
+
+test('conserva foto al editar, permite reemplazarla y quitarla sin mutar entradas', () => {
+  const original = structuredClone(productsDemo);
+  const product = productsDemo[0];
+  const retained = updateDemoProduct(productsDemo, product.id, { ...draft, code: product.code });
+  assert.ok(retained.ok);
+  assert.deepEqual(retained.product.image, product.image);
+  const replacement = { src: 'data:image/png;base64,example', alt: ' Foto nueva ', source: 'local' as const };
+  const replaced = updateDemoProduct(productsDemo, product.id, { ...draft, code: product.code }, replacement);
+  assert.ok(replaced.ok);
+  assert.equal(replaced.product.image?.alt, 'Foto nueva');
+  assert.equal(replaced.product.image?.source, 'local');
+  const removed = updateDemoProduct(productsDemo, product.id, { ...draft, code: product.code }, null);
+  assert.ok(removed.ok);
+  assert.equal(removed.product.image, undefined);
+  assert.deepEqual(productsDemo, original);
+});

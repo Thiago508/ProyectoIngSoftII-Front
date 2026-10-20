@@ -374,7 +374,8 @@ ambas pantallas conservan los colores y anchos comunes.
 El precio se introduce sin separadores de miles, con hasta dos decimales y coma o
 punto decimal, y se representa en centavos enteros. No se admiten valores fuera de
 la precisión segura de JavaScript. Registrar crea un producto activo de demostración,
-no unidades de inventario, tallas, fotos ni líneas de pedidos. El código del producto
+no unidades de inventario, tallas ni líneas de pedidos. Puede incluir una foto opcional
+según el incremento documentado al final. El código del producto
 no es el SKU de una variante de inventario. No se modifican datos históricos de F-01.
 
 No hay autorización administrativa real ni persistencia tras recarga. Recargar restaura sus ejemplos; navegar entre Productos y catálogo conserva los
@@ -439,3 +440,20 @@ consulta. Buscar algo inexistente muestra el mensaje y permite limpiar. En
 Editar o crear otro producto se refleja en el listado y detalle de la misma sesión.
 Recargar restaura los ejemplos. El backend deberá excluir inactivos y comprobar
 precios, disponibilidad y autorización en sus propias operaciones.
+
+## Fotos en Productos y Catálogo
+
+El catálogo y el detalle incluyen imágenes con texto alternativo, carga diferida en
+listado y alternativa ante imagen ausente o fallida. Los dos ejemplos iniciales usan
+imágenes ilustrativas generadas con IA, identificadas en pantalla y guardadas en
+`public/images/products/`.
+
+Para usar una foto propia: ir a `/admin/products`, pulsar Editar, seleccionar una
+foto JPG/PNG/WebP, revisar «Descripción de la foto» y guardar. El catálogo refleja
+el cambio al navegar sin recargar. La foto es opcional; si se adjunta requiere
+una descripción accesible. Se puede quitar sin borrar el producto.
+
+Los archivos se leen solo en el navegador (máximo local de 5 MB) y no se suben ni
+persisten tras recarga. El botón de guardar se bloquea únicamente durante la lectura
+real. No se agregaron dependencias para manejar imágenes. Los detalles, procedencia,
+assets y prompts están en [docs/catalog-images.md](docs/catalog-images.md).
