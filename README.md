@@ -757,8 +757,36 @@ selección previa de 4 se bloquea al entrar en checkout hasta corregirla. Cambia
 existente a 3 deja disponible en cero y esa talla no permite nuevas adiciones.
 Agregar al carrito no cambia ninguna cantidad. Recargar reinicia toda la demo.
 
-Este bloque prepara una fuente común para el siguiente: asociar productos nuevos
-con sus tallas/SKU y después registrar sus existencias explícitamente. La asociación
-actual todavía corresponde a los ejemplos; no se crea stock automático para un
-producto nuevo. Tampoco se conectó la creación de pedidos a las reservas del
-laboratorio ni se procesan pagos o transacciones reales.
+Sobre esta fuente común se pueden asociar productos nuevos con sus tallas/SKU y
+después registrar existencias explícitamente, como describe el siguiente apartado.
+No se crea stock automático al registrar un producto o talla. La creación de pedidos
+todavía no genera reservas del laboratorio ni procesa pagos o transacciones reales.
+
+
+## Registrar tallas/SKU para productos nuevos
+
+En `/admin/inventory`, «Registrar talla / SKU» permite elegir un producto activo,
+un SKU único y una etiqueta de talla. La validación local rechaza campos vacíos,
+productos desconocidos/inactivos, SKU duplicado y una talla repetida dentro del
+mismo producto, ignorando mayúsculas y espacios exteriores. La etiqueta puede ser
+alfabética o numérica; no se inventó una lista cerrada de tallas.
+
+`createDemoVariant.ts` separa esa lógica del formulario accesible
+`InventoryVariantForm`. El nuevo artículo guarda `productId`, el identificador
+interno estable; `getDemoAvailability` usa esa asociación en lugar del mapa fijo
+que solo conocía los productos iniciales. Cambiar el nombre o código comercial no
+desvincula las tallas. El ejemplo de falda sin producto comercial sigue siendo una
+fila del laboratorio, sin añadirlo artificialmente al catálogo.
+
+Dar de alta la talla establece existente y reservado en cero. No constituye un
+ajuste de existencias ni genera movimientos de stock. El ingreso de unidades se
+hace mediante «Ajustar existencias», conservando el motivo y el historial existentes.
+Con stock disponible, la talla se puede seleccionar en catálogo y pasa al carrito
+y checkout con su SKU, cantidad y precio del producto. Sin stock, permanece agotada.
+
+Prueba manual: registrar un producto nuevo, ir a Inventario y asociarle un SKU y
+una talla. Verificar que aparece en cero y todavía no permite agregarlo al carrito.
+Ajustar sus existencias a 5 con un motivo, volver a catálogo y agregar 2 unidades.
+Revisar el subtotal en carrito y confirmar el pedido de demostración. Agregar y
+crear el pedido no descuentan stock; la reserva automática sigue pendiente.
+Todos los cambios se pierden al recargar y no existe autorización de servidor.

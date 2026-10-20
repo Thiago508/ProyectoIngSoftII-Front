@@ -8,8 +8,12 @@ import { convertDemoReservation } from '../demo/convertDemoReservation';
 import { InventoryReservationPanel } from '../components/InventoryReservationPanel';
 import './InventoryPage.css';
 
-export function InventoryPage({ inventory, onInventoryChange }: {
-  inventory: InventorySession; onInventoryChange: (inventory: InventorySession) => void;
+import type { Product } from '../../products/demo/productsDemo';
+import { createDemoVariant, type VariantDraft } from '../demo/createDemoVariant';
+import { InventoryVariantForm } from '../components/InventoryVariantForm';
+
+export function InventoryPage({ products, inventory, onInventoryChange }: {
+  products: readonly Product[]; inventory: InventorySession; onInventoryChange: (inventory: InventorySession) => void;
 }) {
   const [sku, setSku] = useState(inventory.items[0]?.sku ?? '');
   const [quantity, setQuantity] = useState(String(inventory.items[0]?.existing ?? ''));
@@ -18,6 +22,12 @@ export function InventoryPage({ inventory, onInventoryChange }: {
   const [status, setStatus] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const selectedItem = inventory.items.find((item) => item.sku === sku);
+
+  function handleCreateVariant(draft: VariantDraft) {
+    const result = createDemoVariant(inventory.items, products, draft);
+    if (result.ok) onInventoryChange({ ...inventory, items: result.items });
+    return result;
+  }
 
   function handleAdjustment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,6 +101,7 @@ export function InventoryPage({ inventory, onInventoryChange }: {
           <p><strong>Existente:</strong> unidades en inventario. <strong>Reservado:</strong> unidades comprometidas en pedidos. <strong>Disponible:</strong> existente menos reservado.</p>
           <p>Un artículo puede tener existencias y ninguna unidad disponible si todas están reservadas. Esta consulta no crea, libera ni descuenta reservas.</p>
         </section>
+        <InventoryVariantForm products={products} onCreate={handleCreateVariant} />
         <p id="inventory-table-help">Cada fila representa una talla vendible. En pantallas estrechas, desplaza la tabla horizontalmente para consultar todas las columnas.</p>
         <div className="inventory-page__table-region" role="region" aria-label="Cantidades de inventario por artículo" aria-describedby="inventory-table-help" tabIndex={0}>
           <table className="inventory-page__table">

@@ -30,7 +30,8 @@ No se establece una duración de reserva ni se infiere aprobación real de un cl
 
 ## Organización
 
-- `demo/inventoryDemo.ts`: artículos y modelo local por talla.
+- `demo/inventoryDemo.ts`: artículos por talla, asociados al ID interno de producto.
+- `demo/createDemoVariant.ts` e `InventoryVariantForm`: alta local de talla/SKU sin crear stock.
 - `demo/adjustDemoInventory.ts`: validación y registro de ajuste.
 - `demo/reserveDemoInventory.ts`: reserva de todas las líneas y pedidos ficticios.
 - `demo/releaseDemoReservation.ts`: liberación por cancelación/expiración.
@@ -47,3 +48,7 @@ comprueba UI, errores, tabla, historial y axe en escritorio, tablet y móvil.
 F-02 puede entregarse como **demostración frontend**, con la autorización por rol
 y la integración explícitamente pendientes. El laboratorio comparte cantidades con catálogo y la comprobación local de checkout,
 pero sus reservas siguen ligadas a pedidos ficticios y no se generan al crear F-01.
+
+El alta de talla/SKU admite productos activos nuevos y los inicia con existente y
+reservado en cero. Las unidades se ingresan con el ajuste auditado de SWR-07. La
+unicidad global y la autorización de estas operaciones siguen pendientes del backend.

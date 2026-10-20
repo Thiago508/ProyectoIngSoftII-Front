@@ -8,7 +8,7 @@ producción. Las pantallas y operaciones actuales usan datos en memoria.
 | Funcionalidad y requisitos | Implementado en frontend | Pendiente para cumplir el requisito completo |
 | --- | --- | --- |
 | F-01 · SWR-01–05 | Carrito vacío bloqueado, validación de datos, revisión antes de confirmar, rechazo de disponibilidad simulado, creación con error/reintento, identificador y detalle local. El borrador sobrevive a editar carrito. | Crear y consultar pedidos reales; recibir precios y disponibilidad definitivos; gestionar rechazos y respuestas inciertas del servidor sin duplicar pedidos. |
-| F-02 · SWR-06–10 | Consulta de existente/reservado/disponible, ajustes con historial y laboratorio de reserva, liberación y conversión. | Fuente real de inventario y autorización; auditoría persistente, transacciones y concurrencia; conectar reserva con pedido y pago reales. Los cambios locales ya alimentan catálogo y comprobación de checkout. |
+| F-02 · SWR-06–10 | Alta de talla/SKU con cero stock, consulta de existente/reservado/disponible, ajustes con historial y laboratorio de reserva, liberación y conversión. | Fuente real de inventario y autorización; auditoría persistente, transacciones y concurrencia; conectar reserva con pedido y pago reales. Los cambios locales ya alimentan catálogo y comprobación de checkout. |
 | F-03 · SWR-11–14 | Alta, consulta, edición, desactivación, código único y precio positivo locales; foto opcional. Detalle histórico conserva nombre/precio tras editar o desactivar. | Persistencia, unicidad global del identificador y autorización administrativa; respuestas de error de esas operaciones. |
 | F-04 · SWR-15–18 | Catálogo activo, detalle, búsqueda parcial sin distinguir mayúsculas, mensaje sin coincidencias y fotos. | Consumir catálogo y disponibilidad del servidor; manejar carga y fallos de consulta. La disponibilidad actual usa el inventario compartido de sesión, inicializado con ejemplos. |
 | F-05 · SWR-19–22 | Agregar, acumular variantes, modificar cantidad, retirar, subtotal y conexión con checkout; no altera inventario. | Definir con backend la fuente y duración del carrito, si debe persistirse; sincronizar productos, variantes y precios reales. La recarga vacía el carrito local. |
@@ -21,10 +21,10 @@ producción. Las pantallas y operaciones actuales usan datos en memoria.
 1. Conectar las pantallas existentes con las fuentes reales cuando se acuerden los
    contratos; añadir carga, errores, recuperación y sincronización donde hoy solo
    hay validación o datos de demostración. No se han inventado endpoints.
-2. Completar la relación producto–SKU/talla para productos nuevos. La fuente de
-   disponibilidad de la demo ya se comparte entre administración, catálogo y checkout. Los
-   productos nuevos del administrador no reciben variantes o stock inventados y
-   actualmente no pueden comprarse hasta contar con esa información.
+2. Conectar con el backend la relación producto–SKU/talla y la disponibilidad. En
+   la demo ya se pueden registrar tallas para productos nuevos, con cero stock
+   inicial, y después ingresar existencias mediante un ajuste con motivo. El
+   catálogo y checkout consumen esas cantidades compartidas.
 3. Implementar el comportamiento de sesión, cierre, vencimiento y rutas según rol
    a partir de una autenticación confiable; no basta ocultar el botón administrativo.
 4. Completar la interacción del intento de pago y la recepción de sus resultados
