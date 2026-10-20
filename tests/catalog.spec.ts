@@ -1,0 +1,74 @@
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+test('SWR-15–18 catálogo, búsqueda parcial, detalle y retorno con consulta', async ({ page }, testInfo) => {
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(page.getByRole('heading', { name: 'Catálogo', exact: true })).toBeFocused();
+  const search = page.getByRole('searchbox', { name: 'Buscar productos' });
+  await search.fill('MiDi');
+  await expect(search).toBeFocused();
+  await expect(page.getByRole('status')).toContainText('1 producto encontrado');
+  await expect(page.getByRole('link', { name: 'Blusa manga larga', exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Vestido midi estampado', exact: true })).toBeFocused();
+  await expect(page.getByText('Vestido midi con estampado floral.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Talla M: 12 unidades disponibles')).toBeVisible();
+  await expect(page.getByText('Talla L: Sin disponibilidad')).toBeVisible();
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: testInfo.outputPath('detalle.png'), fullPage: true });
+  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
+  await expect(search).toHaveValue('MiDi');
+  await search.fill('sin-coincidencias');
+  await expect(page.getByRole('status')).toContainText('No encontramos productos');
+  await page.getByRole('button', { name: 'Limpiar búsqueda' }).click();
+  await expect(search).toHaveValue('');
+  await expect(page.getByRole('status')).toContainText('2 productos encontrados');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: testInfo.outputPath('catalogo.png'), fullPage: true });
+  await page.goto('/catalog/no-existe');
+  await expect(page.getByRole('heading', { name: 'Producto no disponible' })).toBeVisible();
+});
+
+test('desactivar oculta del catálogo; registrar y editar se reflejan al navegar sin recargar', async ({ page }) => {
+  await page.goto('/admin/products');
+  await page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true }).click();
+  await page.getByRole('button', { name: 'Editar DEMO-BLUSA', exact: true }).click();
+  await page.getByLabel('Nombre del producto').fill('Blusa actualizada');
+  await page.getByLabel('Precio en COP').fill('65000');
+  await page.getByRole('button', { name: 'Guardar cambios de demostración' }).click();
+  await page.getByLabel('Identificador comercial').fill('NUEVO');
+  await page.getByLabel('Nombre del producto').fill('Producto nuevo');
+  await page.getByLabel('Descripción del producto').fill('Producto nuevo sin inventario');
+  await page.getByLabel('Precio en COP').fill('10000');
+  await page.getByRole('button', { name: 'Registrar producto de demostración' }).click();
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Vestido midi estampado', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Blusa actualizada', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Producto nuevo', exact: true }).click();
+  await expect(page.getByText(/Disponibilidad sin confirmar:/)).toBeVisible();
+  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Blusa actualizada', exact: true }).click();
+  await expect(page.getByText(/65.000,00/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Blusa manga larga', exact: true })).toBeVisible();
+});
+
+test('un enlace antiguo no muestra el detalle de un producto desactivado; catálogo vacío informa', async ({ page }) => {
+  await page.goto('/admin/products');
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
+  await expect(page).toHaveURL(/\/catalog\/demo-dress$/);
+  await page.goBack();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/admin\/products$/);
+  await page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true }).click();
+  await page.getByRole('button', { name: 'Desactivar DEMO-BLUSA', exact: true }).click();
+  await page.goForward();
+  await expect(page.getByRole('status')).toContainText('No hay productos activos');
+  await page.goForward();
+  await expect(page).toHaveURL(/\/catalog\/demo-dress$/);
+  await expect(page.getByRole('heading', { name: 'Producto no disponible' })).toBeFocused();
+  await expect(page.getByText('Vestido midi con estampado floral.', { exact: true })).toHaveCount(0);
+});

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { AdminHeader } from '../../../shared/components/AdminHeader/AdminHeader';
-import { createDemoProduct, updateDemoProduct, deactivateDemoProduct, productsDemo, type Product, type ProductDraft, type ProductErrors } from '../demo/productsDemo';
+import { createDemoProduct, updateDemoProduct, deactivateDemoProduct, type Product, type ProductDraft, type ProductErrors } from '../demo/productsDemo';
 import './ProductsPage.css';
 
 const emptyDraft: ProductDraft = { code: '', name: '', description: '', price: '' };
 const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
+export function ProductsPage({ products, onProductsChange }: { products: readonly Product[]; onProductsChange: (products: Product[]) => void }) {
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
   const [errors, setErrors] = useState<ProductErrors>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -49,7 +48,7 @@ export function ProductsPage() {
   function handleDeactivate(productId: string) {
     const result = deactivateDemoProduct(products, productId);
     if (!result.ok) { setStatus(result.message); return; }
-    setProducts(result.products);
+    onProductsChange(result.products);
     setStatus(`Producto ${result.product.code} desactivado en la demostración. El registro se conserva y no se modificaron pedidos.`);
   }
 
@@ -62,7 +61,7 @@ export function ProductsPage() {
       formRef.current?.querySelector<HTMLElement>(`[name="${Object.keys(result.errors)[0]}"]`)?.focus();
       return;
     }
-    setProducts(result.products);
+    onProductsChange(result.products);
     setDraft(emptyDraft);
     setErrors({});
     setStatus(editingId ? `Producto ${result.product.code} actualizado en la demostración. Los datos de pedidos anteriores no cambian.` : `Producto ${result.product.code} registrado en la demostración. No se crearon existencias.`);
@@ -75,7 +74,7 @@ export function ProductsPage() {
     <AdminHeader />
     <main className="products-page__main">
       <h1 id="products-heading" ref={headingRef} tabIndex={-1}>Productos</h1>
-      <p className="products-page__notice">Demostración sin autenticación ni autorización de administrador. Los productos se guardan solo en memoria y se pierden al recargar o salir. No cambian el inventario ni los pedidos del checkout.</p>
+      <p className="products-page__notice">Demostración sin autenticación ni autorización de administrador. Los productos se guardan solo en memoria y se pierden al recargar. Los cambios se reflejan en el catálogo. No cambian el inventario ni los pedidos del checkout.</p>
       <section className="products-page__panel" aria-labelledby="product-register-heading">
         <h2 id="product-register-heading">{editingId ? "Editar producto" : "Registrar producto"}</h2>
         {editingId && <p>Estás editando un registro existente. Guardar conserva su identificador interno y su estado activo o inactivo.</p>}

@@ -33,6 +33,8 @@ test('SWR-11 registra producto, valida duplicados y comparte navegación adminis
   await expect(page).toHaveURL(/\/admin\/inventory$/);
   await expect(page.getByRole('link', { name: 'Inventario', exact: true })).toHaveAttribute('aria-current', 'page');
   await page.getByRole('link', { name: 'Productos', exact: true }).click();
+  await expect(list.getByRole('listitem')).toHaveCount(3);
+  await page.reload();
   await expect(list.getByRole('listitem')).toHaveCount(2);
 });
 

@@ -3,14 +3,18 @@ import "./CustomerHeader.css";
 
 interface CustomerHeaderProps {
   cartItemCount: number;
+  homeTo?: string;
+  contentHeadingId?: string;
+  skipLabel?: string;
+  search?: { query: string; onChange: (query: string) => void };
 }
 
-export function CustomerHeader({ cartItemCount }: CustomerHeaderProps) {
+export function CustomerHeader({ cartItemCount, homeTo = "/checkout", contentHeadingId = "checkout-heading", skipLabel = "Saltar al contenido del checkout", search }: CustomerHeaderProps) {
   return (
     <header className="customer-header">
-      <a className="customer-header__skip" href="#checkout-heading">Saltar al contenido del checkout</a>
+      <a className="customer-header__skip" href={`#${contentHeadingId}`}>{skipLabel}</a>
       <div className="customer-header__inner">
-        <Link className="customer-header__brand" to="/checkout" aria-label="Fashion Online Store">
+        <Link className="customer-header__brand" to={homeTo} aria-label="Fashion Online Store">
           <span className="customer-header__brand-name">Fashion</span>
           <span className="customer-header__brand-subtitle">Online Store</span>
         </Link>
@@ -23,8 +27,10 @@ export function CustomerHeader({ cartItemCount }: CustomerHeaderProps) {
           <input
             id="product-search"
             type="search"
-            placeholder="Búsqueda pendiente"
-            disabled
+            placeholder={search ? "Buscar por nombre..." : homeTo === "/catalog" ? "Busca desde el catálogo" : "Búsqueda pendiente"}
+            disabled={!search}
+            value={search?.query ?? ""}
+            onChange={(event) => search?.onChange(event.currentTarget.value)}
             aria-describedby="header-demo-note"
           />
         </div>
@@ -52,7 +58,7 @@ export function CustomerHeader({ cartItemCount }: CustomerHeaderProps) {
             <span className="customer-header__cart-count">{cartItemCount}</span>
           </button>
         </nav>
-        <p id="header-demo-note" className="customer-header__notice">Demo: búsqueda, perfil y carrito pendientes de implementar.</p>
+        <p id="header-demo-note" className="customer-header__notice">{search ? "Demo: búsqueda por nombre disponible. Perfil y carrito pendientes de implementar." : homeTo === "/catalog" ? "Demo: vuelve al catálogo para buscar. Perfil y carrito pendientes de implementar." : "Demo: búsqueda, perfil y carrito pendientes de implementar."}</p>
       </div>
     </header>
   );

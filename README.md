@@ -37,7 +37,7 @@ Modificar archivos en `src/`; `dist/` es salida generada y se excluye de Git.
 
 El stepper usa **Datos y envío → Resumen → Selección de pago**. Se unieron Datos y Envío porque
 el mockup los presenta en el mismo formulario y no define otra pantalla de envío.
-La raíz y rutas desconocidas redirigen al checkout hasta que exista un inicio real.
+La raíz abre el catálogo; las rutas desconocidas todavía redirigen al checkout.
 
 Volver entre etapas conserva lo escrito y el método elegido. Recargar elimina el
 borrador y el pedido simulado: todo vive en memoria, sin localStorage ni envío de
@@ -135,8 +135,8 @@ PLAYWRIGHT_BROWSERS_PATH=/tmp/fashion-playwright npm run test:e2e
 
 Playwright inicia su propio Vite en el puerto 4173. Comprueba errores y foco,
 conservación del borrador, acceso directo, recarga, fallo/reintento, historial y
-desbordamiento horizontal. Son veintiuna ejecuciones: siete casos en escritorio,
-siete en tablet y siete en móvil emulado. No equivale a Safari ni a un iPhone físico.
+desbordamiento horizontal. La suite se amplía por funcionalidad y se ejecuta en
+escritorio, tablet y móvil emulado. No equivale a Safari ni a un iPhone físico.
 
 El caso de teclado guarda `datos.png` y `resumen.png` por proyecto en
 `test-results/`, junto a las trazas de fallos. Los artefactos se excluyen de Git.
@@ -162,8 +162,8 @@ Para una demostración manual:
   inventario con control de concurrencia en backend.
 - Definir persistencia y autorización con el equipo antes de guardar datos.
 
-Catálogo, autenticación, administración y seguimiento no forman parte de este
-incremento. No se inventaron endpoints ni se publicaron cambios en Jira o hosting.
+El checkout no implementa autenticación ni seguimiento. Las demostraciones de
+administración y catálogo se documentan en sus apartados posteriores. No se inventaron endpoints ni se publicaron cambios en Jira o hosting.
 
 La revisión visual y accesible, sus correcciones y la prueba auditiva pendiente están
 en [docs/checkout-review.md](docs/checkout-review.md). La suite de revisión añade
@@ -377,14 +377,14 @@ la precisión segura de JavaScript. Registrar crea un producto activo de demostr
 no unidades de inventario, tallas, fotos ni líneas de pedidos. El código del producto
 no es el SKU de una variante de inventario. No se modifican datos históricos de F-01.
 
-No hay autorización administrativa real ni persistencia. Recargar o abandonar
-Productos restaura sus ejemplos. No hay loading ficticio: el registro es síncrono.
+No hay autorización administrativa real ni persistencia tras recarga. Recargar restaura sus ejemplos; navegar entre Productos y catálogo conserva los
+registros y sus cambios en memoria. No hay loading ficticio: el registro es síncrono.
 SWR-12 (editar) y SWR-13 (desactivar) están implementados como operaciones locales; la integración con backend queda pendiente.
 
 Prueba: enviar vacío para ver errores y foco, intentar `demo-vest` para comprobar
 el duplicado y registrar `NUEVO-01` con nombre, descripción y `89900,50`. Comprobar
 la tarjeta activa, el aviso y el precio. Navegar a Inventario permite comprobar el
-header compartido; volver a Productos reinicia los datos locales.
+header compartido; volver a Productos conserva los datos locales hasta recargar.
 
 ## F-03 / SWR-12–14: edición, desactivación e historial de pedidos
 
@@ -408,3 +408,34 @@ persistente de ese historial corresponde al backend.
 Prueba: editar DEMO-VEST, intentar usar DEMO-BLUSA para comprobar el duplicado,
 guardar nombre/precio nuevos y verificar que siguen dos productos. Desactivar y
 volver a editar conserva Inactivo. Recargar restaura la demostración original.
+
+## F-04: consultar catálogo
+
+`/` abre `/catalog`. SWR-15 presenta identificador comercial, nombre y precio de los
+productos activos. SWR-17 busca por coincidencia parcial del nombre sin distinguir
+mayúsculas; SWR-18 muestra un mensaje cuando no hay coincidencias. El botón de
+limpieza restaura el listado. No se eliminaron diferencias de acentuación no
+especificadas en el requisito.
+
+`/catalog/:productId` muestra descripción, precio y disponibilidad por talla de
+los ejemplos iniciales (SWR-16). Un producto desconocido o inactivo muestra «Producto
+no disponible», sin sus datos comerciales. La búsqueda usa `q` en la URL para
+conservarla al ir al detalle y volver; escribir no añade una entrada de historial
+por letra. Solo se habilita el buscador del header en el listado de catálogo.
+
+`App` mantiene productos y pasa valores/callbacks por props a Productos y Catálogo.
+Crear, editar o desactivar en administración se refleja al navegar sin recargar.
+No se añadió Context, estado global externo ni almacenamiento persistente.
+
+`features/catalog/demo/catalogDemo.ts` separa filtro y disponibilidad de ejemplo.
+La asociación por ID interno es explícitamente local: no es un contrato de API ni
+refleja ajustes del laboratorio de Inventario. Un producto nuevo indica disponibilidad
+sin confirmar en lugar de recibir stock inventado. No hay botones de compra ni se
+implementó F-05 en este incremento. El carrito del header sigue siendo provisional.
+
+Prueba: abrir `/catalog`, buscar `MiDi`, abrir el vestido y volver: se conserva la
+consulta. Buscar algo inexistente muestra el mensaje y permite limpiar. En
+`/admin/products`, desactivar DEMO-VEST y pulsar «Ver catálogo»: el vestido desaparece.
+Editar o crear otro producto se refleja en el listado y detalle de la misma sesión.
+Recargar restaura los ejemplos. El backend deberá excluir inactivos y comprobar
+precios, disponibilidad y autorización en sus propias operaciones.
