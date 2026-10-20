@@ -17,9 +17,13 @@ import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import type { DemoNotification } from "./features/notifications/notificationsDemo";
 import { recordRegisteredNotification } from "./features/notifications/recordRegisteredNotification";
 
+import { OrderDetailPage } from "./features/orders/OrderDetailPage";
+import type { DemoOrder } from "./features/checkout/types/checkout.types";
+
 function App() {
   const [products, setProducts] = useState<Product[]>(() => productsDemo.map((product) => ({ ...product })));
-  const [notifications, setNotifications] = useState<readonly DemoNotification[]>([]);
+  const [orderSession, setOrderSession] = useState<{ orders: readonly DemoOrder[]; notifications: readonly DemoNotification[] }>({ orders: [], notifications: [] });
+  const { orders, notifications } = orderSession;
   const [cart, setCart] = useState<CartLine[]>([]);
   const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
   function handleAddToCart(productId: string, sku: string, quantity: string) {
@@ -37,13 +41,18 @@ function App() {
     if (result.ok) setCart(result.lines);
     return { ok: result.ok, message: result.message };
   }
-  function handleDemoOrderCreated(orderId: string, createdAt: string) {
-    setNotifications((previous) => recordRegisteredNotification(previous, orderId, createdAt));
+  function handleDemoOrderCreated(order: DemoOrder) {
+    const snapshot = { ...order, customer: { ...order.customer }, items: order.items.map((item) => ({ ...item })) };
+    setOrderSession((previous) => ({
+      orders: previous.orders.some((saved) => saved.id === order.id) ? previous.orders : [snapshot, ...previous.orders],
+      notifications: recordRegisteredNotification(previous.notifications, order.id, order.createdAt),
+    }));
   }
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} sessionNotices={notifications} />} />
+        <Route path="/orders/:orderId" element={<OrderDetailPage orders={orders} cartCount={cartCount} />} />
+        <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} sessionNotices={notifications} availableOrderIds={orders.map((order) => order.id)} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
         <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />

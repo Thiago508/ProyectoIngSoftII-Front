@@ -8,8 +8,8 @@ const dateTime = new Intl.DateTimeFormat('es-CO', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Bogota',
 });
 
-export function NotificationsPage({ cartCount, sessionNotices }: {
-  cartCount: number; sessionNotices: readonly DemoNotification[];
+export function NotificationsPage({ cartCount, sessionNotices, availableOrderIds }: {
+  cartCount: number; sessionNotices: readonly DemoNotification[]; availableOrderIds: readonly string[];
 }) {
   const [scenario, setScenario] = useState<'session' | 'examples' | 'empty'>('session');
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -49,6 +49,7 @@ export function NotificationsPage({ cartCount, sessionNotices }: {
             <div><dt>Estado resultante</dt><dd>{notificationStatusLabels[notice.status]}</dd></div>
             <div><dt>Fecha y hora del cambio</dt><dd><time dateTime={notice.occurredAt}>{dateTime.format(new Date(notice.occurredAt))}</time></dd></div>
           </dl>
+          {scenario === 'session' && availableOrderIds.includes(notice.orderId) && <p><Link to={`/orders/${encodeURIComponent(notice.orderId)}`} aria-label={`Ver pedido ${notice.orderId}`}>Ver detalle del pedido</Link></p>}
         </li>)}
       </ol>}
       <Link to="/catalog">Volver al catálogo</Link>

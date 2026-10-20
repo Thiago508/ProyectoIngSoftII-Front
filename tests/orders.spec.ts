@@ -1,0 +1,65 @@
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+test('el detalle conserva el pedido al salir de checkout y tras editar y desactivar el producto', async ({ page }, testInfo) => {
+  await page.goto('/admin/products');
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
+  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
+  await page.getByLabel('Cantidad', { exact: true }).fill('2');
+  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
+  await page.getByRole('link', { name: 'Carrito de compras: 2 unidades', exact: true }).click();
+  await page.getByRole('link', { name: 'Continuar con la compra' }).click();
+  await page.getByLabel('Nombre completo').fill('Karen Martínez');
+  await page.getByLabel('Correo electrónico').fill('karen@example.com');
+  await page.getByLabel('Teléfono').fill('3001234567');
+  await page.getByLabel('Dirección', { exact: true }).fill('Calle 14 # 23 - 45');
+  await page.getByLabel('Ciudad').fill('Armenia');
+  await page.getByLabel('Departamento').fill('Quindío');
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  await page.getByRole('button', { name: 'Crear pedido de demostración', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Pedido de demostración creado' })).toBeVisible();
+  const reference = await page.getByText(/^Referencia: DEMO-/).innerText();
+  const orderId = reference.replace('Referencia: ', '');
+  const createdAt = await page.locator('time').getAttribute('datetime');
+  await page.getByRole('link', { name: 'Ver detalle del pedido', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Detalle del pedido', exact: true })).toBeFocused();
+  await expect(page.getByText(reference, { exact: true })).toBeVisible();
+  await expect(page.locator('time')).toHaveAttribute('datetime', createdAt!);
+  await expect(page.getByRole('region', { name: 'Datos y envío' })).toContainText('Calle 14 # 23 - 45');
+  await expect(page.getByText('Estado: pendiente de pago.', { exact: true })).toBeVisible();
+
+  for (let step = 0; step < 8 && !page.url().endsWith('/admin/products'); step++) await page.goBack();
+  await expect(page).toHaveURL(/\/admin\/products$/);
+  await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();
+  await page.getByLabel('Nombre del producto').fill('Vestido actualizado');
+  await page.getByLabel('Precio en COP').fill('100000');
+  await page.getByRole('button', { name: 'Guardar cambios de demostración' }).click();
+  await page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true }).click();
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await page.getByRole('link', { name: 'Notificaciones (demostración)', exact: true }).click();
+  await page.getByRole('link', { name: `Ver pedido ${orderId}`, exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Detalle del pedido', exact: true })).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Vestido midi estampado', exact: true })).toBeVisible();
+  await expect(page.getByText('Talla: M · Cantidad: 2', { exact: true })).toBeVisible();
+  await expect(page.getByText('Precio unitario:', { exact: false })).toContainText('89.900');
+  await expect(page.getByText('Subtotal de productos:', { exact: false })).toContainText('179.800');
+  await expect(page.getByText(reference, { exact: true })).toBeVisible();
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('detalle-pedido.png'), fullPage: true });
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Pedido no disponible', exact: true })).toBeFocused();
+  await expect(page.getByText('karen@example.com', { exact: false })).toHaveCount(0);
+});
+
+test('los ejemplos no enlazan a pedidos inexistentes y un acceso desconocido permite volver', async ({ page }) => {
+  await page.goto('/notifications');
+  await page.getByLabel('Escenario de notificaciones (demostración)').selectOption('examples');
+  await expect(page.getByRole('link', { name: /^Ver pedido / })).toHaveCount(0);
+  await page.goto('/orders/no-existe');
+  await expect(page.getByRole('heading', { name: 'Pedido no disponible', exact: true })).toBeFocused();
+  await expect(page.getByRole('region', { name: 'Datos y envío' })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Volver a las notificaciones', exact: true }).click();
+  await expect(page).toHaveURL(/\/notifications$/);
+});

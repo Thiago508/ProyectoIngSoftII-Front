@@ -1,0 +1,25 @@
+.order-detail {
+  width: calc(100% - 2 * var(--page-gutter));
+  max-width: 760px;
+  margin-inline: auto;
+  padding-block: 2rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.order-detail h1 { font-size: 1.5rem; }
+.order-detail h2 { margin-top: 0; font-size: 1.2rem; }
+.order-detail h3 { margin: 0; font-size: 1.05rem; }
+.order-detail__panel {
+  margin-block: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+}
+.order-detail__panel p { margin-block: 0.5rem; }
+.order-detail__items { list-style: none; padding: 0; margin: 0; }
+.order-detail__items li { padding-block: 1rem; border-bottom: 1px solid var(--color-border); }
+.order-detail__links { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
+.order-detail a { color: var(--color-primary); }
+.order-detail a:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }

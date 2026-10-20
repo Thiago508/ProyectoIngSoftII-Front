@@ -38,6 +38,7 @@ export function CheckoutSummaryPage({ data, paymentMethod, order, isSubmitting, 
         {order && <section aria-label="Resultado del pedido">
           <p>Estado: pendiente de pago. No se ha realizado ningún cobro ni descontado inventario.</p>
           <p>Referencia: {order.id}</p>
+          <p><Link to={`/orders/${encodeURIComponent(order.id)}`}>Ver detalle del pedido</Link></p>
           <p>Fecha: <time dateTime={order.createdAt}>{new Date(order.createdAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</time></p>
         </section>}
         {!order && demoMode && <div className="checkout-form__field">

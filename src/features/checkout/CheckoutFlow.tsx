@@ -21,7 +21,7 @@ const emptyData: CheckoutData = {
 
 export function CheckoutFlow({ lines, products, onDemoOrderCreated }: {
   lines: readonly CartLine[]; products: readonly Product[];
-  onDemoOrderCreated: (orderId: string, createdAt: string) => void;
+  onDemoOrderCreated: (order: DemoOrder) => void;
 }) {
   const [demoMode] = useState(() => new URLSearchParams(window.location.search).get("demo") === "1");
   const [data, setData] = useState<CheckoutData>(emptyData);
@@ -58,7 +58,7 @@ export function CheckoutFlow({ lines, products, onDemoOrderCreated }: {
     setUnavailableItemIds([]);
     try {
       const created = await createDemoOrder(data, items, simulateFailure, demoMode && scenario === "unavailable" ? [demoCart[0].id] : []);
-      onDemoOrderCreated(created.id, created.createdAt);
+      onDemoOrderCreated(created);
       setOrder(created);
       navigate("/checkout/summary", { replace: true });
     } catch (cause: unknown) {

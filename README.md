@@ -496,7 +496,8 @@ vacío se bloquea; los artículos inactivos, variantes inválidas o cantidades q
 superen la disponibilidad de la instantánea impiden continuar. La comprobación
 definitiva, reservas y precios del servidor siguen pendientes de integración.
 El pedido creado conserva una copia de sus líneas. El carrito no se vacía ni se
-persiste automáticamente. Salir de checkout descarta su borrador y resultado local.
+persiste automáticamente. Salir de checkout descarta su borrador y la selección visual de pago. El pedido
+creado queda disponible en el detalle de la sesión hasta recargar.
 Los escenarios originales del mockup siguen disponibles entrando expresamente por
 `/checkout?demo=1`; las pruebas anteriores usan ese modo aislado.
 Recargar reinicia el carrito; no se añadió persistencia,
@@ -639,7 +640,8 @@ y salto al contenido. No introduce dependencias ni almacenamiento persistente.
 Los ejemplos visuales no pertenecen a una cuenta y permanecen separados de los
 avisos generados al crear pedidos de demostración. Cambiar el resultado visual
 del pago no genera notificaciones. No hay envío de correos, notificaciones del navegador,
-registro de entrega ni acciones para abrir pedidos inexistentes. El acceso a esta
+registro de entrega. Solo los avisos de sesión con un pedido conservado ofrecen
+un enlace a su detalle; los ejemplos visuales no lo ofrecen. El acceso a esta
 ruta no modifica carrito, pedidos, reservas ni inventario.
 
 F-08 sigue parcial: generar avisos desde cambios confirmados (SWR-31), entregarlos
@@ -658,8 +660,9 @@ bandeja de sesión vacía.
 ### Aviso local al crear un pedido de demostración
 
 `CheckoutFlow` informa a `App` de una creación correcta mediante una función que
-recibe únicamente referencia y fecha, sin datos personales. `App` conserva los
-avisos en memoria para que sobrevivan a la navegación fuera de checkout. La bandeja
+recibe la copia del pedido creado. `App` conserva en memoria esa copia y su aviso
+en una misma actualización para que sobrevivan a la navegación fuera de checkout.
+El aviso solo contiene referencia, estado y fecha, sin datos personales. La bandeja
 solo recibe esa lista para presentarla; no necesita Context ni nuevas dependencias.
 
 `recordRegisteredNotification` añade un aviso «Registrado» al principio de la lista.
@@ -673,3 +676,30 @@ esta sesión» aparece un único aviso con la referencia y fecha del pedido. Nav
 al catálogo y volver lo conserva; «Bandeja vacía» solo oculta la lista. Recargar la
 elimina. La generación desde cambios confirmados, destinatarios autenticados,
 entrega y registro de intentos siguen pendientes del backend.
+
+
+## Detalle de pedidos creados en la sesión de demostración
+
+`/orders/:orderId` muestra una copia de solo lectura del pedido creado: referencia,
+fecha en hora de Colombia, estado pendiente de pago, productos, tallas, cantidades,
+precios, subtotal y datos de envío. Se accede desde «Ver detalle del pedido» en el
+resumen o desde el aviso correspondiente en notificaciones. No consulta el catálogo
+para reconstruir las líneas: editar o desactivar un producto no modifica el nombre
+ni el precio de pedidos anteriores (SWR-14, comportamiento local).
+
+`App` conserva pedidos y avisos en un único estado de sesión. El callback de
+checkout copia cliente y líneas al recibir una creación correcta. Repetir la misma
+referencia no sustituye su detalle ni añade otro aviso de registro. La página de
+detalle recibe esa lista de pedidos y la referencia de la ruta; no crea pedidos ni
+inicia pagos. No se han añadido Context, dependencias o endpoints.
+
+Los datos de envío permanecen únicamente en memoria del proceso del frontend;
+no se guardan en localStorage ni sessionStorage. Recargar elimina pedidos y avisos.
+Una referencia desconocida o perdida tras recargar muestra «Pedido no disponible»
+y enlaces para volver a notificaciones o catálogo. No es una consulta de pedidos
+reales ni sustituye la autorización del backend para datos de clientes.
+
+Prueba manual: crear un pedido desde el carrito, abrir su detalle desde el resumen,
+volver a notificaciones y abrir el mismo pedido. Comprobar referencia, fecha,
+productos y datos de envío. Recargar muestra el estado no disponible. Los ejemplos
+fijos de notificaciones no enlazan a un detalle inexistente.
