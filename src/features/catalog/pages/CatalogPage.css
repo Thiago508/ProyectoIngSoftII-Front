@@ -17,3 +17,10 @@
 .catalog-page__detail--with-photo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 2rem; }
 .catalog-page__detail-info { min-width: 0; }
 @media (max-width: 640px) { .catalog-page__detail--with-photo { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }
+
+
+.catalog-page__load-controls { margin-top: 1rem; }
+.catalog-page__load-controls summary { cursor: pointer; color: var(--color-primary); }
+.catalog-page__load-controls summary:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 4px; }
+.catalog-page__load-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.catalog-page__clear:disabled { opacity: 0.65; cursor: not-allowed; }

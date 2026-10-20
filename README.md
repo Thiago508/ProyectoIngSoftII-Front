@@ -816,3 +816,31 @@ Prueba manual: Administración → Notificaciones → filtrar «Fallido» y abri
 intentos del aviso. Cambiar a «Procesado» y revisar el ejemplo con un fallo previo
 y un segundo intento procesado; cambiar a «Pendiente» para ver el caso sin intentos.
 Recargar restaura el filtro «Todos». No se modifica el estado de pedidos o inventario.
+
+
+## F-04: carga, error y recuperación de la consulta
+
+Listado y detalle esperan una consulta de demostración antes de mostrar productos.
+Durante la espera se anuncia la carga y se marca el contenedor de resultados con
+`aria-busy`. Un fallo presenta un error y «Reintentar consulta», sin mostrar un
+catálogo vacío ni un producto inexistente como si la consulta hubiera tenido éxito.
+La búsqueda sigue en la URL y se conserva al reintentar.
+
+`demo/loadDemoCatalog.ts` encapsula la consulta local asíncrona con una espera de
+300 ms y un fallo reproducible. No hay endpoint ni respuesta de API inventada.
+`useDemoCatalog` coordina resultado e intento, cancela consultas al desmontar o
+cambiar su fuente y descarta respuestas que ya no corresponden a la consulta actual.
+El contenido mostrado se basa en una copia de productos; no modifica productos,
+carrito, pedidos o inventario. La disponibilidad sigue usando el inventario de sesión.
+
+En el desplegable «Pruebas de carga (demostración)» se puede simular un fallo o
+recargar correctamente. Sus acciones se deshabilitan durante la consulta. Tras un
+fallo provocado se enfoca el reintento; tras recuperar se enfoca el título. La carga
+inicial del listado no roba el foco si se empieza a escribir en el buscador.
+La espera pertenece a esta consulta asíncrona explícitamente simulada.
+
+Prueba manual: buscar «MiDi», abrir «Pruebas de carga (demostración)», provocar el
+fallo y comprobar el mensaje y la ausencia de productos anteriores. Reintentar:
+se restaura el vestido y se conserva la búsqueda. Repetir desde un detalle y salir
+a administración durante una recarga: una respuesta antigua no debe restaurar datos.
+Conectar esta consulta con la fuente real y sus errores sigue pendiente del backend.

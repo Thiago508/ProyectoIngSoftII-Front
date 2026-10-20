@@ -10,6 +10,8 @@ import './CatalogPage.css';
 
 import type { InventoryItem } from "../../inventory/demo/inventoryDemo";
 
+import { useDemoCatalog } from "../useDemoCatalog";
+
 const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }: { inventoryItems: readonly InventoryItem[]; products: readonly Product[]; cartCount: number; onAddToCart: (productId: string, sku: string, quantity: string) => { ok: boolean; message: string } }) {
@@ -17,10 +19,14 @@ export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const product = productId ? products.find((candidate) => candidate.id === productId && candidate.active) : undefined;
-  const matches = filterActiveProducts(products, query);
+  const { state: load, reload } = useDemoCatalog(products);
+  const loadedProducts = load.status === 'ready' ? load.products : [];
+  const restoreFocus = useRef(false);
+  const retryRef = useRef<HTMLButtonElement>(null);
+  const product = productId ? loadedProducts.find((candidate) => candidate.id === productId && candidate.active) : undefined;
+  const matches = filterActiveProducts(loadedProducts, query);
   const availability = product ? getDemoAvailability(product.id, inventoryItems) : [];
-  const title = productId ? product?.name ?? 'Producto no disponible' : 'Catálogo';
+  const title = productId ? load.status === 'ready' ? product?.name ?? 'Producto no disponible' : 'Detalle del producto' : 'Catálogo';
   const backToCatalog = `/catalog${searchParams.size ? `?${searchParams}` : ''}`;
 
   useEffect(() => {
@@ -30,6 +36,17 @@ export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }
     return () => { document.title = previousTitle; };
   }, [productId, title]);
 
+  useEffect(() => {
+    if (!restoreFocus.current || load.status === 'loading') return;
+    restoreFocus.current = false;
+    (load.status === 'error' ? retryRef.current : headingRef.current)?.focus();
+  }, [load.status]);
+
+  function reloadCatalog(fail = false) {
+    restoreFocus.current = true;
+    reload(fail);
+  }
+
   return <>
     <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo="/catalog" contentHeadingId="catalog-heading" skipLabel="Saltar al catálogo"
       search={!productId ? { query, onChange: (value) => setSearchParams(value ? { q: value } : {}, { replace: true }) } : undefined} />
@@ -37,9 +54,23 @@ export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }
       <div className="catalog-page__intro">
         <p className="catalog-page__eyebrow">Fashion · Online Store</p>
         <h1 id="catalog-heading" ref={headingRef} tabIndex={-1}>{title}</h1>
-        <p>Catálogo de demostración. Los productos se conservan en memoria hasta recargar.</p>
+        <p>Catálogo de demostración. Consulta asíncrona simulada, sin conexión a una API. Los productos se conservan en memoria hasta recargar.</p>
+        <details className="catalog-page__load-controls">
+          <summary>Pruebas de carga (demostración)</summary>
+          <p>Estos controles reproducen una consulta correcta o fallida sin cambiar productos, carrito o inventario.</p>
+          <div className="catalog-page__load-actions">
+            <button type="button" className="catalog-page__clear" disabled={load.status === 'loading'} onClick={() => reloadCatalog(true)}>Simular fallo de consulta</button>
+            <button type="button" className="catalog-page__clear" disabled={load.status === 'loading'} onClick={() => reloadCatalog()}>Recargar consulta de demostración</button>
+          </div>
+        </details>
       </div>
-      {productId ? product ? <article className="catalog-page__detail catalog-page__detail--with-photo">
+      {load.status === 'loading' && <p role="status" aria-atomic="true">Consultando catálogo de demostración…</p>}
+      <div aria-busy={load.status === 'loading'}>
+      {load.status === 'loading' ? null : load.status === 'error' ? <section className="catalog-page__detail" aria-label="Error de consulta del catálogo">
+        <h2>Catálogo temporalmente no disponible</h2>
+        <p role="alert">{load.message}</p>
+        <button ref={retryRef} type="button" className="catalog-page__clear" onClick={() => reloadCatalog()}>Reintentar consulta</button>
+      </section> : productId ? product ? <article className="catalog-page__detail catalog-page__detail--with-photo">
         <ProductPhoto photo={product.image} eager />
         <div className="catalog-page__detail-info">
         <p>Identificador comercial: {product.code}</p>
@@ -64,6 +95,7 @@ export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }
           <p className="catalog-page__price">{currency.format(item.priceCents / 100)}</p>
         </li>)}</ul>
       </>}
+      </div>
     </main>
   </>;
 }

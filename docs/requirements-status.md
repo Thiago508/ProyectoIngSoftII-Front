@@ -10,7 +10,7 @@ producción. Las pantallas y operaciones actuales usan datos en memoria.
 | F-01 · SWR-01–05 | Carrito vacío bloqueado, validación de datos, revisión antes de confirmar, rechazo de disponibilidad simulado, creación con error/reintento, identificador y detalle local. El borrador sobrevive a editar carrito. | Crear y consultar pedidos reales; recibir precios y disponibilidad definitivos; gestionar rechazos y respuestas inciertas del servidor sin duplicar pedidos. |
 | F-02 · SWR-06–10 | Alta de talla/SKU con cero stock, consulta de existente/reservado/disponible, ajustes con historial y laboratorio de reserva, liberación y conversión. | Fuente real de inventario y autorización; auditoría persistente, transacciones y concurrencia; conectar reserva con pedido y pago reales. Los cambios locales ya alimentan catálogo y comprobación de checkout. |
 | F-03 · SWR-11–14 | Alta, consulta, edición, desactivación, código único y precio positivo locales; foto opcional. Detalle histórico conserva nombre/precio tras editar o desactivar. | Persistencia, unicidad global del identificador y autorización administrativa; respuestas de error de esas operaciones. |
-| F-04 · SWR-15–18 | Catálogo activo, detalle, búsqueda parcial sin distinguir mayúsculas, mensaje sin coincidencias y fotos. | Consumir catálogo y disponibilidad del servidor; manejar carga y fallos de consulta. La disponibilidad actual usa el inventario compartido de sesión, inicializado con ejemplos. |
+| F-04 · SWR-15–18 | Catálogo activo, detalle, búsqueda parcial sin distinguir mayúsculas, mensaje sin coincidencias y fotos; consulta asíncrona simulada con carga, error, cancelación y reintento. | Consumir catálogo y disponibilidad del servidor y conectar sus errores reales con los estados de interfaz ya disponibles. La disponibilidad actual usa el inventario compartido de sesión, inicializado con ejemplos. |
 | F-05 · SWR-19–22 | Agregar, acumular variantes, modificar cantidad, retirar, subtotal y conexión con checkout; no altera inventario. | Definir con backend la fuente y duración del carrito, si debe persistirse; sincronizar productos, variantes y precios reales. La recarga vacía el carrito local. |
 | F-06 · SWR-23–26 | Selección de método y pantalla de resultado pendiente/aprobado/rechazado como vista previa separada. El resultado visual no paga el pedido. | Flujo de intento real elegible por pedido/reserva, importe del servidor, estados asíncronos y recuperación; verificación auténtica y aplicación única de efectos en backend. No hay procesamiento de pagos implementado. |
 | F-07 · SWR-27–30 | Registro y acceso accesibles, validación de campos y confirmación de contraseña, sin selector de rol. No almacenan credenciales. | Crear cuentas, correo único y rol Cliente en servidor, bcrypt, autenticación y JWT. En frontend faltan consumo de esos resultados, sesión/cierre, vencimiento y navegación según permisos; la autorización efectiva debe ser del backend. Las rutas administrativas actuales son públicas de demostración. |
@@ -19,8 +19,9 @@ producción. Las pantallas y operaciones actuales usan datos en memoria.
 ## Pendientes del propio frontend
 
 1. Conectar las pantallas existentes con las fuentes reales cuando se acuerden los
-   contratos; añadir carga, errores, recuperación y sincronización donde hoy solo
-   hay validación o datos de demostración. No se han inventado endpoints.
+   contratos; completar carga, errores, recuperación y sincronización donde hoy solo
+   hay validación o datos estáticos. El catálogo ya permite revisar esos estados
+   mediante una consulta asíncrona explícitamente simulada. No se han inventado endpoints.
 2. Conectar con el backend la relación producto–SKU/talla y la disponibilidad. En
    la demo ya se pueden registrar tallas para productos nuevos, con cero stock
    inicial, y después ingresar existencias mediante un ajuste con motivo. El
@@ -69,5 +70,6 @@ no una autenticación o autorización administrativa.
   incluyendo persistencia, errores y comprobaciones del servidor.
 - Completar revisión manual de accesibilidad y la validación de diseño con el usuario.
 
-Las tallas/SKU de productos nuevos, su ingreso de existencias y la consulta visual
-de intentos fallidos ya no están pendientes de interfaz en la demostración.
+Las tallas/SKU de productos nuevos, su ingreso de existencias, la consulta visual
+de intentos fallidos y los estados de carga/error/reintento del catálogo ya no
+están pendientes de interfaz en la demostración.

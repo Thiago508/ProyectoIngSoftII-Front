@@ -27,3 +27,24 @@ test('la disponibilidad usa el inventario de sesión recibido sin volver al ejem
   assert.deepEqual(getDemoAvailability('demo-dress', []), []);
   assert.equal(items[0].existing, 6);
 });
+
+test('la consulta simulada devuelve una copia, comunica fallo y permite otra consulta correcta', async () => {
+  const { loadDemoCatalog } = await import('./loadDemoCatalog.ts');
+  const controller = new AbortController();
+  const result = await loadDemoCatalog(productsDemo, false, controller.signal);
+  assert.deepEqual(result, productsDemo);
+  assert.notEqual(result, productsDemo);
+  assert.notEqual(result[0], productsDemo[0]);
+  assert.notEqual(result[0].image, productsDemo[0].image);
+  await assert.rejects(loadDemoCatalog(productsDemo, true, controller.signal), /No se pudo consultar/);
+  assert.equal((await loadDemoCatalog([], false, controller.signal)).length, 0);
+});
+
+test('cancelar una consulta en curso o antes de empezar impide recibir sus productos', async () => {
+  const { loadDemoCatalog } = await import('./loadDemoCatalog.ts');
+  const controller = new AbortController();
+  const pending = loadDemoCatalog(productsDemo, false, controller.signal);
+  controller.abort();
+  await assert.rejects(pending, { name: 'AbortError' });
+  await assert.rejects(loadDemoCatalog(productsDemo, false, controller.signal), { name: 'AbortError' });
+});

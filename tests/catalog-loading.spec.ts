@@ -1,0 +1,52 @@
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+test('la consulta fallida mantiene la búsqueda y permite reintentar sin mostrar un catálogo vacío falso', async ({ page }, testInfo) => {
+  await page.goto('/catalog?q=MiDi');
+  const dress = page.getByRole('link', { name: 'Vestido midi estampado', exact: true });
+  await expect(dress).toBeVisible();
+  await page.getByText('Pruebas de carga (demostración)', { exact: true }).click();
+  const fail = page.getByRole('button', { name: 'Simular fallo de consulta', exact: true });
+  await fail.click();
+  await expect(fail).toBeDisabled();
+  await expect(page.getByRole('alert')).toContainText('No se pudo consultar el catálogo');
+  const retry = page.getByRole('button', { name: 'Reintentar consulta', exact: true });
+  await expect(retry).toBeFocused();
+  await expect(dress).toHaveCount(0);
+  await expect(page.getByText('No hay productos activos para mostrar.', { exact: true })).toHaveCount(0);
+  const search = page.getByRole('searchbox', { name: 'Buscar productos', exact: true });
+  await expect(search).toHaveValue('MiDi');
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('catalogo-error.png'), fullPage: true });
+  await retry.click();
+  await expect(dress).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Catálogo', exact: true })).toBeFocused();
+  await expect(search).toHaveValue('MiDi');
+  await expect(page).toHaveURL(/\/catalog\?q=MiDi$/);
+  await expect(page.getByRole('status')).toContainText('1 producto encontrado');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await search.fill('inexistente');
+  await expect(page.getByRole('status')).toContainText('No encontramos productos');
+});
+
+test('el detalle se recupera y salir durante una consulta no restaura productos anteriores', async ({ page }) => {
+  await page.goto('/catalog/demo-dress');
+  await expect(page.getByRole('heading', { name: 'Vestido midi estampado', exact: true })).toBeFocused();
+  await page.getByText('Pruebas de carga (demostración)', { exact: true }).click();
+  await page.getByRole('button', { name: 'Simular fallo de consulta', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('No se pudo consultar');
+  await expect(page.getByRole('button', { name: 'Agregar al carrito', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Producto no disponible', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Reintentar consulta', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Vestido midi estampado', exact: true })).toBeFocused();
+  await expect(page.getByText('Talla M: 12 unidades disponibles', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Recargar consulta de demostración', exact: true }).click();
+  await page.getByRole('link', { name: 'Administración (demostración)', exact: true }).click();
+  await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();
+  await page.getByLabel('Nombre del producto', { exact: true }).fill('Vestido actualizado');
+  await page.getByRole('button', { name: 'Guardar cambios de demostración', exact: true }).click();
+  await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Vestido actualizado', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Vestido midi estampado', exact: true })).toHaveCount(0);
+});
