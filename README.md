@@ -431,8 +431,9 @@ No se añadió Context, estado global externo ni almacenamiento persistente.
 `features/catalog/demo/catalogDemo.ts` separa filtro y disponibilidad de ejemplo.
 La asociación por ID interno es explícitamente local: no es un contrato de API ni
 refleja ajustes del laboratorio de Inventario. Un producto nuevo indica disponibilidad
-sin confirmar en lugar de recibir stock inventado. No hay botones de compra ni se
-implementó F-05 en este incremento. El carrito del header sigue siendo provisional.
+sin confirmar en lugar de recibir stock inventado. F-05 incorpora selección de talla y cantidad y un carrito local en el incremento
+posterior. El carrito del header es navegable desde catálogo y carrito; el checkout
+conserva por ahora su propia demostración separada.
 
 Prueba: abrir `/catalog`, buscar `MiDi`, abrir el vestido y volver: se conserva la
 consulta. Buscar algo inexistente muestra el mensaje y permite limpiar. En
@@ -457,3 +458,35 @@ Los archivos se leen solo en el navegador (máximo local de 5 MB) y no se suben 
 persisten tras recarga. El botón de guardar se bloquea únicamente durante la lectura
 real. No se agregaron dependencias para manejar imágenes. Los detalles, procedencia,
 assets y prompts están en [docs/catalog-images.md](docs/catalog-images.md).
+
+## F-05: carrito — agregar y consultar
+
+Desde el detalle de un producto activo en `/catalog/:productId`, elegir talla y una
+cantidad entera mayor que cero y pulsar «Agregar al carrito» (SWR-19). En esta
+simulación solo las variantes asociadas a los ejemplos y con disponibilidad inicial
+positiva pueden seleccionarse. La cantidad no se compara contra un stock real ni
+se inventa un máximo comercial; el backend deberá comprobar disponibilidad al
+confirmar. Un producto nuevo sin variantes no ofrece la acción.
+
+`/cart` muestra selección, fotos, SKU, talla, unidades, precios y subtotal (SWR-21).
+El icono del header de catálogo y carrito muestra la suma de unidades y enlaza a esa
+ruta. Agregar la misma variante acumula cantidad sin duplicar la línea. La variante
+se identifica por producto y SKU, no solo por su nombre.
+
+`App` mantiene las líneas del carrito en memoria, junto al estado de productos.
+`features/cart/cart.ts` valida y devuelve copias, sin modificar productos ni
+inventario (SWR-22). El subtotal se calcula en centavos seguros usando el precio
+actual del catálogo local. Si esos datos ya no permiten calcularlo, se muestra un
+mensaje recuperable en lugar de una pantalla blanca. Un producto desactivado que
+ya esté en el carrito se conserva con advertencia; no se considera válido para una
+nueva compra. No se crea un pedido ni se reserva stock al agregar.
+
+El checkout conserva temporalmente su carrito simulado anterior: este incremento
+no ofrece continuar desde `/cart` hacia él para evitar confirmar otra selección.
+Modificar cantidades y retirar artículos (SWR-20), y conectar el carrito con F-01,
+son los próximos bloques. Recargar reinicia el carrito; no se añadió persistencia,
+Context, dependencias de estado ni endpoints.
+
+Prueba: abrir el vestido en catálogo, seleccionar M y agregar 2 unidades, agregar
+1 más y abrir el carrito desde el contador: una línea con 3 unidades y subtotal
+$269.700,00. Volver al catálogo conserva la selección; recargar la reinicia.

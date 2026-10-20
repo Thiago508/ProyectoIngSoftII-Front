@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { AddToCartForm } from '../../cart/components/AddToCartForm';
+import '../../cart/pages/CartPage.css';
 import { ProductPhoto } from '../../../shared/components/ProductPhoto/ProductPhoto';
 import { CustomerHeader } from '../../../shared/components/CustomerHeader/CustomerHeader';
 import type { Product } from '../../products/demo/productsDemo';
@@ -8,7 +10,7 @@ import './CatalogPage.css';
 
 const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function CatalogPage({ products }: { products: readonly Product[] }) {
+export function CatalogPage({ products, cartCount, onAddToCart }: { products: readonly Product[]; cartCount: number; onAddToCart: (productId: string, sku: string, quantity: string) => { ok: boolean; message: string } }) {
   const { productId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
@@ -27,7 +29,7 @@ export function CatalogPage({ products }: { products: readonly Product[] }) {
   }, [productId, title]);
 
   return <>
-    <CustomerHeader cartItemCount={0} homeTo="/catalog" contentHeadingId="catalog-heading" skipLabel="Saltar al catálogo"
+    <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo="/catalog" contentHeadingId="catalog-heading" skipLabel="Saltar al catálogo"
       search={!productId ? { query, onChange: (value) => setSearchParams(value ? { q: value } : {}, { replace: true }) } : undefined} />
     <main className="catalog-page">
       <div className="catalog-page__intro">
@@ -44,6 +46,7 @@ export function CatalogPage({ products }: { products: readonly Product[] }) {
         <h2>Disponibilidad por talla — demostración</h2>
         {availability.length ? <ul>{availability.map((item) => <li key={item.sku}>Talla {item.size}: {item.available > 0 ? `${item.available} unidades disponibles` : 'Sin disponibilidad'}</li>)}</ul> : <p>Disponibilidad sin confirmar: este producto no tiene artículos de inventario asociados en la demostración.</p>}
         <p>Disponibilidad tomada de los ejemplos iniciales; no refleja ajustes del laboratorio de Inventario. El backend deberá confirmarla antes de registrar la compra.</p>
+        <AddToCartForm key={product.id} productId={product.id} onAdd={(sku, quantity) => onAddToCart(product.id, sku, quantity)} />
         <Link to={backToCatalog}>Volver al catálogo</Link>
         </div>
       </article> : <section className="catalog-page__detail" aria-label="Producto no disponible">

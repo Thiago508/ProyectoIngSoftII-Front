@@ -160,3 +160,5 @@
   outline: 3px solid var(--color-primary);
   outline-offset: 4px;
 }
+
+.customer-header__actions a { text-decoration: none; color: var(--color-text); }
