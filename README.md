@@ -308,8 +308,29 @@ Esto ilustra la operación todo-o-nada de SWR-08, no garantiza una transacción 
 compradores. Las reservas reales, autorización y repetición de solicitudes deben
 resolverse en backend. No hay vencimiento inventado, descuentos de existencias,
 aprobación de pagos ni enlace con pedidos del checkout. Recargar o salir elimina
-las reservas simuladas. SWR-09 y SWR-10 siguen pendientes de su siguiente incremento.
+las reservas simuladas. SWR-09 incorpora cancelación y expiración manuales; SWR-10 sigue pendiente.
 
 Comprobar: reservar el pedido 001 deja vestido M en 15 existentes / 5 reservados /
 10 disponibles. Repetir conserva esas cantidades; intentar ajustar existente a 4
 se rechaza. Probar el pedido 002 confirma que no se aplica una reserva parcial.
+
+## F-02 / SWR-09: liberar reservas una sola vez
+
+En el laboratorio, después de reservar un pedido, «Simular cancelación» o «Simular
+expiración» devuelve sus unidades a disponible y reduce reservado. Existente no
+cambia. Las reservas iniciales de otros pedidos del ejemplo se conservan.
+
+`demo/releaseDemoReservation.ts` comprueba todas las líneas antes de aplicar el
+cambio. Cada reserva conserva estado (`active`, `cancelled` o `expired`) y la fecha
+de liberación en memoria. Repetir cualquiera de los eventos sobre una reserva ya
+liberada devuelve un aviso sin modificar cantidades, motivo o fecha. Reservar de
+nuevo el mismo pedido terminal se rechaza. Una reserva inexistente o inconsistente
+no produce cambios.
+
+No se inventó una duración: expiración es un evento manual de prueba. En producción
+el backend decide y confirma la expiración y garantiza el procesamiento único y
+transaccional. Estos botones no cancelan pedidos reales ni notifican a clientes.
+
+Prueba: reservar DEMO-PED-001 lleva vestido M de 3 a 5 reservados. Cancelar o
+expirar devuelve a 3 y deja 15 existentes / 12 disponibles. Repetir no libera las
+3 unidades iniciales. Recargar restaura todos los datos de demostración.

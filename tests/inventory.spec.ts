@@ -94,3 +94,27 @@ test('SWR-08 reserva todo o nada, protege ajustes y no duplica un pedido', async
   await expect(dress.getByRole('cell')).toHaveText(['M', '20', '5', '15', 'Disponible']);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
 });
+
+for (const event of ['cancelación', 'expiración']) {
+  test(`SWR-09 libera una sola vez por ${event} simulada`, async ({ page }) => {
+    await page.goto('/admin/inventory');
+    const panel = page.getByRole('region', { name: 'Reservas de pedidos — laboratorio de demostración' });
+    const action = panel.getByRole('button', { name: `Simular ${event} DEMO-PED-001` });
+    await action.click();
+    await expect(panel.getByRole('alert')).toContainText('No hay una reserva registrada');
+    await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
+    const dress = page.getByRole('row').filter({ hasText: 'DEMO-VEST-M' });
+    await expect(dress.getByRole('cell')).toHaveText(['M', '15', '5', '10', 'Disponible']);
+    await action.click();
+    await expect(panel.getByRole('status')).toContainText(`reserva liberada por ${event}`);
+    await expect(dress.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
+    await action.click();
+    await expect(panel.getByRole('status')).toContainText('no se descontaron reservas otra vez');
+    await panel.getByRole('button', { name: `Simular ${event === 'cancelación' ? 'expiración' : 'cancelación'} DEMO-PED-001` }).click();
+    await expect(dress.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
+    await panel.getByRole('button', { name: 'Reservar DEMO-PED-001 (simulación)' }).click();
+    await expect(panel.getByRole('alert')).toContainText('No se crea una nueva reserva');
+    await expect(dress.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
+    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+  });
+}

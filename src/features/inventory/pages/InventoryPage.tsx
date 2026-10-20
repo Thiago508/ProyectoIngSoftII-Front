@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { inventoryDemo, type InventoryItem } from '../demo/inventoryDemo';
 import { adjustDemoInventory, type AdjustmentErrors, type InventoryAdjustment } from '../demo/adjustDemoInventory';
 import { reserveDemoInventory, reservationOrders, type DemoReservation } from '../demo/reserveDemoInventory';
+import { releaseDemoReservation, type ReleaseReason } from '../demo/releaseDemoReservation';
 import { InventoryReservationPanel } from '../components/InventoryReservationPanel';
 import './InventoryPage.css';
 
@@ -43,6 +44,17 @@ export function InventoryPage() {
     return { ok: true, message: result.repeated
       ? `${orderId}: la reserva ya estaba registrada; no se duplicaron unidades.`
       : `${orderId}: se reservaron todas las líneas. Las existencias no cambian.` };
+  }
+
+  function handleRelease(orderId: string, reason: ReleaseReason) {
+    const result = releaseDemoReservation(inventory.items, inventory.reservations, orderId, reason);
+    if (!result.ok) return { ok: false, message: result.message };
+    setInventory({ ...inventory, items: result.items, reservations: result.reservations });
+    setStatus('');
+    setErrors({});
+    return { ok: true, message: result.repeated
+      ? `${orderId}: la reserva ya estaba liberada; no se descontaron reservas otra vez.`
+      : `${orderId}: reserva liberada por ${reason === 'cancelled' ? 'cancelación' : 'expiración'} simulada. Las existencias no cambian.` };
   }
 
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -133,7 +145,7 @@ export function InventoryPage() {
           </form>
           <p role="status" aria-atomic="true">{status}</p>
         </section>
-        <InventoryReservationPanel reservations={inventory.reservations} onReserve={handleReserve} />
+        <InventoryReservationPanel reservations={inventory.reservations} onReserve={handleReserve} onRelease={handleRelease} />
         <section className="inventory-page__panel" aria-labelledby="adjustment-history-heading">
           <h2 id="adjustment-history-heading">Historial de ajustes de esta sesión</h2>
           {!inventory.history.length ? <p>Todavía no hay ajustes registrados.</p> : <ol className="inventory-page__history">

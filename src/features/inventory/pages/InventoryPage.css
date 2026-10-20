@@ -72,3 +72,7 @@
 .inventory-page__reservation-orders ul { padding-left: 1.25rem; overflow-wrap: anywhere; }
 .inventory-page__reservation-orders button { width: 100%; }
 .inventory-page__panel button:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+
+.inventory-page__reservation-actions { display: flex; flex-direction: column; gap: 0.75rem; }
+.inventory-page__secondary { padding: 0.8rem 1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-primary); cursor: pointer; }
+.inventory-page__secondary:hover { background: var(--color-primary-soft); }

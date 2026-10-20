@@ -2,7 +2,7 @@ import type { InventoryItem } from './inventoryDemo';
 
 export interface ReservationLine { sku: string; quantity: number }
 export interface ReservationOrder { id: string; lines: readonly ReservationLine[] }
-export interface DemoReservation { orderId: string; lines: ReservationLine[]; createdAt: string }
+export interface DemoReservation { orderId: string; lines: ReservationLine[]; createdAt: string; status: 'active' | 'cancelled' | 'expired'; releasedAt?: string }
 
 export const reservationOrders: readonly ReservationOrder[] = [
   { id: 'DEMO-PED-001', lines: [{ sku: 'DEMO-VEST-M', quantity: 2 }, { sku: 'DEMO-BLUSA-S', quantity: 1 }] },
@@ -20,7 +20,11 @@ type ReservationResult = { ok: false; message: string } | {
 export function reserveDemoInventory(items: readonly InventoryItem[], reservations: readonly DemoReservation[],
   order: ReservationOrder): ReservationResult {
   if (!order.id || !order.lines.length) return { ok: false, message: 'El pedido de demostración no tiene líneas válidas.' };
-  if (reservations.some((reservation) => reservation.orderId === order.id)) {
+  const previousReservation = reservations.find((reservation) => reservation.orderId === order.id);
+  if (previousReservation && previousReservation.status !== 'active') {
+    return { ok: false, message: 'Este pedido de demostración ya terminó por cancelación o expiración. No se crea una nueva reserva para el mismo pedido.' };
+  }
+  if (previousReservation) {
     return { ok: true, items: [...items], reservations: [...reservations], repeated: true };
   }
   const quantities = new Map<string, number>();
@@ -41,7 +45,7 @@ export function reserveDemoInventory(items: readonly InventoryItem[], reservatio
   return {
     ok: true,
     items: items.map((item) => ({ ...item, reserved: item.reserved + (quantities.get(item.sku) ?? 0) })),
-    reservations: [...reservations, { orderId: order.id, lines, createdAt: new Date().toISOString() }],
+    reservations: [...reservations, { orderId: order.id, lines, status: 'active', createdAt: new Date().toISOString() }],
     repeated: false,
   };
 }
