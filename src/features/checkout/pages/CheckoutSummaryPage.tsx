@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CheckoutStepper } from "../components/CheckoutStepper/CheckoutStepper";
 import type { DemoCartScenario } from "../demo/demoCart";
-import { calculateSubtotal } from "../demo/createDemoOrder";
+import { calculateSubtotal } from "../domain/calculateSubtotal";
 import { paymentMethods } from "../paymentMethods";
 import type { CheckoutData, CheckoutItem, DemoOrder, PaymentMethod } from "../types/checkout.types";
 

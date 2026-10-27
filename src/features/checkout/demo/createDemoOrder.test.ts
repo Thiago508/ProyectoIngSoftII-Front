@@ -69,3 +69,7 @@ test("SWR-04 y SWR-14 conservan nombre, precio y datos del pedido separados del 
   assert.equal(order.items[0].unitPrice, originalPrice);
   assert.equal(order.subtotal, 219700);
 });
+test('redondea precios a centavos', () => { assert.equal(calculateSubtotal([{ ...demoCart[0], unitPrice: 10.235, quantity: 2 }]), 20.48); });
+test('rechaza totales fuera del rango seguro', () => { assert.throws(() => calculateSubtotal([{ ...demoCart[0], unitPrice: Number.MAX_SAFE_INTEGER / 100, quantity: 2 }]), /El total del carrito no es válido/); });
+test('valida comprador antes del carrito', async () => { await assert.rejects(createDemoOrder({ ...customer, email: 'invalido' }, []), /Revisa los datos de compra/); });
+test('genera identificador y fecha válidos', async () => { const order = await createDemoOrder(customer, demoCart); assert.match(order.id, /^DEMO-[0-9a-f-]{36}$/i); assert.equal(new Date(order.createdAt).toISOString(), order.createdAt); });
