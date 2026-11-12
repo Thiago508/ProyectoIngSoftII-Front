@@ -24,6 +24,8 @@ import { createDemoInventorySession } from "./features/inventory/demo/inventoryS
 
 import { NotificationProcessingPage } from "./features/notifications/NotificationProcessingPage";
 
+import { BackendConnectionPage } from "./features/integration/BackendConnectionPage";
+
 function emptyCheckoutData(): CheckoutData {
   return { fullName: "", email: "", phone: "", address: "", city: "", department: "" };
 }
@@ -70,6 +72,7 @@ function App() {
         <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="/catalog" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/catalog/:productId" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
+        <Route path="/admin/connection" element={<BackendConnectionPage />} />
         <Route path="/admin/notifications" element={<NotificationProcessingPage />} />
         <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
         <Route path="/admin/inventory" element={<InventoryPage products={products} inventory={inventory} onInventoryChange={setInventory} />} />

@@ -9,6 +9,7 @@ export function AdminHeader() {
         <NavLink to="/admin/products">Productos</NavLink>
         <NavLink to="/admin/inventory">Inventario</NavLink>
         <NavLink to="/admin/notifications">Notificaciones</NavLink>
+        <NavLink to="/admin/connection">Conexión API</NavLink>
         <Link to="/catalog">Ver catálogo</Link>
         <Link to="/checkout">Ir al checkout de demostración</Link>
       </nav>

@@ -1,9 +1,14 @@
 # Estado de requisitos: frontend e integración
 
 Fuente: `PR - TiendaRopa.xlsx`, hoja «Priorización de Requerimientos»,
-35 SWR agrupados en F-01–F-08. Revisión del código del 20 de octubre de 2026.
+35 SWR agrupados en F-01–F-08. Revisión actualizada el 11 de noviembre de 2026.
 Este estado describe lo implementado localmente, no certifica funcionalidades de
-producción. Las pantallas y operaciones actuales usan datos en memoria.
+producción. Las operaciones de negocio actuales usan datos en memoria. La nueva comprobación
+de conexión consulta el endpoint de salud real; aún no sustituye las demos por APIs.
+El OpenAPI actualizado documenta carrito, notificaciones y users/me, que estaban
+pendientes en el informe anterior. Ver [Integración con backend](backend-integration.md)
+para evidencia y cuestiones abiertas; una integración pendiente no implica que la
+ruta no exista en el servidor.
 
 | Funcionalidad y requisitos | Implementado en frontend | Pendiente para cumplir el requisito completo |
 | --- | --- | --- |
@@ -73,3 +78,8 @@ no una autenticación o autorización administrativa.
 Las tallas/SKU de productos nuevos, su ingreso de existencias, la consulta visual
 de intentos fallidos y los estados de carga/error/reintento del catálogo ya no
 están pendientes de interfaz en la demostración.
+
+La URL de desarrollo, el cliente HTTP común y la consulta de salud ya están
+preparados. Se verificaron salud, CORS para localhost:5173, forma de catálogo e
+inventario y rechazo del carrito sin token. Dinero, datos de envío y contratos
+genéricos siguen pendientes de aclarar antes de dar por integrada la compra.

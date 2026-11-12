@@ -844,3 +844,20 @@ fallo y comprobar el mensaje y la ausencia de productos anteriores. Reintentar:
 se restaura el vestido y se conserva la búsqueda. Repetir desde un detalle y salir
 a administración durante una recarga: una respuesta antigua no debe restaurar datos.
 Conectar esta consulta con la fuente real y sus errores sigue pendiente del backend.
+
+## Primera conexión con la API documentada
+
+La dirección de desarrollo está en `.env.development` mediante `VITE_API_URL`.
+Para cambiarla por equipo, copiar `.env.example` a `.env.local`, editar la dirección
+y reiniciar Vite. La URL incluye `/api/v1` una sola vez. Para producción se debe
+definir VITE_API_URL al construir; la configuración de desarrollo no se usa ahí.
+
+Administración → «Conexión API» permite comprobar el GET `/health` real. La consulta
+es de lectura y no requiere token; no activa todavía las operaciones de negocio.
+El cliente HTTP común soporta JSON, el formulario de login, Bearer explícito,
+validaciones FastAPI y errores de negocio; cancela y limita el tiempo de consultas
+sin guardar credenciales ni reintentar automáticamente escrituras.
+
+Consultar [Integración con backend](docs/backend-integration.md) para la evidencia
+real de conectividad/CORS, diferencias entre respuestas observadas y Swagger, y
+las preguntas que siguen pendientes sobre dinero, envío, contratos y permisos.
