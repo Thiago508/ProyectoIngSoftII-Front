@@ -944,3 +944,45 @@ crear con precio entero, editar y cancelar, guardar y desactivar. Comprobar que
 no se ofrecen ajustes de stock ni subida de archivos. Revisar el catálogo público
 y confirmar que el producto inactivo no aparece para nuevas compras. Las pruebas
 automatizadas interceptan escrituras y no crean productos en el backend local.
+
+
+## Inventario y ajustes por talla conectados a la API
+
+`/admin/inventory` consulta GET /inventory con Bearer y GET /products para nombres
+y selección. `?source=demo` conserva el laboratorio local, independiente de los
+datos del servidor. Ambas pantallas requieren navegación de administrador. El
+cliente envía Bearer incluso si la instancia admite lectura pública; esto permite
+avanzar sin asumir resuelta la discrepancia de seguridad entre Swagger y el mensaje
+del backend. El permiso efectivo de los endpoints lo verifica el servidor.
+
+`inventoryApi.ts` valida filas por product_id/talla y cantidades enteras no negativas
+con available = quantity - reserved; rechaza duplicados y respuestas incompatibles.
+El formulario de `ApiInventoryPage.tsx` envía POST /inventory/adjustments con
+product_id, size, new_quantity y reason explícitos. new_quantity es el total físico,
+no un delta. No usa /inventory/adjust legacy ni modifica reservas desde el cliente.
+
+Las opciones de producto incluyen metadata e IDs presentes en inventario, para no
+ocultar filas si el listado de productos omite alguno. La talla permite escribir
+una nueva y usar sugerencias de las tallas conocidas. Un producto sin filas puede
+recibir su primera talla; cero es una cantidad válida. El motivo admite 1–255
+caracteres. La validación local de mínimo reservado utiliza la última consulta: el
+backend sigue siendo responsable de reservas, autorización y concurrencia.
+
+Después de guardar se muestra InventoryAdjustmentOut confirmado; sus reservas
+pueden diferir de las consultadas. No se inventan historial, actor o fecha de
+auditoría porque esa respuesta no los incluye. La confirmación se anuncia con
+role=status y el foco pasa a la fila ajustada. El catálogo público obtiene la
+disponibilidad del backend al abrir productos; no del inventario demo.
+
+Se bloquean envíos simultáneos. 409 conserva el borrador, 422 identifica campos,
+403 conserva sesión y 401 la invalida. Si el resultado de escribir es incierto,
+se exige consultar inventario antes de repetir y esa recuperación limpia el
+formulario. No hay reintentos automáticos. Salir cancela la solicitud del navegador,
+pero no garantiza revertir un ajuste que ya haya sido aplicado por el servidor.
+
+Prueba manual con cuenta administrativa y stock de prueba autorizado: consultar,
+seleccionar una fila, intentar bajar del reservado y corregir; guardar y revisar
+físico/reservado/disponible. Crear otra talla con cantidad cero y motivo. Desconectar
+el backend durante una escritura debe ofrecer consulta de recuperación, sin
+repetir el ajuste automáticamente. Las pruebas automatizadas interceptan escrituras
+y no ajustan inventario real.

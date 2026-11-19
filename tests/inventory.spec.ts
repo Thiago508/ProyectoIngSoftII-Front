@@ -6,7 +6,7 @@ test('SWR-06 muestra cantidades por talla y calcula disponibilidad', async ({ pa
   await visitAsAdmin(page, '/admin/inventory');
   await expect(page.getByRole('heading', { name: 'Inventario', exact: true })).toBeFocused();
   await expect(page).toHaveTitle('Inventario | Fashion Online Store');
-  await expect(page.getByText(/El acceso de administrador todavía no está protegido/)).toBeVisible();
+  await expect(page.getByText(/Datos de demostración con navegación protegida para administrador/)).toBeVisible();
   const rows = page.getByRole('table').getByRole('row');
   await expect(rows).toHaveCount(5);
   const dressM = page.getByRole('row').filter({ hasText: 'DEMO-VEST-M' });

@@ -8,12 +8,12 @@ export function AdminHeader() {
   const [params] = useSearchParams();
   const location = useLocation();
   const demo = (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo';
-  const realProducts = location.pathname === '/admin/products' && !demo;
+  const realAdministration = ['/admin/products', '/admin/inventory'].includes(location.pathname) && !demo;
   const suffix = params.has('source') ? `?source=${demo ? 'demo' : 'api'}` : '';
   return <header className="admin-header">
     <div className="admin-header__inner">
-      <span className="admin-header__brand">Fashion<span>{realProducts ? "Administración · Servidor" : "Administración · Demo"}</span></span>
-      <nav aria-label={realProducts ? "Administración" : "Administración de demostración"}>
+      <span className="admin-header__brand">Fashion<span>{realAdministration ? "Administración · Servidor" : "Administración · Demo"}</span></span>
+      <nav aria-label={realAdministration ? "Administración" : "Administración de demostración"}>
         <NavLink to={`/admin/products${suffix}`}>Productos</NavLink>
         <NavLink to={`/admin/inventory${suffix}`}>Inventario</NavLink>
         <NavLink to={`/admin/notifications${suffix}`}>Notificaciones</NavLink>

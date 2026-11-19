@@ -6,6 +6,7 @@ import { productsDemo, type Product } from "./features/products/demo/productsDem
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ApiProductsPage } from "./features/products/pages/ApiProductsPage";
 import { ProductsPage } from "./features/products/pages/ProductsPage";
+import { ApiInventoryPage } from "./features/inventory/pages/ApiInventoryPage";
 import { InventoryPage } from "./features/inventory/pages/InventoryPage";
 import { CheckoutFlow } from "./features/checkout/CheckoutFlow";
 
@@ -34,6 +35,11 @@ import { ApiCartPage } from "./features/cart/pages/ApiCartPage";
 import { useSearchParams } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
+
+function InventoryRoute(props: Parameters<typeof InventoryPage>[0]) {
+  const [params] = useSearchParams();
+  return (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo' ? <InventoryPage {...props} /> : <ApiInventoryPage />;
+}
 
 function ProductsRoute(props: Parameters<typeof ProductsPage>[0]) {
   const [params] = useSearchParams();
@@ -101,7 +107,7 @@ function App() {
           <Route path="/admin/connection" element={<BackendConnectionPage />} />
           <Route path="/admin/notifications" element={<NotificationProcessingPage />} />
           <Route path="/admin/products" element={<ProductsRoute products={products} onProductsChange={setProducts} />} />
-          <Route path="/admin/inventory" element={<InventoryPage products={products} inventory={inventory} onInventoryChange={setInventory} />} />
+          <Route path="/admin/inventory" element={<InventoryRoute products={products} inventory={inventory} onInventoryChange={setInventory} />} />
           <Route path="/admin/*" element={<Navigate to="/admin/products" replace />} />
         </Route>
         <Route path="/checkout/*" element={<CheckoutFlow inventoryItems={inventory.items} lines={cart} products={products} data={checkoutDraft} onDataChange={setCheckoutDraft} onDemoOrderCreated={handleDemoOrderCreated} />} />

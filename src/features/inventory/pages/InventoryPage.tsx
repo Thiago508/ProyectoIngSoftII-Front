@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { AdminHeader } from '../../../shared/components/AdminHeader/AdminHeader';
 import type { InventorySession } from '../demo/inventorySession';
 import { adjustDemoInventory, type AdjustmentErrors } from '../demo/adjustDemoInventory';
@@ -95,7 +96,8 @@ export function InventoryPage({ products, inventory, onInventoryChange }: {
       <AdminHeader />
       <main className="inventory-page__main">
         <h1 id="inventory-heading" ref={headingRef} tabIndex={-1}>Inventario</h1>
-        <p className="inventory-page__notice">Datos de demostración. El acceso de administrador todavía no está protegido; no hay autenticación ni conexión a inventario real.</p>
+        <p><Link to="/admin/inventory?source=api">Ver inventario del servidor</Link></p>
+        <p className="inventory-page__notice">Datos de demostración con navegación protegida para administrador. Los ajustes locales no se envían al servidor.</p>
         <section aria-labelledby="inventory-help-heading" className="inventory-page__help">
           <h2 id="inventory-help-heading">Cómo leer las cantidades</h2>
           <p><strong>Existente:</strong> unidades en inventario. <strong>Reservado:</strong> unidades comprometidas en pedidos. <strong>Disponible:</strong> existente menos reservado.</p>

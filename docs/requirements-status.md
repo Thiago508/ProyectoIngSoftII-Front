@@ -178,3 +178,19 @@ tras escritura incierta, evitando repetir altas automáticamente. Las fotos real
 se configuran por URL; subida de archivos no está disponible en el contrato.
 No se integran existencias con editar metadata: falta inventario por talla, además
 de pedidos, checkout real, pagos y avisos. Las pruebas de escritura son interceptadas.
+
+
+## Avance de inventario real — 19 de noviembre de 2026
+
+Consulta de físico, reservado y disponible por producto/talla y ajuste absoluto
+con motivo conectados a la API. Permite ingresar una talla nueva, cantidades cero
+y productos aún sin filas. Incluye bloqueo de doble envío, validación local frente
+a reserva consultada, foco accesible, 401/403/409/422 y consulta de recuperación
+tras resultado incierto. El servidor conserva autoridad sobre stock y concurrencia.
+Inventario demo y su laboratorio de reservas permanecen independientes.
+
+Quedan pedidos y checkout reales, pagos, notificaciones e intentos administrativos.
+No hay historial real de ajustes en frontend: la respuesta actual solo entrega
+cantidades confirmadas, sin identificador de auditoría, actor o fecha. Backend
+local no respondió al intento de lectura de esta revisión; las escrituras se
+validan con API interceptada.

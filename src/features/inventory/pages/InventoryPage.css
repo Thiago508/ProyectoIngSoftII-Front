@@ -55,3 +55,7 @@
 .inventory-page__reservation-actions { display: flex; flex-direction: column; gap: 0.75rem; }
 .inventory-page__secondary { padding: 0.8rem 1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-primary); cursor: pointer; }
 .inventory-page__secondary:hover { background: var(--color-primary-soft); }
+
+.inventory-page__main > p a { color: var(--color-primary); }
+.inventory-page button:disabled { opacity: 0.65; cursor: not-allowed; }
+.inventory-page__main > button:focus-visible, .inventory-page [role="alert"]:focus, .inventory-page [data-inventory-row]:focus { outline: 3px solid var(--color-primary); outline-offset: 3px; }

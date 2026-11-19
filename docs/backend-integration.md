@@ -263,3 +263,36 @@ Verificación frontend del bloque: build, lint y suite unitaria correctos. Pasar
 navegación; después se revalidaron 18 casos ampliados de productos API, incluidos
 retorno desde login conservando fuente y cancelación sin escritura. En escritorio,
 tableta y móvil se comprobaron foco, desbordamiento y revisión automatizada axe.
+
+
+## Inventario administrativo integrado — 19 de noviembre de 2026
+
+GET /inventory y POST /inventory/adjustments envían Bearer y usan los contratos
+tipados de filas por talla y respuesta del ajuste. GET /products aporta nombres y
+productos aún sin inventario. La discrepancia documental de consulta pública frente
+a Bearer permanece: enviar el token en la pantalla administrativa es compatible
+con ambos comportamientos y no demuestra que el endpoint rechace anónimos.
+
+Se ajusta físico absoluto con talla y motivo explícitos; cero y talla nueva son
+válidos. Se valida reservado de la última consulta como ayuda, pero las cifras de
+la respuesta confirmada prevalecen. No se fuerzan reservas a su valor anterior ni
+se toman los disponibles de stock_by_size como físico. Una respuesta de otra talla,
+producto o cantidad y una fila con aritmética incompatible se rechazan.
+
+Se manejan 401/403/409/422, cancelación y resultado incierto sin repetir ajustes.
+Recuperar una consulta tras resultado incierto desbloquea operaciones y limpia el
+formulario. No se crea un historial ficticio de actor, fecha o ajuste: el contrato
+de respuesta no proporciona esos datos. El laboratorio demo sigue separado.
+
+Intento de comprobación contra http://127.0.0.1:8000/api/v1 el 19 de noviembre:
+la conexión devolvió error de red durante login, por lo que no fue posible validar
+lecturas en la instancia local en esta revisión. No se realizaron ajustes reales.
+Las pruebas de comportamiento usan respuestas interceptadas y no certifican stock,
+concurrencia ni permisos efectivos del backend.
+
+Verificación frontend: build, lint y suite unitaria correctos. La suite de navegador
+inicial tuvo 75 casos correctos y 3 fallos por una expectativa antigua del aviso
+«administración sin protección». Se actualizó esa prueba al aviso de demo protegida.
+La revalidación final de inventario API/demo tuvo 36 casos correctos en escritorio,
+tableta y móvil, incluyendo permisos de escritura 401/403, errores, cero/talla nueva,
+reservas concurrentes, foco, desbordamiento y comprobación automatizada axe.
