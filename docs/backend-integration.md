@@ -406,3 +406,39 @@ creación, carrito API, detalle de pedidos y checkout demo correctas en los tres
 tamaños. Incluyen doble envío, navegación, persistencia de marca tras recarga/login,
 recuperación por ID sin otro POST, 409/401/403, validaciones de líneas, foco, axe
 y ausencia de desbordamiento.
+
+
+## Pago de prueba integrado — 19 de noviembre de 2026
+
+Se reconsultó OpenAPI de la instancia local. POST /orders/{id}/checkout recibe
+CheckoutPaymentIn con method y card_token; documenta tok_ok y tok_declined.
+OrderStatus y ReservationState confirman pendiente_pago/activa como estados de
+pedido pendiente con reserva. La pantalla está claramente identificada como
+pasarela de prueba del backend; no se integra un PSP bancario de producción.
+
+La creación y el detalle enlazan a la pantalla de pago. El frontend consulta el
+pedido, envía solo method=card/card_token y confirma mediante otro GET del mismo
+ID. Validación de propietario e ID se aplica a ambas respuestas. No se envían
+importe ni estados de pedido/pago; no se llaman webhook, process-expired o
+endpoints de administración. No se recalcula una expiración desde fecha naive.
+
+La sesión mantiene un bloqueo de escritura entre rutas. Fallo o respuesta
+incompatible exige GET explícito antes de otro intento; no hay auto POST ni
+creación de pedido nuevo. Un GET pagado con pago aprobado/pagado muestra éxito;
+rechazo proviene de los estados consultados, no de seleccionar tok_declined.
+Un POST aprobado con GET pendiente no muestra aprobación. Después de recarga
+se exige nueva lectura; idempotencia global y concurrencia son del servidor.
+
+La comprobación real de este bloque fue únicamente lectura del OpenAPI público.
+No se ejecutaron pagos, cobros, cambios de pedido o ajustes de stock reales. Las
+respuestas pobladas, escenarios de pasarela y errores se verifican interceptando
+API en navegador. Integración de un proveedor bancario real queda fuera del
+contrato disponible y no se presenta como completada.
+
+Verificación: build, lint y suite unitaria correctos. La suite inicial tuvo
+54 casos correctos y 3 fallos de una expectativa de prueba sobre un role=status
+que se conserva vacío. Se corrigió la espera y se ampliaron los casos de pago.
+La revalidación final tuvo 24 casos correctos en escritorio, tableta y móvil,
+incluyendo confirmación por GET, POST aprobado con GET pendiente, rechazo, respuesta
+perdida, reintento manual sobre el mismo ID, navegación, permisos, elegibilidad,
+foco, revisión axe y ausencia de desbordamiento.

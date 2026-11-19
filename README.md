@@ -1093,3 +1093,41 @@ compra → revisar selección → Crear pedido pendiente de pago. Comprobar refe
 y detalle, volver atrás y confirmar que no se repite el POST. Probar pérdida de
 respuesta únicamente con entorno de prueba controlado; la suite intercepta estas
 escrituras y no crea pedidos reales. Pago sigue pendiente del siguiente bloque.
+
+
+## Pago con pasarela de prueba del backend
+
+`/orders/:id/payment?source=api` se abre desde la confirmación del pedido y su
+detalle. Consulta primero GET /orders/{id} con Bearer y muestra total, reserva y
+pago del servidor. Habilita la acción solo para pendiente_pago con reserva activa
+y sin pago ya aprobado; estados desconocidos no se interpretan como autorización
+para cobrar. Fechas sin zona se muestran sin convertir ni calcular expiración.
+
+La integración usa exclusivamente los tokens de prueba tok_ok y tok_declined
+documentados en CheckoutPaymentIn. No incorpora pasarela bancaria de producción,
+SDK de tarjeta ni formularios de número de tarjeta/CVV. POST
+/orders/{id}/checkout envía method=card y card_token explícitos; no manda importe,
+Pagado, Cancelado ni confirmaciones inventadas por el cliente. El servidor decide
+la autorización, el estado del pedido y las reservas.
+
+`paymentApi.ts` valida la respuesta y vuelve a consultar GET del mismo pedido.
+Solo presenta aprobación si el pedido consultado está pagado y el pago tiene
+estado aprobado/pagado. Estados contradictorios se muestran tal como llegan sin
+una confirmación aprobada. `PaymentProvider` bloquea envíos simultáneos en la
+sesión, incluso al navegar. Una respuesta perdida no se trata como rechazo: exige
+consulta explícita. Si GET confirma pendiente y reserva activa se permite una
+nueva selección y envío manual sobre el mismo ID, nunca crea otro pedido.
+
+No hay reintentos automáticos. Después de recargar se vuelve a consultar el
+pedido antes de habilitar acciones; la idempotencia y concurrencia entre clientes
+corresponden al backend. El contrato recibido indica retorno del pedido ya pagado
+al repetir checkout. No se presenta esto como garantía implementada por frontend.
+401 invalida sesión, 403 conserva cuenta y muestra error. Logout/cambio de cuenta
+cancela solicitudes y limpia estado, sin revertir lo ya procesado en servidor.
+Tokens seleccionados y resultados solo viven en memoria.
+
+Prueba manual con pedido propio de prueba: abrir pago, seleccionar tok_ok o
+tok_declined y enviar; comprobar el estado consultado. Un pedido pagado, expirado,
+cancelado o con reserva liberada no debe ofrecer nuevo pago. Reproducir respuesta
+perdida solo en entorno controlado y consultar antes de repetir. La suite
+automatizada intercepta pagos y no altera pedidos ni existencias reales.

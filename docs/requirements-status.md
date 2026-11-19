@@ -241,3 +241,19 @@ se enumera: requiere revisión externa. La idempotencia global sigue siendo tare
 del backend. Falta integrar inicio y resultado de pago y efectuar verificación
 completa con entorno backend de pruebas autorizado. Las escrituras automatizadas
 de este bloque se interceptan; no crean compras reales.
+
+
+## Avance de pago conectado al backend de prueba — 19 de noviembre de 2026
+
+Inicio de checkout del pedido y consulta posterior del resultado integrados con
+Bearer, tokens de prueba documentados, total del servidor, estado de reserva y
+validación de propietario. Bloquea doble clic entre rutas, pide consulta tras
+resultado incierto y solo permite un reintento manual sobre el mismo pedido si
+el estado consultado sigue habilitado. Maneja 401/403, rechazo y pedido pagado o
+no elegible. No crea otro pedido para resolver un fallo de pago ni aprueba desde UI.
+
+El flujo con el backend de pruebas está conectado hasta el resultado del pago.
+No equivale a integrar un PSP bancario de producción, entrega de mensajes,
+webhooks o concurrencia de servidor. Quedan validación integral con backend de
+pruebas autorizado y revisión de los requisitos pendientes de evidencia/documentos
+para la entrega; los escenarios de escritura automatizados están interceptados.

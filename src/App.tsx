@@ -21,6 +21,8 @@ import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import type { DemoNotification } from "./features/notifications/notificationsDemo";
 import { recordRegisteredNotification } from "./features/notifications/recordRegisteredNotification";
 
+import { PaymentProvider } from "./features/payments/PaymentProvider";
+import { ApiPaymentPage } from "./features/payments/ApiPaymentPage";
 import { OrderCreationProvider } from "./features/orders/OrderCreationProvider";
 import { ApiCheckoutPage } from "./features/checkout/pages/ApiCheckoutPage";
 import { ApiOrderPage } from "./features/orders/ApiOrderPage";
@@ -114,9 +116,11 @@ function App() {
     <AuthProvider onIdentityChange={clearPrivateSession}>
     <ApiCartProvider>
     <OrderCreationProvider>
+    <PaymentProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/orders" element={<ApiOrderPage />} />
+        <Route path="/orders/:orderId/payment" element={<ApiPaymentPage />} />
         <Route path="/orders/:orderId" element={<OrderRoute orders={orders} cartCount={cartCount} />} />
         <Route path="/notifications" element={<NotificationsRoute cartCount={cartCount} sessionNotices={notifications} availableOrderIds={orders.map((order) => order.id)} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
@@ -137,6 +141,7 @@ function App() {
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>
+    </PaymentProvider>
     </OrderCreationProvider>
     </ApiCartProvider>
     </AuthProvider>

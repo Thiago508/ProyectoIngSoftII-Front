@@ -64,7 +64,7 @@ function OrderRequest({ orderId }: { orderId?: string }) {
         <section className="order-detail__panel" aria-labelledby="api-order-payment"><h2 id="api-order-payment">Pago informado</h2>{order.payment ? <><p>Estado: {order.payment.status}</p><p>Método: {order.payment.method}</p><p>Importe: {currency.format(order.payment.amount)}</p></> : <p>El servidor no informó un registro de pago.</p>}</section>
         <p>Fechas tal como las informa el servidor, sin convertirlas como UTC. La consulta no cambia reservas, pedidos ni pagos.</p><button type="button" className="order-detail__button" onClick={() => setAttempt((previous) => previous + 1)}>Actualizar estado del pedido</button>
       </> : orderId ? <p>Este pedido no existe o no está disponible para tu cuenta.</p> : null}
-      <nav className="order-detail__links" aria-label="Navegación del pedido"><Link to="/notifications?source=api">Volver a las notificaciones</Link><Link to="/catalog?source=api">Volver al catálogo</Link></nav>
+      <nav className="order-detail__links" aria-label="Navegación del pedido">{order && <Link to={`/orders/${order.id}/payment?source=api`}>Pago de prueba y consulta del resultado</Link>}<Link to="/notifications?source=api">Volver a las notificaciones</Link><Link to="/catalog?source=api">Volver al catálogo</Link></nav>
     </main>
   </>;
 }

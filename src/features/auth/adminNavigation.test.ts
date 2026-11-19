@@ -36,3 +36,10 @@ test('retorno de pedidos permite consulta interna y rechaza destinos externos', 
   assert.equal(loginReturnPath({ returnTo: '/orders/7?source=api' }), '/orders/7?source=api');
   assert.equal(loginReturnPath({ returnTo: '/orders/7?source=api&next=x' }), null);
 });
+
+
+test('retorno al pago solo admite el destino interno previsto', async () => {
+  const { loginReturnPath } = await import('./adminNavigation.ts');
+  assert.equal(loginReturnPath({ returnTo: '/orders/7/payment?source=api' }), '/orders/7/payment?source=api');
+  assert.equal(loginReturnPath({ returnTo: '/orders/7/payment?source=api&next=x' }), null);
+});
