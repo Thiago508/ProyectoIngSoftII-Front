@@ -5,6 +5,7 @@ import { useAuth } from "../../../features/auth/AuthContext";
 
 interface CustomerHeaderProps {
   cartItemCount: number;
+  catalogSource?: "api" | "demo";
   cartTo?: string;
   homeTo?: string;
   contentHeadingId?: string;
@@ -12,7 +13,7 @@ interface CustomerHeaderProps {
   search?: { query: string; onChange: (query: string) => void };
 }
 
-export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", contentHeadingId = "checkout-heading", skipLabel = "Saltar al contenido del checkout", search }: CustomerHeaderProps) {
+export function CustomerHeader({ catalogSource, cartItemCount, cartTo, homeTo = "/checkout", contentHeadingId = "checkout-heading", skipLabel = "Saltar al contenido del checkout", search }: CustomerHeaderProps) {
   const { session, expired, logout } = useAuth();
   return (
     <header className="customer-header">
@@ -31,7 +32,7 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
           <input
             id="product-search"
             type="search"
-            placeholder={search ? "Buscar por nombre..." : homeTo === "/catalog" ? "Busca desde el catálogo" : "Búsqueda pendiente"}
+            placeholder={search ? "Buscar por nombre..." : homeTo.startsWith("/catalog") ? "Busca desde el catálogo" : "Búsqueda pendiente"}
             disabled={!search}
             value={search?.query ?? ""}
             onChange={(event) => search?.onChange(event.currentTarget.value)}
@@ -61,7 +62,7 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
           </button>}
         </nav>
         <div className="customer-header__secondary">
-          <p id="header-demo-note" className="customer-header__notice">Catálogo, carrito y pedidos de demostración. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
+          <p id="header-demo-note" className="customer-header__notice">{catalogSource === "api" ? "Catálogo del servidor. Carrito y pedidos de demostración." : "Catálogo, carrito y pedidos de demostración."} {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
           {session ? <><span className="customer-header__session">Sesión: {session.user.name}</span><button className="customer-header__admin" type="button" onClick={logout}>Cerrar sesión</button></> : <Link className="customer-header__admin" to="/login">Iniciar sesión</Link>}
           {expired && <p className="customer-header__notice" role="alert">Tu sesión venció. Vuelve a iniciar sesión.</p>}
           {(!session || session.user.role === "administrador") && <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>}

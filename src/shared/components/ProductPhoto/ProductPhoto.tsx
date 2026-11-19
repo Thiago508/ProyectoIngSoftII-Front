@@ -4,7 +4,7 @@ import './ProductPhoto.css';
 export interface ProductPhotoData {
   src: string;
   alt: string;
-  source: 'generated' | 'local';
+  source: 'generated' | 'local' | 'remote';
 }
 
 export function ProductPhoto({ photo, eager = false }: { photo?: ProductPhotoData | null; eager?: boolean }) {
@@ -15,6 +15,6 @@ export function ProductPhoto({ photo, eager = false }: { photo?: ProductPhotoDat
       {available ? <img src={photo.src} alt={photo.alt} width={480} height={640} loading={eager ? 'eager' : 'lazy'} decoding="async" onError={() => setFailedSource(photo.src)} /> :
         <div className="product-photo__placeholder" role="img" aria-label="Sin foto disponible"><span aria-hidden="true">Fashion</span><span>Sin foto disponible</span></div>}
     </div>
-    {available && <figcaption>{photo.source === 'generated' ? 'Imagen ilustrativa generada con IA' : 'Foto local de demostración'}</figcaption>}
+    {available && <figcaption>{photo.source === 'generated' ? 'Imagen ilustrativa generada con IA' : photo.source === 'remote' ? 'Foto del producto' : 'Foto local de demostración'}</figcaption>}
   </figure>;
 }

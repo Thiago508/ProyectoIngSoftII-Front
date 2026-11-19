@@ -147,3 +147,12 @@ Verificación manual: abrir /admin/inventory sin sesión, acceder con administra
 cerrar sesión y repetir con cliente; comprobar redirección, acceso denegado y que
 recargar no restaura la sesión. Las pruebas de negocio usan login con API
 interceptada y vuelven a autenticar tras recargas, sin persistir credenciales.
+
+
+## Avance de catálogo real
+
+Listado y detalle públicos conectados a la API: búsqueda por nombre, fotos remotas,
+precios COP y disponibilidad por talla, con carga/error/reintento/vacío/404.
+El modo de demostración continúa separado. Falta conectar carrito, checkout,
+pedidos, pagos, administración y avisos a sus endpoints. El catálogo real no envía
+artículos al carrito demo ni presenta una compra como integrada.

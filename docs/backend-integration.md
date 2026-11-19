@@ -74,7 +74,7 @@ los contratos tipados, pruebas de negocio o autorización con diferentes usuario
 Administración → Conexión API (`/admin/connection`) consulta únicamente GET `/health`
 al pulsar «Comprobar conexión». Muestra carga, respuesta o error y permite repetir
 la lectura. Salir cancela la operación. Una respuesta correcta no demuestra que
-registro, permisos, stock o pagos funcionen. Las demás pantallas siguen en demo.
+registro, permisos, stock o pagos funcionen. Registro/login y catálogo ya tienen sus integraciones descritas más abajo; las operaciones de negocio restantes siguen en demo.
 
 Para otra dirección: copiar `.env.example` a `.env.local`, configurar VITE_API_URL y
 reiniciar Vite. Para un build de producción, definir esa variable al construir;
@@ -184,3 +184,22 @@ selector; los 6 casos de fotos se repitieron correctamente en los tres tamaños.
 Las pruebas de acceso cubren visitante, cliente, rol desconocido, administrador,
 cierre, recarga y vencimiento; usan respuestas interceptadas, no permisos reales
 del servidor.
+
+
+## Catálogo público integrado
+
+Listado GET /catalog y detalle GET /products/{id} ya usan la API sin Bearer.
+Se validan precios COP enteros, identidad, actividad, fotos y stock_by_size;
+no se consulta inventario administrativo ni se deduce disponibilidad por talla
+desde totales. El carrito y la compra reales siguen pendientes: no se mezclan
+productos del servidor con el carrito local. Demostración accesible mediante
+?source=demo; producción/desarrollo usan API por defecto.
+
+Comprobación de lectura contra http://127.0.0.1:8000/api/v1: listado válido con
+12 productos y primer detalle válido con 5 tallas. No se modificaron datos.
+La prueba Node no certifica CORS ni descarga de imágenes en navegador real. Las
+pruebas Playwright interceptan listado, detalle y fotos para verificar los estados.
+
+Validación frontend: build, lint y suite unitaria correctos. Los 48 casos Playwright
+de catálogo API, catálogo demo, carga/error, fotos y carrito pasaron en escritorio,
+tableta y móvil. Incluyen revisión axe y ausencia de desbordamiento en detalle API.

@@ -793,7 +793,7 @@ La búsqueda sigue en la URL y se conserva al reintentar.
 
 `demo/loadDemoCatalog.ts` encapsula la consulta local asíncrona con una espera de
 300 ms y un fallo reproducible. No hay endpoint ni respuesta de API inventada.
-`useDemoCatalog` coordina resultado e intento, cancela consultas al desmontar o
+`useCatalog` coordina resultado e intento, cancela consultas al desmontar o
 cambiar su fuente y descarta respuestas que ya no corresponden a la consulta actual.
 El contenido mostrado se basa en una copia de productos; no modifica productos,
 carrito, pedidos o inventario. La disponibilidad sigue usando el inventario de sesión.
@@ -808,7 +808,7 @@ Prueba manual: buscar «MiDi», abrir «Pruebas de carga (demostración)», prov
 fallo y comprobar el mensaje y la ausencia de productos anteriores. Reintentar:
 se restaura el vestido y se conserva la búsqueda. Repetir desde un detalle y salir
 a administración durante una recarga: una respuesta antigua no debe restaurar datos.
-Conectar esta consulta con la fuente real y sus errores sigue pendiente del backend.
+La consulta real se incorpora en el bloque descrito al final; estos controles siguen exclusivos de la demostración.
 
 ## Primera conexión con la API documentada
 
@@ -847,3 +847,33 @@ Verificación manual: abrir /admin/inventory sin sesión, acceder con administra
 cerrar sesión y repetir con cliente; comprobar redirección, acceso denegado y que
 recargar no restaura la sesión. Las pruebas de negocio usan login con API
 interceptada y vuelven a autenticar tras recargas, sin persistir credenciales.
+
+
+## Catálogo conectado a la API
+
+`/catalog` consulta GET /catalog; `/catalog/:id` consulta GET /products/{id},
+que aporta stock_by_size como unidades disponibles. El listado no se interpreta
+como desglose por talla. Búsqueda por nombre es local sobre la respuesta completa.
+`catalogApi.ts` valida respuestas unknown, convierte COP enteros a centavos sin
+redondear y excluye inactivos. Un fallo no se sustituye por datos de demostración.
+
+Fotos admiten HTTP/HTTPS sin credenciales; las rutas relativas se resuelven contra
+el origen del backend. Una ruta vacía, insegura o una imagen fallida muestra la
+alternativa existente. El texto alternativo usa el nombre del producto.
+
+`useCatalog` cancela lecturas al salir o cambiar de detalle y evita mostrar
+respuestas anteriores. La misma pantalla ofrece carga, error, reintento, vacío y
+producto no disponible (404). La búsqueda se conserva en la URL.
+
+El catálogo real es por ahora de consulta: no añade productos reales al carrito
+de demostración. El enlace «Ver catálogo de demostración» abre `?source=demo` para
+seguir verificando los flujos locales. Administración demo conserva sus propios
+productos e inventario; no modifica la API. `?source=api` selecciona explícitamente
+la fuente real. Playwright configura VITE_CATALOG_SOURCE=demo para conservar
+regresiones locales; sus pruebas de API usan source=api con respuestas interceptadas.
+Sin esa variable, el modo predeterminado de la aplicación es la API.
+
+Prueba manual: iniciar backend y Vite, abrir /catalog, buscar un nombre y abrir su
+detalle. Revisar precio, foto y tallas; detener backend y recargar debe mostrar
+error/reintento. Abrir un ID inexistente debe mostrar producto no disponible, no
+un error genérico ni un producto demo.
