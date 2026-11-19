@@ -1,0 +1,17 @@
+# Solo fuentes necesarias para compilar; no enviar .env, Git o datos locales.
+*
+!package.json
+!package-lock.json
+!index.html
+!tsconfig*.json
+!vite.config.ts
+!playwright.config.ts
+!playwright.integration.config.ts
+!src/
+!src/**
+!public/
+!public/**
+!tests/
+!tests/**
+!docker/
+!docker/nginx.conf

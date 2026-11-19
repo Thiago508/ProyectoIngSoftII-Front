@@ -36,13 +36,24 @@ las dependencias del backend; configuración y resultados en el
 [informe de integración](docs/integration-validation.md).
 
 Resultado actual sobre backend `99f5968`: **5 escenarios integrados correctos**;
-el webhook firmado en COP ya es aceptado. La instancia del puerto 8000 aún publica
-el contrato anterior: requiere reinicio/reconstrucción por su responsable. El frontend
+el webhook firmado en COP ya es aceptado. Tras reconstruir Compose, se comprobó
+que el puerto 8000 publica los campos de envío y seguridad actualizados. El frontend
 comprueba `/openapi.json` antes de crear, para impedir que esa versión ignore el envío.
 Los datos de envío se conservan solo en memoria y se limpian al salir de la cuenta
 o confirmar el pedido. La suite habitual sigue separada de las escrituras integradas.
 
 ## Ejecutar el proyecto
+
+Para ejecutar la entrega con Docker:
+
+```sh
+docker compose up -d --build
+```
+
+Abrir `http://localhost:8080/catalog`. La API predeterminada es
+`http://127.0.0.1:8000/api/v1`; el backend se levanta por separado y debe permitir
+el origen del frontend en CORS. Configuración, verificación y transporte de la imagen
+en [Entrega con Docker Compose](docs/docker.md).
 
 El desarrollo de esta sesión utilizó Node 22.23.1. Las versiones resueltas de las
 dependencias están en `package-lock.json`.
