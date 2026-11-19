@@ -908,3 +908,39 @@ Prueba manual: iniciar sesión desde un producto real, agregar talla/cantidad, a
 carrito, modificar y retirar. Comprobar subtotal devuelto, cierre de sesión y retorno
 al login. Detener servidor durante un cambio debe ofrecer consulta de recuperación
 sin reenviar automáticamente la operación.
+
+
+## Administración de productos conectada a la API
+
+`/admin/products` usa el servidor por defecto; `?source=demo` conserva el formulario
+y los productos locales. Ambas rutas exigen perfil administrador. La pantalla
+real usa GET /products, POST /products, PUT /products/{id} y
+PATCH /products/{id}/deactivate. El catálogo público vuelve a consultar los datos
+del backend al navegar, sin copiar los registros API al estado de demostración.
+
+`productsApi.ts` valida ProductOut y prepara metadata: slug, SKU opcional, nombre,
+descripción, precio COP entero, categoría, tallas, URL de imagen y destacado.
+La creación envía quantity=0 e is_active=true; edición no envía cantidad ni estado
+para preservar existencias y no reactivar accidentalmente. Desactivar usa su
+endpoint específico. Las tallas declaradas son metadata; el stock se gestiona
+mediante ajustes por talla, todavía pendientes de integrar.
+
+`ApiProductsPage.tsx` reutiliza encabezado, fotos y estilos existentes, con formulario
+propio para los campos del contrato real. No hay endpoint de subida de archivos:
+se admite URL HTTP/HTTPS o ruta del servidor y se conserva la alternativa sin foto.
+La carga de archivos locales sigue exclusivamente en demostración. No se envían
+alias active/is_active juntos ni se inventan restricciones de formato para slug.
+
+Los controles se bloquean mientras hay una solicitud. 409 conserva el borrador;
+422 identifica campos; 403 conserva sesión y muestra acceso insuficiente; 401
+descarta sesión. Red, timeout, respuesta incompatible o error 5xx después de escribir
+requieren consultar el listado antes de volver a guardar. Recuperar esa consulta
+limpia el formulario para evitar repetir el alta; no hay reintentos automáticos.
+Navegar cancela la solicitud, pero no garantiza cancelar un cambio ya aplicado
+en backend: al volver se consulta de nuevo.
+
+Prueba manual con cuenta administrativa y datos autorizados: abrir productos,
+crear con precio entero, editar y cancelar, guardar y desactivar. Comprobar que
+no se ofrecen ajustes de stock ni subida de archivos. Revisar el catálogo público
+y confirmar que el producto inactivo no aparece para nuevas compras. Las pruebas
+automatizadas interceptan escrituras y no crean productos en el backend local.

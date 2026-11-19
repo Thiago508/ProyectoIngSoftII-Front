@@ -14,3 +14,10 @@ test('retorno del carrito solo admite destinos internos exactos', async () => {
   for (const path of ['/cart?source=api', '/catalog/7?source=api', '/admin/products']) assert.equal(loginReturnPath({ returnTo: path }), path);
   for (const path of ['https://example.com', '//example.com', '/cart?source=api&next=x', '/catalog/7?source=api#x', '/catalog/0?source=api']) assert.equal(loginReturnPath({ returnTo: path }), null);
 });
+
+
+test('conserva solo el selector de fuente permitido al volver a administración', () => {
+  assert.equal(adminReturnPath({ returnTo: '/admin/products?source=api' }), '/admin/products?source=api');
+  assert.equal(adminReturnPath({ returnTo: '/admin/products?source=demo' }), '/admin/products?source=demo');
+  assert.equal(adminReturnPath({ returnTo: '/admin/products?source=api&next=x' }), null);
+});

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import "./CustomerHeader.css";
 
 import { useApiCart } from "../../../features/cart/ApiCartContext";
@@ -18,6 +18,8 @@ interface CustomerHeaderProps {
 export function CustomerHeader({ catalogSource, cartItemCount, cartTo, homeTo = "/checkout", contentHeadingId = "checkout-heading", skipLabel = "Saltar al contenido del checkout", search }: CustomerHeaderProps) {
   const { session, expired, logout } = useAuth();
   const serverCart = useApiCart();
+  const [params] = useSearchParams();
+  const adminDemo = (params.get("source") ?? import.meta.env.VITE_CATALOG_SOURCE) === "demo";
   const realCart = catalogSource === "api";
   const count = realCart ? serverCart.cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0 : cartItemCount;
   const countKnown = !realCart || serverCart.cart !== null;
@@ -72,7 +74,7 @@ export function CustomerHeader({ catalogSource, cartItemCount, cartTo, homeTo = 
           <p id="header-demo-note" className="customer-header__notice">{catalogSource === "api" ? "Catálogo y carrito del servidor. Pedidos de demostración." : "Catálogo, carrito y pedidos de demostración."} {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {realCart ? "Inicia sesión para consultar tu carrito." : cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
           {session ? <><span className="customer-header__session">Sesión: {session.user.name}</span><button className="customer-header__admin" type="button" onClick={logout}>Cerrar sesión</button></> : <Link className="customer-header__admin" to="/login">Iniciar sesión</Link>}
           {expired && <p className="customer-header__notice" role="alert">Tu sesión venció. Vuelve a iniciar sesión.</p>}
-          {(!session || session.user.role === "administrador") && <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>}
+          {(!session || session.user.role === "administrador") && <Link className="customer-header__admin" to={params.has("source") ? `/admin/products?source=${adminDemo ? "demo" : "api"}` : "/admin/products"} aria-label={adminDemo ? "Administración (demostración)" : "Administración"}>{adminDemo ? "Administración (demo)" : "Administración"}</Link>}
         </div>
       </div>
     </header>

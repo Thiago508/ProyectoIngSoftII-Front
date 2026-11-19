@@ -167,3 +167,14 @@ al cerrar/cambiar sesión; 401 invalida sesión y 403 conserva la cuenta.
 Carrito demo sigue independiente. La persistencia corresponde al backend y no
 se simula en localStorage. Faltan creación/consulta de pedidos reales, pagos,
 operaciones administrativas y avisos. El checkout demo no recibe el carrito API.
+
+
+## Avance de productos administrativos reales
+
+Alta, edición y desactivación conectadas al contrato de productos, con navegación
+protegida de administrador, validación COP entero y metadata completa. La demo
+sigue independiente mediante source=demo. Se manejan 401/403/409/422 y recuperación
+tras escritura incierta, evitando repetir altas automáticamente. Las fotos reales
+se configuran por URL; subida de archivos no está disponible en el contrato.
+No se integran existencias con editar metadata: falta inventario por talla, además
+de pedidos, checkout real, pagos y avisos. Las pruebas de escritura son interceptadas.

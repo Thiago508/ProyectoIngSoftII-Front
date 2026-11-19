@@ -233,3 +233,33 @@ contraste/navegación y borrador de checkout; y 3 comprobaciones finales del con
 Antes de consultar el carrito, el contador muestra «—» y su nombre accesible indica
 «consultar», en lugar de afirmar que hay cero artículos. La revisión axe del
 carrito real y las comprobaciones de foco y desbordamiento también pasaron.
+
+
+## Administración de productos integrada
+
+GET /products público valida la lista completa devuelta por el servidor sin
+reconstruirla desde catálogo. POST/PUT de productos y PATCH deactivate envían Bearer
+del administrador. No se añade un filtro de inactivos no documentado ni se supone
+que el listado incluye productos que el servidor decida omitir. Después de cada
+escritura la tarjeta usa ProductOut confirmado; una consulta posterior reemplaza
+el listado con la respuesta nueva.
+
+Alta: quantity=0 e is_active=true, sin alias active. Update: omite quantity y ambos
+campos de actividad; desactivar emplea la ruta dedicada. No crea stock por talla
+al declarar sizes. Foto: solo URL/ruta; el contrato no ofrece subida de archivos.
+El borrador usa precios COP enteros sin redondeo silencioso.
+
+Se incorporan cancelación, errores 409/422, cierre en 401 y mensaje 403. Resultado
+incierto de escritura bloquea cambios hasta recuperar GET /products y limpiar el
+formulario; nunca se reenvía automáticamente un alta.
+
+Comprobación de solo lectura real: GET /products válido con 12 productos. Las
+operaciones de alta, actualización y desactivación se prueban con API interceptada;
+no se modificaron productos reales ni se validó concurrencia/autorización del
+servidor con estas pruebas. Inventario administrativo y compra siguen pendientes.
+
+Verificación frontend del bloque: build, lint y suite unitaria correctos. Pasaron
+42 pruebas Playwright de productos API/demo, fotos, acceso administrativo y
+navegación; después se revalidaron 18 casos ampliados de productos API, incluidos
+retorno desde login conservando fuente y cancelación sin escritura. En escritorio,
+tableta y móvil se comprobaron foco, desbordamiento y revisión automatizada axe.

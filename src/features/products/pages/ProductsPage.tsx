@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ProductPhoto, type ProductPhotoData } from '../../../shared/components/ProductPhoto/ProductPhoto';
 import { readProductPhoto } from '../demo/readProductPhoto';
 import { AdminHeader } from '../../../shared/components/AdminHeader/AdminHeader';
@@ -118,7 +119,8 @@ export function ProductsPage({ products, onProductsChange }: { products: readonl
     <AdminHeader />
     <main className="products-page__main">
       <h1 id="products-heading" ref={headingRef} tabIndex={-1}>Productos</h1>
-      <p className="products-page__notice">Demostración sin autenticación ni autorización de administrador. Los productos se guardan solo en memoria y se pierden al recargar. Los cambios se reflejan en el catálogo. No cambian el inventario ni los pedidos del checkout.</p>
+      <p className="products-page__notice">Demostración con navegación protegida para administrador. Los productos se guardan solo en memoria y se pierden al recargar. Los cambios se reflejan en el catálogo. No cambian el inventario ni los pedidos del checkout.</p>
+      <p><Link to="/admin/products?source=api">Ver productos del servidor</Link></p>
       <section className="products-page__panel" aria-labelledby="product-register-heading">
         <h2 id="product-register-heading">{editingId ? "Editar producto" : "Registrar producto"}</h2>
         {editingId && <p>Estás editando un registro existente. Guardar conserva su identificador interno y su estado activo o inactivo.</p>}

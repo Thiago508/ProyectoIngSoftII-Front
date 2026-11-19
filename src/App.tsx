@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CatalogPage } from "./features/catalog/pages/CatalogPage";
 import { productsDemo, type Product } from "./features/products/demo/productsDemo";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ApiProductsPage } from "./features/products/pages/ApiProductsPage";
 import { ProductsPage } from "./features/products/pages/ProductsPage";
 import { InventoryPage } from "./features/inventory/pages/InventoryPage";
 import { CheckoutFlow } from "./features/checkout/CheckoutFlow";
@@ -33,6 +34,11 @@ import { ApiCartPage } from "./features/cart/pages/ApiCartPage";
 import { useSearchParams } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
+
+function ProductsRoute(props: Parameters<typeof ProductsPage>[0]) {
+  const [params] = useSearchParams();
+  return (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo' ? <ProductsPage {...props} /> : <ApiProductsPage />;
+}
 
 function CartRoute(props: Parameters<typeof CartPage>[0]) {
   const [params] = useSearchParams();
@@ -94,7 +100,7 @@ function App() {
         <Route element={<RequireAdmin cartCount={cartCount} />}>
           <Route path="/admin/connection" element={<BackendConnectionPage />} />
           <Route path="/admin/notifications" element={<NotificationProcessingPage />} />
-          <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
+          <Route path="/admin/products" element={<ProductsRoute products={products} onProductsChange={setProducts} />} />
           <Route path="/admin/inventory" element={<InventoryPage products={products} inventory={inventory} onInventoryChange={setInventory} />} />
           <Route path="/admin/*" element={<Navigate to="/admin/products" replace />} />
         </Route>

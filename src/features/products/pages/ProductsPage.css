@@ -32,3 +32,6 @@
 .products-page__photo-preview { max-width: 260px; display: grid; gap: 1rem; }
 .products-page__submit:disabled { opacity: 0.65; cursor: wait; }
 .products-page__list .product-photo { max-width: 280px; margin-inline: auto; }
+
+.products-page__main > p a { color: var(--color-primary); }
+.products-page__main > p a:focus-visible, .products-page [role="alert"]:focus, .products-page h3:focus { outline: 3px solid var(--color-primary); outline-offset: 3px; }

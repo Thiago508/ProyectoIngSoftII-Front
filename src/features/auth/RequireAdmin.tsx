@@ -4,12 +4,12 @@ import { CustomerHeader } from '../../shared/components/CustomerHeader/CustomerH
 import { useAuth } from './AuthContext';
 import './AuthPage.css';
 
-import { adminPaths } from './adminNavigation';
+import { adminPaths, adminReturnPath } from './adminNavigation';
 
 export function RequireAdmin({ cartCount }: { cartCount: number }) {
   const { session } = useAuth();
   const location = useLocation();
-  if (!session) return <Navigate to="/login" replace state={{ returnTo: adminPaths.find((path) => path === location.pathname) ?? '/admin/products' }} />;
+  if (!session) return <Navigate to="/login" replace state={{ returnTo: adminReturnPath({ returnTo: location.pathname + location.search }) ?? adminPaths.find((path) => path === location.pathname) ?? '/admin/products' }} />;
   if (session.user.role !== 'administrador') return <AdminAccessDenied cartCount={cartCount} />;
   return <Outlet />;
 }
