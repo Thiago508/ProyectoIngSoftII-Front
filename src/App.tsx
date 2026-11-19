@@ -26,6 +26,8 @@ import { NotificationProcessingPage } from "./features/notifications/Notificatio
 
 import { BackendConnectionPage } from "./features/integration/BackendConnectionPage";
 
+import { RequireAdmin } from "./features/auth/RequireAdmin";
+
 import { AuthProvider } from "./features/auth/AuthProvider";
 
 function emptyCheckoutData(): CheckoutData {
@@ -79,10 +81,13 @@ function App() {
         <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="/catalog" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/catalog/:productId" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
-        <Route path="/admin/connection" element={<BackendConnectionPage />} />
-        <Route path="/admin/notifications" element={<NotificationProcessingPage />} />
-        <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
-        <Route path="/admin/inventory" element={<InventoryPage products={products} inventory={inventory} onInventoryChange={setInventory} />} />
+        <Route element={<RequireAdmin cartCount={cartCount} />}>
+          <Route path="/admin/connection" element={<BackendConnectionPage />} />
+          <Route path="/admin/notifications" element={<NotificationProcessingPage />} />
+          <Route path="/admin/products" element={<ProductsPage products={products} onProductsChange={setProducts} />} />
+          <Route path="/admin/inventory" element={<InventoryPage products={products} inventory={inventory} onInventoryChange={setInventory} />} />
+          <Route path="/admin/*" element={<Navigate to="/admin/products" replace />} />
+        </Route>
         <Route path="/checkout/*" element={<CheckoutFlow inventoryItems={inventory.items} lines={cart} products={products} data={checkoutDraft} onDataChange={setCheckoutDraft} onDemoOrderCreated={handleDemoOrderCreated} />} />
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>

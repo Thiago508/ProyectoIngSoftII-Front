@@ -1,8 +1,9 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('SWR-06 muestra cantidades por talla y calcula disponibilidad', async ({ page }, testInfo) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   await expect(page.getByRole('heading', { name: 'Inventario', exact: true })).toBeFocused();
   await expect(page).toHaveTitle('Inventario | Fashion Online Store');
   await expect(page.getByText(/El acceso de administrador todavía no está protegido/)).toBeVisible();
@@ -30,7 +31,7 @@ test('SWR-06 muestra cantidades por talla y calcula disponibilidad', async ({ pa
 });
 
 test('SWR-07 valida, ajusta existencias y conserva historial local', async ({ page }) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   const quantity = page.getByLabel('Nueva cantidad existente');
   const reason = page.getByLabel('Motivo del ajuste');
   const save = page.getByRole('button', { name: 'Guardar ajuste de demostración' });
@@ -62,14 +63,14 @@ test('SWR-07 valida, ajusta existencias y conserva historial local', async ({ pa
   await expect(history.getByRole('listitem').first()).toContainText('Cantidad anterior: 20 · Nueva cantidad: 3');
   await expect(row.getByRole('cell')).toHaveText(['M', '3', '3', '0', 'Sin disponibilidad']);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByText('Todavía no hay ajustes registrados.')).toBeVisible();
   await expect(row.getByRole('cell')).toHaveText(['M', '15', '3', '12', 'Disponible']);
 });
 
 
 test('SWR-08 reserva todo o nada, protege ajustes y no duplica un pedido', async ({ page }) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   const panel = page.getByRole('region', { name: 'Reservas de pedidos — laboratorio de demostración' });
   const blouse = page.getByRole('row').filter({ hasText: 'DEMO-BLUSA-S' });
   const dress = page.getByRole('row').filter({ hasText: 'DEMO-VEST-M' });
@@ -97,7 +98,7 @@ test('SWR-08 reserva todo o nada, protege ajustes y no duplica un pedido', async
 
 for (const event of ['cancelación', 'expiración']) {
   test(`SWR-09 libera una sola vez por ${event} simulada`, async ({ page }) => {
-    await page.goto('/admin/inventory');
+    await visitAsAdmin(page, '/admin/inventory');
     const panel = page.getByRole('region', { name: 'Reservas de pedidos — laboratorio de demostración' });
     const action = panel.getByRole('button', { name: `Simular ${event} DEMO-PED-001` });
     await action.click();
@@ -122,7 +123,7 @@ for (const event of ['cancelación', 'expiración']) {
 }
 
 test('SWR-10 convierte reserva activa una sola vez sin confundirlo con un pago real', async ({ page }) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   const panel = page.getByRole('region', { name: 'Reservas de pedidos — laboratorio de demostración' });
   const convert = panel.getByRole('button', { name: 'Simular evento de pago confirmado DEMO-PED-001' });
   await convert.click();

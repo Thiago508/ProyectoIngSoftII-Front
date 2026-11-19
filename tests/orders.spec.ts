@@ -1,8 +1,9 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('el detalle conserva el pedido al salir de checkout y tras editar y desactivar el producto', async ({ page }, testInfo) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
   await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
@@ -48,16 +49,16 @@ test('el detalle conserva el pedido al salir de checkout y tras editar y desacti
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('detalle-pedido.png'), fullPage: true });
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByRole('heading', { name: 'Pedido no disponible', exact: true })).toBeFocused();
   await expect(page.getByText('karen@example.com', { exact: false })).toHaveCount(0);
 });
 
 test('los ejemplos no enlazan a pedidos inexistentes y un acceso desconocido permite volver', async ({ page }) => {
-  await page.goto('/notifications');
+  await visitAsAdmin(page, '/notifications');
   await page.getByLabel('Escenario de notificaciones (demostración)').selectOption('examples');
   await expect(page.getByRole('link', { name: /^Ver pedido / })).toHaveCount(0);
-  await page.goto('/orders/no-existe');
+  await visitAsAdmin(page, '/orders/no-existe');
   await expect(page.getByRole('heading', { name: 'Pedido no disponible', exact: true })).toBeFocused();
   await expect(page.getByRole('region', { name: 'Datos y envío' })).toHaveCount(0);
   await page.getByRole('link', { name: 'Volver a las notificaciones', exact: true }).click();

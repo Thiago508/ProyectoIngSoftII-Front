@@ -1,8 +1,9 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('F-05 agrega con validación, acumula unidades y presenta fotos y subtotal', async ({ page }, testInfo) => {
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   const add = page.getByRole('button', { name: 'Agregar al carrito', exact: true });
   await add.click();
   await expect(page.getByLabel('Talla', { exact: true })).toBeFocused();
@@ -29,19 +30,19 @@ test('F-05 agrega con validación, acumula unidades y presenta fotos y subtotal'
   await page.screenshot({ path: testInfo.outputPath('carrito.png'), fullPage: true });
   await page.getByRole('link', { name: 'Seguir explorando el catálogo', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Carrito de compras: 3 unidades', exact: true })).toBeVisible();
-  await page.reload();
+  await reloadAsAdmin(page);
   await page.getByRole('link', { name: 'Carrito de compras: 0 unidades', exact: true }).click();
   await expect(page.getByText('Tu carrito está vacío.', { exact: false })).toBeVisible();
 });
 
 test('sin variantes no ofrece compra y una talla agotada no se puede seleccionar', async ({ page }) => {
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   await expect(page.getByRole('option', { name: 'L — Sin disponibilidad', exact: true })).toBeDisabled();
   await expect(page.getByRole('link', { name: 'Carrito de compras: 0 unidades', exact: true })).toBeVisible();
 });
 
 test('SWR-20 modifica cantidad, descarta errores, retira líneas y mantiene foco y subtotal', async ({ page }) => {
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
   await page.getByLabel('Cantidad', { exact: true }).fill('2');
   await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
@@ -75,7 +76,7 @@ test('SWR-20 modifica cantidad, descarta errores, retira líneas y mantiene foco
 });
 
 test('un artículo desactivado se puede retirar pero no cambiar de cantidad', async ({ page }) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
   await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
@@ -92,9 +93,9 @@ test('un artículo desactivado se puede retirar pero no cambiar de cantidad', as
 });
 
 test('el checkout confirma exactamente la selección del catálogo y bloquea el carrito vacío', async ({ page }) => {
-  await page.goto('/checkout');
+  await visitAsAdmin(page, '/checkout');
   await expect(page.getByRole('heading', { name: 'Revisa tu carrito' })).toBeVisible();
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
   await page.getByLabel('Cantidad', { exact: true }).fill('2');
   await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();

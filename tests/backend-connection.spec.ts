@@ -1,5 +1,6 @@
+import { test, visitAsAdmin } from './adminFixtures.js';
+import { expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
 
 const health = 'http://127.0.0.1:8000/api/v1/health';
 const cors = { 'Access-Control-Allow-Origin': '*' };
@@ -16,7 +17,7 @@ test('la comprobación consulta la URL configurada, anuncia espera y muestra res
     if (calls === 2) await route.fulfill({ status: 503, headers: cors, json: { detail: 'Servicio temporalmente no disponible' } });
     else await route.fulfill({ headers: cors, json: { status: 'ok' } });
   });
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('link', { name: 'Conexión API', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Conexión con backend', exact: true })).toBeFocused();
   expect(calls).toBe(0);
@@ -47,7 +48,7 @@ test('una respuesta incompatible y un fallo de red se muestran sin anunciar cone
     if (calls === 1) await route.fulfill({ headers: cors, json: { status: 123 } });
     else await route.abort('failed');
   });
-  await page.goto('/admin/connection');
+  await visitAsAdmin(page, '/admin/connection');
   const button = page.getByRole('button', { name: 'Comprobar conexión', exact: true });
   await button.click();
   await expect(page.getByRole('alert')).toContainText('formato distinto al documentado');

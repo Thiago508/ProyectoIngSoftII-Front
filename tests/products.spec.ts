@@ -1,8 +1,9 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('SWR-11 registra producto, valida duplicados y comparte navegación administrativa', async ({ page }, testInfo) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await expect(page.getByRole('heading', { name: 'Productos', exact: true })).toBeFocused();
   await expect(page.getByRole('link', { name: 'Productos', exact: true })).toHaveAttribute('aria-current', 'page');
   const save = page.getByRole('button', { name: 'Registrar producto de demostración' });
@@ -34,12 +35,12 @@ test('SWR-11 registra producto, valida duplicados y comparte navegación adminis
   await expect(page.getByRole('link', { name: 'Inventario', exact: true })).toHaveAttribute('aria-current', 'page');
   await page.getByRole('link', { name: 'Productos', exact: true }).click();
   await expect(list.getByRole('listitem')).toHaveCount(3);
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(list.getByRole('listitem')).toHaveCount(2);
 });
 
 test('SWR-12 y SWR-13 editan, cancelan y desactivan sin borrar ni reactivar al editar', async ({ page }) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   const list = page.getByRole('region', { name: 'Productos de esta sesión' });
   const product = list.getByRole('listitem').filter({ hasText: 'Identificador: DEMO-VEST' });
   await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();

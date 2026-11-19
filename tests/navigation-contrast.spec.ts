@@ -1,8 +1,9 @@
+import { test, visitAsAdmin } from './adminFixtures.js';
+import { expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
 
 test('el enlace de compra conserva contraste normal y hover; administración es accesible desde carrito', async ({ page }, testInfo) => {
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
   await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
   await page.getByRole('link', { name: 'Carrito de compras: 1 unidades', exact: true }).click();

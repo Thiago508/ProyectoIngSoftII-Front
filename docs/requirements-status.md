@@ -126,3 +126,24 @@ disponible, vigencia JWT y recuperación de pagos. Contradice Swagger respecto a
 campos de envío en POST /orders y acceso público de inventario. Las indicaciones
 anteriores de este documento sobre esos contratos deben leerse como revisión del
 Swagger, no como decisiones ya implementadas. Véase backend-integration.md.
+
+
+## Protección de navegación administrativa
+
+Las rutas /admin/products, /admin/inventory, /admin/notifications y
+/admin/connection requieren una sesión cuyo perfil confirmado tenga rol
+administrador. Sin sesión redirigen a login y conservan únicamente un destino
+administrativo conocido; al iniciar sesión se vuelve a él. Cliente o rol desconocido
+ve una pantalla de acceso denegado con foco en su título y retorno al catálogo.
+El enlace administrativo no se ofrece a esos perfiles; para visitantes abre login.
+Cerrar sesión, recargar o vencer el token retira las pantallas protegidas.
+
+Los formularios administrativos siguen operando sobre datos de demostración. Esta
+barrera de navegación no sustituye la autorización de cada endpoint en backend.
+No se cambian permisos de catálogo, carrito o checkout demo. El manejo global de
+401/403 de futuras operaciones reales y las integraciones de negocio siguen pendientes.
+
+Verificación manual: abrir /admin/inventory sin sesión, acceder con administrador,
+cerrar sesión y repetir con cliente; comprobar redirección, acceso denegado y que
+recargar no restaura la sesión. Las pruebas de negocio usan login con API
+interceptada y vuelven a autenticar tras recargas, sin persistir credenciales.

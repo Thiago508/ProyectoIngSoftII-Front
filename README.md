@@ -585,7 +585,7 @@ clave incorrecta debe mostrar error sin conservar la contraseña. Las pruebas
 Playwright interceptan API para comprobar además 401/422, vencimiento y accesibilidad
 en escritorio, tableta y móvil; no crean usuarios en el servidor.
 
-La navegación administrativa por rol sigue pendiente. Catálogo, carrito, pedidos,
+La navegación administrativa exige sesión con rol administrador. Catálogo, carrito, pedidos,
 pagos, inventario y avisos continúan en demostración. Ver
 [contratos y discrepancias](docs/backend-integration.md) antes de conectar pedidos.
 
@@ -826,3 +826,24 @@ sin guardar credenciales ni reintentar automáticamente escrituras.
 Consultar [Integración con backend](docs/backend-integration.md) para la evidencia
 real de conectividad/CORS, diferencias entre respuestas observadas y Swagger, y
 las preguntas que siguen pendientes sobre dinero, envío, contratos y permisos.
+
+
+## Protección de navegación administrativa
+
+Las rutas /admin/products, /admin/inventory, /admin/notifications y
+/admin/connection requieren una sesión cuyo perfil confirmado tenga rol
+administrador. Sin sesión redirigen a login y conservan únicamente un destino
+administrativo conocido; al iniciar sesión se vuelve a él. Cliente o rol desconocido
+ve una pantalla de acceso denegado con foco en su título y retorno al catálogo.
+El enlace administrativo no se ofrece a esos perfiles; para visitantes abre login.
+Cerrar sesión, recargar o vencer el token retira las pantallas protegidas.
+
+Los formularios administrativos siguen operando sobre datos de demostración. Esta
+barrera de navegación no sustituye la autorización de cada endpoint en backend.
+No se cambian permisos de catálogo, carrito o checkout demo. El manejo global de
+401/403 de futuras operaciones reales y las integraciones de negocio siguen pendientes.
+
+Verificación manual: abrir /admin/inventory sin sesión, acceder con administrador,
+cerrar sesión y repetir con cliente; comprobar redirección, acceso denegado y que
+recargar no restaura la sesión. Las pruebas de negocio usan login con API
+interceptada y vuelven a autenticar tras recargas, sin persistir credenciales.

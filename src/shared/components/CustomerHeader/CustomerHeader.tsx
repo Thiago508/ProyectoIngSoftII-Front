@@ -64,7 +64,7 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
           <p id="header-demo-note" className="customer-header__notice">Catálogo, carrito y pedidos de demostración. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
           {session ? <><span className="customer-header__session">Sesión: {session.user.name}</span><button className="customer-header__admin" type="button" onClick={logout}>Cerrar sesión</button></> : <Link className="customer-header__admin" to="/login">Iniciar sesión</Link>}
           {expired && <p className="customer-header__notice" role="alert">Tu sesión venció. Vuelve a iniciar sesión.</p>}
-          <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>
+          {(!session || session.user.role === "administrador") && <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>}
         </div>
       </div>
     </header>

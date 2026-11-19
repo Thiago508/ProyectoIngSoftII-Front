@@ -1,8 +1,9 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('SWR-15–18 catálogo, búsqueda parcial, detalle y retorno con consulta', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await visitAsAdmin(page, '/');
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(page.getByRole('heading', { name: 'Catálogo', exact: true })).toBeFocused();
   const search = page.getByRole('searchbox', { name: 'Buscar productos' });
@@ -27,12 +28,12 @@ test('SWR-15–18 catálogo, búsqueda parcial, detalle y retorno con consulta',
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('catalogo.png'), fullPage: true });
-  await page.goto('/catalog/no-existe');
+  await visitAsAdmin(page, '/catalog/no-existe');
   await expect(page.getByRole('heading', { name: 'Producto no disponible' })).toBeVisible();
 });
 
 test('desactivar oculta del catálogo; registrar y editar se reflejan al navegar sin recargar', async ({ page }) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('button', { name: 'Desactivar DEMO-VEST', exact: true }).click();
   await page.getByRole('button', { name: 'Editar DEMO-BLUSA', exact: true }).click();
   await page.getByLabel('Nombre del producto').fill('Blusa actualizada');
@@ -51,12 +52,12 @@ test('desactivar oculta del catálogo; registrar y editar se reflejan al navegar
   await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
   await page.getByRole('link', { name: 'Blusa actualizada', exact: true }).click();
   await expect(page.getByText(/65.000,00/)).toBeVisible();
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByRole('heading', { name: 'Blusa manga larga', exact: true })).toBeVisible();
 });
 
 test('un enlace antiguo no muestra el detalle de un producto desactivado; catálogo vacío informa', async ({ page }) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
   await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
   await expect(page).toHaveURL(/\/catalog\/demo-dress$/);

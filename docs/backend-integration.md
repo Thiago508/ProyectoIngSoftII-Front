@@ -133,8 +133,8 @@ anteriores describen Swagger, no una integración ya activa.
 
 ### Alcance pendiente
 
-Las rutas administrativas continúan siendo demostraciones accesibles y están
-etiquetadas así. Falta protección de navegación por rol, respuesta global a 401 en
+Las operaciones administrativas continúan siendo demostraciones y están
+etiquetadas así. La navegación ya exige sesión con rol administrador. Falta respuesta global a 401 en
 futuras operaciones protegidas y conexión de catálogo, carrito, pedidos, pagos,
 inventario y notificaciones. La UI no sustituye permisos del servidor.
 
@@ -154,3 +154,33 @@ Verificación frontend de este bloque: build, lint y suite unitaria correctos;
 33 pruebas Playwright correctas en escritorio, tableta y móvil (autenticación,
 contraste/navegación y regresión de pedidos demo). Incluyen revisión automatizada
 axe de las pantallas de autenticación; no sustituye revisión manual completa.
+
+
+## Protección de navegación administrativa
+
+Las rutas /admin/products, /admin/inventory, /admin/notifications y
+/admin/connection requieren una sesión cuyo perfil confirmado tenga rol
+administrador. Sin sesión redirigen a login y conservan únicamente un destino
+administrativo conocido; al iniciar sesión se vuelve a él. Cliente o rol desconocido
+ve una pantalla de acceso denegado con foco en su título y retorno al catálogo.
+El enlace administrativo no se ofrece a esos perfiles; para visitantes abre login.
+Cerrar sesión, recargar o vencer el token retira las pantallas protegidas.
+
+Los formularios administrativos siguen operando sobre datos de demostración. Esta
+barrera de navegación no sustituye la autorización de cada endpoint en backend.
+No se cambian permisos de catálogo, carrito o checkout demo. El manejo global de
+401/403 de futuras operaciones reales y las integraciones de negocio siguen pendientes.
+
+Verificación manual: abrir /admin/inventory sin sesión, acceder con administrador,
+cerrar sesión y repetir con cliente; comprobar redirección, acceso denegado y que
+recargar no restaura la sesión. Las pruebas de negocio usan login con API
+interceptada y vuelven a autenticar tras recargas, sin persistir credenciales.
+
+Validación de este bloque: build y lint sin errores ni advertencias, suite unitaria
+correcta (incluye destinos de retorno permitidos). La suite completa de navegador
+tuvo 176 casos correctos y un fallo por selector ambiguo de leyenda de foto durante
+la transición listado/detalle en móvil. Se corrigió la espera y el alcance del
+selector; los 6 casos de fotos se repitieron correctamente en los tres tamaños.
+Las pruebas de acceso cubren visitante, cliente, rol desconocido, administrador,
+cierre, recarga y vencimiento; usan respuestas interceptadas, no permisos reales
+del servidor.

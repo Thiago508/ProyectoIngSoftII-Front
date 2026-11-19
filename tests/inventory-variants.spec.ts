@@ -1,9 +1,10 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('un producto nuevo puede comprarse tras registrar su talla y ajustar existencias', async ({ page }, testInfo) => {
   test.setTimeout(60_000); // Recorre producto, inventario, catálogo y checkout.
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByLabel('Identificador comercial', { exact: true }).fill('LINO');
   await page.getByLabel('Nombre del producto', { exact: true }).fill('Blusa lino nueva');
   await page.getByLabel('Descripción del producto', { exact: true }).fill('Blusa de lino de demostración');
@@ -57,7 +58,7 @@ test('un producto nuevo puede comprarse tras registrar su talla y ajustar existe
 });
 
 test('valida errores y conserva la asociación de talla tras editar el código comercial', async ({ page }) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   const form = page.getByRole('region', { name: 'Registrar talla / SKU', exact: true });
   const submit = form.getByRole('button', { name: 'Registrar talla de demostración', exact: true });
   const product = form.getByLabel('Producto de la talla', { exact: true });
@@ -86,6 +87,6 @@ test('valida errores y conserva la asociación de talla tras editar el código c
   await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
   await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
   await expect(page.getByText('Talla XL: Sin disponibilidad', { exact: true })).toBeVisible();
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByText('Talla XL: Sin disponibilidad', { exact: true })).toHaveCount(0);
 });

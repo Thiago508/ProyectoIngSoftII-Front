@@ -1,8 +1,9 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 test('SWR-35 presenta resultados y distingue fallos por intento sin duplicar avisos lógicos', async ({ page }, testInfo) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('link', { name: 'Notificaciones', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/notifications$/);
   await expect(page.getByRole('link', { name: 'Notificaciones', exact: true })).toHaveAttribute('aria-current', 'page');
@@ -36,12 +37,12 @@ test('SWR-35 presenta resultados y distingue fallos por intento sin duplicar avi
 });
 
 test('el acceso directo ofrece salto al contenido y no genera avisos de sesión', async ({ page }) => {
-  await page.goto('/admin/notifications');
+  await visitAsAdmin(page, '/admin/notifications');
   await page.getByRole('link', { name: 'Saltar al procesamiento de notificaciones', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Procesamiento de notificaciones', exact: true })).toBeFocused();
   await page.getByLabel('Filtrar por resultado de procesamiento', { exact: true }).selectOption('failed');
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByLabel('Filtrar por resultado de procesamiento', { exact: true })).toHaveValue('all');
   await page.getByRole('link', { name: 'Ver catálogo', exact: true }).click();
   await page.getByRole('link', { name: 'Notificaciones (demostración)', exact: true }).click();

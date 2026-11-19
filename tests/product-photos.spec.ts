@@ -1,28 +1,30 @@
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 import { fileURLToPath } from 'node:url';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 const dress = fileURLToPath(new URL('../public/images/products/vestido-midi-demo.png', import.meta.url));
 
 test('catálogo muestra imágenes locales generadas; fallo de carga tiene alternativa', async ({ page }, testInfo) => {
-  await page.goto('/catalog');
+  await visitAsAdmin(page, '/catalog');
   const photo = page.getByRole('img', { name: 'Vestido midi verde con flores crema y tirantes finos' });
   await expect(photo).toBeVisible();
   await expect.poll(() => photo.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await page.screenshot({ path: testInfo.outputPath('catalogo-con-fotos.png'), fullPage: true });
   await page.getByRole('link', { name: 'Vestido midi estampado', exact: true }).click();
   await expect(photo).toBeVisible();
-  await expect(page.getByText('Imagen ilustrativa generada con IA', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Vestido midi estampado', exact: true })).toBeFocused();
+  await expect(page.getByRole('article').getByText('Imagen ilustrativa generada con IA', { exact: true })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('detalle-con-foto.png'), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
   await page.route('**/images/products/vestido-midi-demo.png', (route) => route.abort());
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByRole('img', { name: 'Sin foto disponible' })).toBeVisible();
 });
 
 test('foto local: valida archivo y descripción, conserva al editar y aparece en catálogo', async ({ page }) => {
-  await page.goto('/admin/products');
+  await visitAsAdmin(page, '/admin/products');
   await page.getByRole('button', { name: 'Editar DEMO-VEST', exact: true }).click();
   const file = page.getByLabel('Foto del producto (opcional)');
   await file.setInputFiles({ name: 'incorrecto.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image') });

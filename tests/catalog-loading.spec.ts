@@ -1,8 +1,9 @@
+import { test, visitAsAdmin } from './adminFixtures.js';
+import { expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
 
 test('la consulta fallida mantiene la búsqueda y permite reintentar sin mostrar un catálogo vacío falso', async ({ page }, testInfo) => {
-  await page.goto('/catalog?q=MiDi');
+  await visitAsAdmin(page, '/catalog?q=MiDi');
   const dress = page.getByRole('link', { name: 'Vestido midi estampado', exact: true });
   await expect(dress).toBeVisible();
   await page.getByText('Pruebas de carga (demostración)', { exact: true }).click();
@@ -31,7 +32,7 @@ test('la consulta fallida mantiene la búsqueda y permite reintentar sin mostrar
 });
 
 test('el detalle se recupera y salir durante una consulta no restaura productos anteriores', async ({ page }) => {
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   await expect(page.getByRole('heading', { name: 'Vestido midi estampado', exact: true })).toBeFocused();
   await page.getByText('Pruebas de carga (demostración)', { exact: true }).click();
   await page.getByRole('button', { name: 'Simular fallo de consulta', exact: true }).click();

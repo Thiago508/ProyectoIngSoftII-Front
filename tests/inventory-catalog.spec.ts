@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test, visitAsAdmin, reloadAsAdmin } from './adminFixtures.js';
 
 async function adjustDress(page: Page, quantity: string) {
   await page.getByLabel('Artículo a ajustar', { exact: true }).selectOption('DEMO-VEST-M');
@@ -14,7 +15,7 @@ async function openDress(page: Page) {
 }
 
 test('ajustar inventario cambia la disponibilidad del catálogo y conserva historial al navegar', async ({ page }) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   await adjustDress(page, '6');
   await openDress(page);
   await expect(page.getByText('Talla M: 3 unidades disponibles', { exact: true })).toBeVisible();
@@ -28,12 +29,12 @@ test('ajustar inventario cambia la disponibilidad del catálogo y conserva histo
   await expect(row.getByRole('cell').nth(2)).toHaveText('3');
   await expect(row.getByRole('cell').nth(3)).toHaveText('3');
   await expect(page.getByText('Cantidad anterior: 15 · Nueva cantidad: 6', { exact: true })).toBeVisible();
-  await page.reload();
+  await reloadAsAdmin(page);
   await expect(page.getByText('Todavía no hay ajustes registrados.', { exact: true })).toBeVisible();
 });
 
 test('checkout bloquea una selección que supera las unidades ajustadas y permite corregirla', async ({ page }) => {
-  await page.goto('/catalog/demo-dress');
+  await visitAsAdmin(page, '/catalog/demo-dress');
   await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
   await page.getByLabel('Cantidad', { exact: true }).fill('4');
   await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
@@ -53,7 +54,7 @@ test('checkout bloquea una selección que supera las unidades ajustadas y permit
 });
 
 test('una talla agotada mediante ajuste ya no permite agregar productos desde catálogo', async ({ page }) => {
-  await page.goto('/admin/inventory');
+  await visitAsAdmin(page, '/admin/inventory');
   await adjustDress(page, '3');
   await openDress(page);
   await expect(page.getByText('Talla M: Sin disponibilidad', { exact: true })).toBeVisible();
