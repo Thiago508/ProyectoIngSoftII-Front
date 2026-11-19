@@ -28,6 +28,17 @@ Para revisar la demostración se usa `source=demo` en las pantallas que lo ofrec
 salvo que se configure `VITE_CATALOG_SOURCE=demo`, como hace Playwright para las
 regresiones locales. Las pruebas API seleccionan su fuente explícitamente.
 
+## Prueba integrada con backend aislado
+
+`npm run test:integration` prepara una SQLite desechable y servidores propios para
+probar UI y API reales, separados de los datos de trabajo. Requiere Python con
+las dependencias del backend; configuración y resultados en el
+[informe de integración](docs/integration-validation.md).
+
+Resultado actual: **4 escenarios correctos y 1 fallo backend de moneda COP/CLP**.
+La prueba permanece fallida hasta resolver el contrato; no se oculta como caso omitido.
+La suite normal de frontend permanece independiente y conserva 321 casos.
+
 ## Ejecutar el proyecto
 
 El desarrollo de esta sesión utilizó Node 22.23.1. Las versiones resueltas de las

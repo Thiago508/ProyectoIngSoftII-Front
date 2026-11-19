@@ -26,3 +26,6 @@ dist-ssr
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Isolated backend integration artifacts
+integration-results/

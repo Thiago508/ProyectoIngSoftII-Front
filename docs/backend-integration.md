@@ -48,6 +48,19 @@ SWR-24). La autenticidad y aplicación de efectos siguen siendo del backend.
 - Continúan pendientes compra integrada con backend de pruebas, evidencia de
   garantías del servidor, lector de pantalla y aceptación visual del usuario.
 
+## Compra integrada en SQLite temporal — 19 de noviembre
+
+Se levantó el backend local existente sin editarlo, con otra base y otros puertos.
+Pasaron cuatro escenarios reales de administración, compra aprobada, rechazo e
+intentos. Bcrypt/auditoría se verificaron en la SQLite desechable. Un quinto caso
+falla: el webhook con firma e importe correctos en COP recibe 400
+INVALID_PSP_AMOUNT, porque el PSP interno del snapshot usa CLP. El frontend no
+se cambió a otra moneda. La suite integrada termina con error hasta corregirlo.
+
+Ver [reproducción, versión y límites de la evidencia](integration-validation.md).
+No hubo escrituras al backend compartido ni transporte externo. No se extrapolan
+estas pruebas al contenedor desplegado, a concurrencia global o a recepción SMTP.
+
 ## Registro de revisiones y contratos anteriores
 
 Revisión documental: 18 de noviembre de 2026. Fuentes: `openapi (1).json`,

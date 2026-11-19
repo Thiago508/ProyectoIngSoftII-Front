@@ -136,6 +136,26 @@ estén certificados de extremo a extremo**. Un listado «Mis pedidos», subida d
 archivos o historial de ajustes visible requieren contrato adicional si se incluyen
 en la entrega; el Excel exige registrar auditoría, no especifica una pantalla de historial.
 
+## Evidencia integrada adicional — 19 de noviembre
+
+Se añadió una suite opcional con frontend/backend reales y SQLite temporal,
+separada de los 321 casos interceptados. Resultado: **4 escenarios correctos y
+1 contrato fallido**. La compra aprobada/rechazada, consumo/liberación secuencial,
+privacidad, roles, JWT inválido/vencido, bandeja/deduplicación, bcrypt y auditoría
+tienen ahora evidencia del snapshot aislado. No equivalen a validación del
+servidor compartido ni de concurrencia/expiración globales.
+
+**SWR-24 sigue bloqueado en backend para la moneda acordada:** un webhook COP
+con importe y firma correctos recibe 400 INVALID_PSP_AMOUNT; el código del PSP
+interno exige CLP. No se marca F-06 completo de extremo a extremo ni se cambia
+la moneda del frontend. Detalle y solicitud para backend en
+[Validación integrada](integration-validation.md).
+
+La compra completa que figura en pendientes debe revalidarse tras esa corrección
+y sobre la versión desplegada. Lector de pantalla, aceptación visual, reservas
+multilínea/concurrentes, expiración, replay de webhook y entrega externa siguen
+fuera de la evidencia obtenida. El envío de correos no se ejecutó en estas pruebas.
+
 ## Límites y conservación de datos
 
 - API por defecto; `source=demo` conserva ejemplos locales independientes. El laboratorio
