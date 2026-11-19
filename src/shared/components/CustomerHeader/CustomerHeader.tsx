@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import "./CustomerHeader.css";
 
+import { useApiCart } from "../../../features/cart/ApiCartContext";
+
 import { useAuth } from "../../../features/auth/AuthContext";
 
 interface CustomerHeaderProps {
@@ -15,6 +17,11 @@ interface CustomerHeaderProps {
 
 export function CustomerHeader({ catalogSource, cartItemCount, cartTo, homeTo = "/checkout", contentHeadingId = "checkout-heading", skipLabel = "Saltar al contenido del checkout", search }: CustomerHeaderProps) {
   const { session, expired, logout } = useAuth();
+  const serverCart = useApiCart();
+  const realCart = catalogSource === "api";
+  const count = realCart ? serverCart.cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0 : cartItemCount;
+  const countKnown = !realCart || serverCart.cart !== null;
+  const cartHref = realCart ? "/cart?source=api" : cartTo === "/cart" ? "/cart?source=demo" : cartTo;
   return (
     <header className="customer-header">
       <a className="customer-header__skip" href={`#${contentHeadingId}`}>{skipLabel}</a>
@@ -55,14 +62,14 @@ export function CustomerHeader({ catalogSource, cartItemCount, cartTo, homeTo = 
             </svg>
           </Link>
 
-          {cartTo ? <Link to={cartTo} className="customer-header__action customer-header__cart" aria-label={`Carrito de compras: ${cartItemCount} unidades`}>
-            <span aria-hidden="true">♡</span><span className="customer-header__cart-count">{cartItemCount}</span>
-          </Link> : <button type="button" className="customer-header__action customer-header__cart" aria-label={`Carrito de demostración: ${cartItemCount} unidades (pendiente de implementar)`} disabled>
-            ♡<span className="customer-header__cart-count">{cartItemCount}</span>
+          {cartHref ? <Link to={cartHref} className="customer-header__action customer-header__cart" aria-label={countKnown ? `Carrito de compras: ${count} unidades` : "Carrito de compras: consultar"}>
+            <span aria-hidden="true">♡</span><span className="customer-header__cart-count">{countKnown ? count : "—"}</span>
+          </Link> : <button type="button" className="customer-header__action customer-header__cart" aria-label={`Carrito de demostración: ${count} unidades (pendiente de implementar)`} disabled>
+            ♡<span className="customer-header__cart-count">{countKnown ? count : "—"}</span>
           </button>}
         </nav>
         <div className="customer-header__secondary">
-          <p id="header-demo-note" className="customer-header__notice">{catalogSource === "api" ? "Catálogo del servidor. Carrito y pedidos de demostración." : "Catálogo, carrito y pedidos de demostración."} {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
+          <p id="header-demo-note" className="customer-header__notice">{catalogSource === "api" ? "Catálogo y carrito del servidor. Pedidos de demostración." : "Catálogo, carrito y pedidos de demostración."} {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {realCart ? "Inicia sesión para consultar tu carrito." : cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
           {session ? <><span className="customer-header__session">Sesión: {session.user.name}</span><button className="customer-header__admin" type="button" onClick={logout}>Cerrar sesión</button></> : <Link className="customer-header__admin" to="/login">Iniciar sesión</Link>}
           {expired && <p className="customer-header__notice" role="alert">Tu sesión venció. Vuelve a iniciar sesión.</p>}
           {(!session || session.user.role === "administrador") && <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>}

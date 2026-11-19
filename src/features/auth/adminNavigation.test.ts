@@ -8,3 +8,9 @@ test('solo admite destinos internos administrativos conocidos', () => {
     assert.equal(adminReturnPath(state), null);
   }
 });
+
+test('retorno del carrito solo admite destinos internos exactos', async () => {
+  const { loginReturnPath } = await import('./adminNavigation.ts');
+  for (const path of ['/cart?source=api', '/catalog/7?source=api', '/admin/products']) assert.equal(loginReturnPath({ returnTo: path }), path);
+  for (const path of ['https://example.com', '//example.com', '/cart?source=api&next=x', '/catalog/7?source=api#x', '/catalog/0?source=api']) assert.equal(loginReturnPath({ returnTo: path }), null);
+});

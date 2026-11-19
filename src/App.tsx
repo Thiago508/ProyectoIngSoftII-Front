@@ -28,7 +28,16 @@ import { BackendConnectionPage } from "./features/integration/BackendConnectionP
 
 import { RequireAdmin } from "./features/auth/RequireAdmin";
 
+import { ApiCartProvider } from "./features/cart/ApiCartProvider";
+import { ApiCartPage } from "./features/cart/pages/ApiCartPage";
+import { useSearchParams } from "react-router-dom";
+
 import { AuthProvider } from "./features/auth/AuthProvider";
+
+function CartRoute(props: Parameters<typeof CartPage>[0]) {
+  const [params] = useSearchParams();
+  return (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo' ? <CartPage {...props} /> : <ApiCartPage />;
+}
 
 function emptyCheckoutData(): CheckoutData {
   return { fullName: "", email: "", phone: "", address: "", city: "", department: "" };
@@ -71,13 +80,14 @@ function App() {
   }
   return (
     <AuthProvider onIdentityChange={clearPrivateSession}>
+    <ApiCartProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/orders/:orderId" element={<OrderDetailPage orders={orders} cartCount={cartCount} />} />
         <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} sessionNotices={notifications} availableOrderIds={orders.map((order) => order.id)} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
-        <Route path="/cart" element={<CartPage lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
+        <Route path="/cart" element={<CartRoute lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
         <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="/catalog" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route path="/catalog/:productId" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
@@ -92,6 +102,7 @@ function App() {
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>
+    </ApiCartProvider>
     </AuthProvider>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { ApiAddToCartForm } from '../../cart/components/ApiAddToCartForm';
 import { AddToCartForm } from '../../cart/components/AddToCartForm';
 import '../../cart/pages/CartPage.css';
 import { ProductPhoto } from '../../../shared/components/ProductPhoto/ProductPhoto';
@@ -85,8 +86,8 @@ export function CatalogPage({ inventoryItems, products, cartCount, onAddToCart }
         <h2>Descripción</h2><p>{product.description}</p>
         <h2>{demo ? "Disponibilidad por talla — demostración" : "Disponibilidad por talla"}</h2>
         {availability.length ? <ul>{availability.map((item) => <li key={item.sku}>Talla {item.size}: {item.available > 0 ? `${item.available} unidades disponibles` : 'Sin disponibilidad'}</li>)}</ul> : <p>{demo ? "Disponibilidad sin confirmar: este producto no tiene artículos de inventario asociados en la demostración." : "No hay disponibilidad por talla registrada para este producto."}</p>}
-        <p>{demo ? "Disponibilidad de esta sesión: refleja los ajustes y reservas del laboratorio de Inventario. El backend deberá confirmarla antes de registrar la compra." : "El servidor deberá volver a confirmar disponibilidad al comprar. El carrito real está pendiente de integración."}</p>
-        {demo && <AddToCartForm key={product.id} variants={availability} onAdd={(sku, quantity) => onAddToCart(product.id, sku, quantity)} />}
+        <p>{demo ? "Disponibilidad de esta sesión: refleja los ajustes y reservas del laboratorio de Inventario. El backend deberá confirmarla antes de registrar la compra." : "El servidor deberá volver a confirmar disponibilidad al comprar. Agregar al carrito no reserva existencias."}</p>
+        {demo ? <AddToCartForm key={product.id} variants={availability} onAdd={(sku, quantity) => onAddToCart(product.id, sku, quantity)} /> : <ApiAddToCartForm key={product.id} productId={Number(product.id)} variants={availability} />}
         <Link to={backToCatalog}>Volver al catálogo</Link>
         </div>
       </article> : <section className="catalog-page__detail" aria-label="Producto no disponible">

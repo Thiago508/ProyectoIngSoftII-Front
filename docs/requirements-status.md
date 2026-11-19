@@ -153,6 +153,17 @@ interceptada y vuelven a autenticar tras recargas, sin persistir credenciales.
 
 Listado y detalle públicos conectados a la API: búsqueda por nombre, fotos remotas,
 precios COP y disponibilidad por talla, con carga/error/reintento/vacío/404.
-El modo de demostración continúa separado. Falta conectar carrito, checkout,
+El modo de demostración continúa separado. Carrito real integrado en el bloque siguiente; falta conectar checkout,
 pedidos, pagos, administración y avisos a sus endpoints. El catálogo real no envía
 artículos al carrito demo ni presenta una compra como integrada.
+
+
+## Avance de carrito real
+
+Carrito autenticado conectado: consulta, agregar desde detalle, actualizar cantidad
+y eliminar por producto/talla. Contador y subtotales reflejan la respuesta del
+servidor. Se incorporan espera, errores, consulta tras resultado incierto y limpieza
+al cerrar/cambiar sesión; 401 invalida sesión y 403 conserva la cuenta.
+Carrito demo sigue independiente. La persistencia corresponde al backend y no
+se simula en localStorage. Faltan creación/consulta de pedidos reales, pagos,
+operaciones administrativas y avisos. El checkout demo no recibe el carrito API.

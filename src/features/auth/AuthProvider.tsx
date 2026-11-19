@@ -18,6 +18,13 @@ export function AuthProvider({ children, onIdentityChange }: { children: ReactNo
     onIdentityChange();
   }
 
+  function invalidateSession(token: string) {
+    if (session?.accessToken !== token) return;
+    setSession(null);
+    setExpired(true);
+    onIdentityChange();
+  }
+
   useEffect(() => {
     if (!session) return;
     const expiresAt = session.expiresAt;
@@ -45,5 +52,5 @@ export function AuthProvider({ children, onIdentityChange }: { children: ReactNo
     };
   }, [session, onIdentityChange]);
 
-  return <AuthContext.Provider value={{ session, expired, signIn, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ session, expired, signIn, logout, invalidateSession }}>{children}</AuthContext.Provider>;
 }

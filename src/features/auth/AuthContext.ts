@@ -6,6 +6,7 @@ export interface AuthState {
   expired: boolean;
   signIn: (session: AuthSession) => void;
   logout: () => void;
+  invalidateSession: (token: string) => void;
 }
 export const AuthContext = createContext<AuthState | undefined>(undefined);
 export function useAuth(): AuthState {

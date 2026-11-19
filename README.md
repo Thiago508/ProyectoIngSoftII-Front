@@ -865,8 +865,8 @@ alternativa existente. El texto alternativo usa el nombre del producto.
 respuestas anteriores. La misma pantalla ofrece carga, error, reintento, vacío y
 producto no disponible (404). La búsqueda se conserva en la URL.
 
-El catálogo real es por ahora de consulta: no añade productos reales al carrito
-de demostración. El enlace «Ver catálogo de demostración» abre `?source=demo` para
+El catálogo real agrega productos al carrito de la cuenta autenticada; no los
+mezcla con el carrito de demostración. El enlace «Ver catálogo de demostración» abre `?source=demo` para
 seguir verificando los flujos locales. Administración demo conserva sus propios
 productos e inventario; no modifica la API. `?source=api` selecciona explícitamente
 la fuente real. Playwright configura VITE_CATALOG_SOURCE=demo para conservar
@@ -877,3 +877,34 @@ Prueba manual: iniciar backend y Vite, abrir /catalog, buscar un nombre y abrir 
 detalle. Revisar precio, foto y tallas; detener backend y recargar debe mostrar
 error/reintento. Abrir un ID inexistente debe mostrar producto no disponible, no
 un error genérico ni un producto demo.
+
+
+## Carrito conectado a la API
+
+`/cart` (o `/cart?source=api`) consulta el carrito de la cuenta autenticada.
+`cartApi.ts` valida CartOut y convierte COP a centavos; altas usan POST /cart,
+actualizaciones PUT /cart/{product_id} con talla y cantidad, y eliminaciones
+DELETE /cart/{product_id}?size=... . No se usa un SKU local como identificador real.
+El contrato no devuelve fotos del carrito: se muestran sus nombres y precios sin
+inventar campos ni descargar el catálogo completo para reconstruir importes.
+
+`ApiCartProvider` comparte la respuesta confirmada y el contador entre detalle y
+carrito. No modifica optimistamente cantidades ni reserva existencias. Bloquea
+operaciones simultáneas y no reintenta escrituras. Si falla un cambio, requiere
+consultar el carrito antes de repetir para evitar duplicados. Un 401 invalida la
+sesión; 403 muestra acceso insuficiente sin cerrarla. Al salir o cambiar identidad
+se limpia la copia y se cancelan solicitudes pendientes. La API conserva el carrito;
+recargar obliga a iniciar sesión de nuevo porque el token solo vive en memoria.
+
+El login vuelve únicamente a destinos internos permitidos del catálogo/carrito.
+La interfaz permite seleccionar talla y cantidad, editar cantidades positivas,
+retirar artículos y consultar otra vez. Un producto inactivo solo puede retirarse.
+`CartLineControls` se reutiliza con callbacks síncronos demo o asíncronos API,
+controlando espera y foco sin cambiar la estructura visual.
+
+Checkout real sigue pendiente: el carrito del servidor no navega al checkout demo.
+`?source=demo` conserva el carrito local para revisar las funcionalidades anteriores.
+Prueba manual: iniciar sesión desde un producto real, agregar talla/cantidad, abrir
+carrito, modificar y retirar. Comprobar subtotal devuelto, cierre de sesión y retorno
+al login. Detener servidor durante un cambio debe ofrecer consulta de recuperación
+sin reenviar automáticamente la operación.

@@ -41,3 +41,7 @@
 .cart-page a.cart-page__checkout:hover {
   background: var(--color-primary-hover);
 }
+
+.cart-page__items--server > li { grid-template-columns: minmax(0, 1fr); }
+.cart-add button:disabled { opacity: 0.65; cursor: not-allowed; }
+.cart-page [role="alert"]:focus, .cart-add [role="alert"]:focus { outline: 2px solid var(--color-primary); outline-offset: 3px; }

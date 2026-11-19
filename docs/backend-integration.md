@@ -191,8 +191,8 @@ del servidor.
 Listado GET /catalog y detalle GET /products/{id} ya usan la API sin Bearer.
 Se validan precios COP enteros, identidad, actividad, fotos y stock_by_size;
 no se consulta inventario administrativo ni se deduce disponibilidad por talla
-desde totales. El carrito y la compra reales siguen pendientes: no se mezclan
-productos del servidor con el carrito local. Demostración accesible mediante
+desde totales. El carrito real se integra en el bloque siguiente; la compra real continúa
+pendiente. No se mezclan productos del servidor con el carrito local. Demostración accesible mediante
 ?source=demo; producción/desarrollo usan API por defecto.
 
 Comprobación de lectura contra http://127.0.0.1:8000/api/v1: listado válido con
@@ -203,3 +203,33 @@ pruebas Playwright interceptan listado, detalle y fotos para verificar los estad
 Validación frontend: build, lint y suite unitaria correctos. Los 48 casos Playwright
 de catálogo API, catálogo demo, carga/error, fotos y carrito pasaron en escritorio,
 tableta y móvil. Incluyen revisión axe y ausencia de desbordamiento en detalle API.
+
+
+## Carrito autenticado integrado
+
+GET/POST /cart y PUT/DELETE /cart/{product_id} usan Bearer de la sesión en memoria.
+Se envía siempre talla, incluida la query de eliminación. CartOut es la fuente de
+cantidades, actividad e importes COP; se rechazan líneas duplicadas o sumas
+incompatibles antes de mostrarlas. Carrito y catálogo demo permanecen separados.
+No se implementó vaciar todo: retirar por línea cubre el bloque actual.
+
+Un fallo de escritura bloquea nuevos cambios hasta consultar el estado; no hay
+reintentos automáticos ni deducciones locales. 401 descarta sesión y datos privados;
+403 conserva sesión y presenta error. Cambio de cuenta cancela solicitudes y
+elimina el estado previo; no se guardan carrito, token o datos personales en
+localStorage/sessionStorage. El contador muestra la última respuesta confirmada,
+no una consulta automática en cada pantalla. Se consulta al abrir carrito o agregar.
+
+Comprobación real de solo lectura: login de desarrollo y GET /cart válidos con
+carrito vacío. No se agregaron, editaron o eliminaron artículos reales. Las
+escrituras y errores se verifican con API interceptada en navegador; no sustituyen
+pruebas de stock, concurrencia, permisos y persistencia del backend.
+
+Validación: build, lint y suite unitaria correctos. Pasaron 75 pruebas de carrito
+API/demo, catálogo API, login, registro y acceso administrativo en los tres tamaños.
+Después pasaron los 18 casos ampliados de carrito API, incluidos cambio de cuenta
+con respuesta pendiente y artículo inactivo; 24 regresiones de carrito demo,
+contraste/navegación y borrador de checkout; y 3 comprobaciones finales del contador.
+Antes de consultar el carrito, el contador muestra «—» y su nombre accesible indica
+«consultar», en lugar de afirmar que hay cero artículos. La revisión axe del
+carrito real y las comprobaciones de foco y desbordamiento también pasaron.

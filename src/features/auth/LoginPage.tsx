@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
-import { adminReturnPath } from './adminNavigation';
+import { loginReturnPath } from './adminNavigation';
 import { CustomerHeader } from '../../shared/components/CustomerHeader/CustomerHeader';
 import { createApiClient } from '../../shared/api/apiClient';
 import { getApiBaseUrl } from '../../shared/api/apiConfig';
@@ -12,7 +12,7 @@ import './AuthPage.css';
 const fields = ['email', 'password'] as const;
 export function LoginPage({ cartCount }: { cartCount: number }) {
   const auth = useAuth();
-  const returnTo = adminReturnPath(useLocation().state);
+  const returnTo = loginReturnPath(useLocation().state);
   const [data, setData] = useState<Credentials>({ email: '', password: '' });
   const [errors, setErrors] = useState<CredentialsErrors>({});
   const [error, setError] = useState('');
@@ -78,7 +78,7 @@ export function LoginPage({ cartCount }: { cartCount: number }) {
       <div className="auth-page__panel">
         <h1 id="login-heading" ref={headingRef} tabIndex={-1}>Inicio de sesión</h1>
         <p>Accede con tu cuenta del backend. La sesión se conserva en memoria y se pierde al recargar.</p>
-        {!auth.session && returnTo && <p>Inicia sesión con una cuenta administrativa para continuar.</p>}
+        {!auth.session && returnTo && <p>{returnTo.startsWith("/admin/") ? "Inicia sesión con una cuenta administrativa para continuar." : "Inicia sesión para continuar con tu carrito."}</p>}
         {!auth.session && <form ref={formRef} onSubmit={(event) => { void submit(event); }} noValidate aria-busy={busy}>
           <div className="auth-page__field">
             <label htmlFor="login-email">Correo electrónico</label>
