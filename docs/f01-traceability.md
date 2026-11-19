@@ -1,5 +1,10 @@
 # F-01: Realizar pedido — trazabilidad frontend
 
+> Alcance histórico: este documento conserva la trazabilidad de la demostración
+> local. La integración API y el estado vigente de los 35 SWR se describen en
+> [Estado de requisitos](requirements-status.md). El laboratorio demo no acredita
+> transacciones, autorización ni concurrencia del backend.
+
 Referencia: `PR - TiendaRopa.xlsx`, hoja «Priorización de Requerimientos»,
 filas 4–8. Revisión del 19 de octubre de 2026. El Excel es la fuente de requisitos;
 este documento describe evidencias locales, sin declarar validación del cliente.

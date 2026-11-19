@@ -123,3 +123,19 @@ test('un POST aprobado no muestra confirmación si la consulta del pedido sigue 
   await expect(page.getByLabel('Token de tarjeta de prueba', { exact: true })).toHaveValue('');
   expect(posts).toBe(1);
 });
+
+
+test('importe de pago inconsistente no se presenta como aprobado ni permite otro cobro', async ({ page }) => {
+  let pending = false; let posts = 0;
+  await page.route('**/api/v1/orders/7', (route) => route.fulfill({ headers, json: { ...approved, status: pending ? 'pendiente_pago' : 'pagado', reservation_state: 'activa', payment: { ...approved.payment, status: pending ? 'pendiente' : 'aprobado', amount: 1 } } }));
+  await page.route('**/api/v1/orders/7/checkout', (route) => { posts++; return route.fulfill({ headers, json: approved }); });
+  await openPayment(page);
+  await expect(page.getByRole('alert')).toContainText('El importe del pago no coincide');
+  await expect(page.getByRole('heading', { name: 'Pago confirmado por el servidor', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Enviar pago de prueba', exact: true })).toHaveCount(0);
+  pending = true;
+  await page.getByRole('button', { name: 'Consultar resultado del pago', exact: true }).click();
+  await expect(page.getByText('Estado del pedido: pendiente_pago', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Enviar pago de prueba', exact: true })).toHaveCount(0);
+  expect(posts).toBe(0);
+});

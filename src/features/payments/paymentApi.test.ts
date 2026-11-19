@@ -38,3 +38,10 @@ test('rechaza respuestas de otro pedido y no llama la pasarela para un pedido pa
   await assert.rejects(payApiOrder(client, 'token', 21, { ...order, status: 'pagado' }, 'tok_ok', new AbortController().signal));
   assert.equal(calls, 1);
 });
+
+
+test('un importe de pago distinto del total no confirma aprobación ni habilita otro intento', () => {
+  const payment = { id: 1, status: 'aprobado', method: 'card', amount: 1 };
+  assert.equal(paymentOutcome({ ...order, status: 'pagado', payment }), 'unconfirmed');
+  assert.equal(canPayOrder({ ...order, payment: { ...payment, status: 'pendiente' } }), false);
+});

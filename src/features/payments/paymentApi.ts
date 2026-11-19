@@ -2,9 +2,10 @@ import { ApiError, type createApiClient } from '../../shared/api/apiClient.ts';
 import { getApiOrder, readApiOrder, type ApiOrder } from '../orders/ordersApi.ts';
 export type TestCardToken = 'tok_ok' | 'tok_declined';
 export function canPayOrder(order: ApiOrder): boolean {
-  return order.status === 'pendiente_pago' && order.reservationState === 'activa' && (!order.payment || ['pendiente', 'fallido', 'rechazado'].includes(order.payment.status));
+  return (!order.payment || order.payment.amount === order.total) && order.status === 'pendiente_pago' && order.reservationState === 'activa' && (!order.payment || ['pendiente', 'fallido', 'rechazado'].includes(order.payment.status));
 }
 export function paymentOutcome(order: ApiOrder): 'approved' | 'rejected' | 'unconfirmed' {
+  if (order.payment && order.payment.amount !== order.total) return 'unconfirmed';
   if (order.status === 'pagado' && order.payment && ['aprobado', 'pagado'].includes(order.payment.status)) return 'approved';
   if (order.status !== 'pagado' && order.payment && ['rechazado', 'fallido'].includes(order.payment.status)) return 'rejected';
   return 'unconfirmed';

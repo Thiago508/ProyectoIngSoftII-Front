@@ -23,6 +23,7 @@ export function validateApiProduct(draft: ApiProductDraft): ApiProductErrors {
     const length = [...draft[field].trim()].length;
     if (length < min || length > max) errors[field] = `Escribe entre ${min} y ${max} caracteres.`;
   }
+  if (!draft.description.trim()) errors.description = 'Escribe la descripción del producto.';
   if ([...draft.sku.trim()].length > 80) errors.sku = 'El SKU admite hasta 80 caracteres.';
   const price = Number(draft.price.trim());
   if (!/^\d+$/.test(draft.price.trim()) || !Number.isSafeInteger(price * 100) || price <= 0) errors.price = 'Escribe un precio en pesos COP enteros, mayor que cero y sin separadores de miles.';

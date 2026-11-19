@@ -4,6 +4,52 @@ Actualización del 19 de noviembre: el OpenAPI servido por la instancia local
 define CheckoutIn con solo items; no incluye campos de envío. La discrepancia
 con el archivo adjunto queda resuelta para esa instancia, como se documenta al final.
 
+## Resumen vigente de la integración — 19 de noviembre de 2026
+
+La interfaz está conectada al contrato disponible para F-01–F-08, incluido pago
+con tokens de prueba. La [matriz actual](requirements-status.md) separa cada SWR
+de las garantías que el backend debe demostrar. Las secciones siguientes son un
+registro cronológico: una frase antigua «pendiente de conectar» no sustituye ese estado vigente.
+
+| Comprobación real de solo lectura | Resultado de esta revisión |
+| --- | --- |
+| Login y perfil administrativo de desarrollo | Servicio de autenticación completado y perfil validado; sin imprimir credenciales o token. |
+| GET /catalog | Adaptador válido: 12 productos. |
+| GET /products | Adaptador válido: 12 productos. |
+| GET /inventory con Bearer | Adaptador válido: 60 filas por talla. |
+| GET /cart con Bearer | Adaptador válido: 1 línea. |
+| GET /notifications del propietario | Respuesta válida: 0 avisos en esta cuenta. |
+| GET /notifications/attempts | Respuesta válida: 0 intentos. |
+| GET /health con Origin localhost:5173 | 200 y Access-Control-Allow-Origin para http://localhost:5173. No prueba otros orígenes o puertos. |
+| GET /cart y /notifications/attempts sin token | Ambas rechazadas con 401. No prueba por sí solo permisos Cliente frente a Administrador. |
+| GET /openapi.json | CheckoutIn contiene solo items. |
+
+No se crearon usuarios, pedidos, pagos, avisos o ajustes de stock en estas
+comprobaciones. Cuentas, carrito y datos existentes no se borraron ni modificaron.
+Las pruebas de escritura del frontend interceptan API. Quedan evidencia de
+transacciones/auditoría, permisos por rol, idempotencia, bcrypt, eventos/entrega,
+una compra completa en entorno de pruebas y revisión manual de accesibilidad/visual.
+
+En la revisión se corrigieron dos diferencias del frontend: descripción obligatoria
+al escribir productos (SWR-11, consistente con la demo) y rechazo de confirmación
+visual de pago si el importe no coincide con el total (defensa de interfaz para
+SWR-24). La autenticidad y aplicación de efectos siguen siendo del backend.
+
+## Resultado de la revisión integral del 19 de noviembre
+
+- Se releyeron los 35 SWR del Excel y se reescribió su matriz sin omisiones.
+- Se hicieron obligatorias las descripciones en altas/ediciones de productos API,
+  conforme a SWR-11 y al comportamiento previo de la demo.
+- Un pago cuyo importe no coincide con el total no muestra aprobación ni permite
+  otro intento con datos incoherentes. No se alteran estados del servidor.
+- Build, lint y suite unitaria correctos. Suite completa Playwright: **321 casos
+  correctos** en escritorio, tableta y móvil (107 por proyecto), con APIs interceptadas.
+- Las lecturas reales del resumen anterior se validaron sin escrituras de negocio.
+- Continúan pendientes compra integrada con backend de pruebas, evidencia de
+  garantías del servidor, lector de pantalla y aceptación visual del usuario.
+
+## Registro de revisiones y contratos anteriores
+
 Revisión documental: 18 de noviembre de 2026. Fuentes: `openapi (1).json`,
 `openapi.json` entregados por el equipo,
 «Informe Técnico de Estado Actual del Backend.docx» y comprobaciones HTTP de lectura

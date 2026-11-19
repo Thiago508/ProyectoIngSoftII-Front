@@ -1,5 +1,10 @@
 # F-02: Gestionar inventario — estado del frontend
 
+> Alcance histórico: este documento conserva la trazabilidad de la demostración
+> local. La integración API y el estado vigente de los 35 SWR se describen en
+> [Estado de requisitos](requirements-status.md). El laboratorio demo no acredita
+> transacciones, autorización ni concurrencia del backend.
+
 Referencia: PR - TiendaRopa.xlsx, hoja Priorización de Requerimientos, SWR-06–10.
 Ruta: `/admin/inventory`. Todos los datos y eventos son simulados en memoria;
 navegar conserva los cambios y recargar restaura el ejemplo. No existe una sesión de administrador real.

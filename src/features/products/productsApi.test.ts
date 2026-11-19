@@ -4,10 +4,11 @@ import { ApiError, createApiClient } from '../../shared/api/apiClient.ts';
 import { apiProductErrors, deactivateApiProduct, emptyApiProduct, listApiProducts, productPayload, readAdminProduct, saveApiProduct, validateApiProduct } from './productsApi.ts';
 const base = 'http://backend.test/api/v1';
 const product = { id: 7, slug: 'vestido', sku: null, name: 'Vestido', description: '', price: 89900, category: 'Vestidos', sizes: ['M'], image: '', featured: false, stock_by_size: { M: 0 }, is_active: true };
-const draft = { ...emptyApiProduct, slug: ' vestido ', name: ' Vestido ', price: '89900', category: 'Vestidos', sizes: 'S, M' };
+const draft = { ...emptyApiProduct, slug: ' vestido ', name: ' Vestido ', description: ' Vestido floral ', price: '89900', category: 'Vestidos', sizes: 'S, M' };
 
 test('valida metadata y pesos enteros sin inventar ajustes de stock', () => {
   assert.deepEqual(validateApiProduct(draft), {});
+  assert.ok(validateApiProduct({ ...draft, description: ' ' }).description);
   const create = productPayload(draft, true);
   assert.equal(create.quantity, 0);
   assert.equal(create.is_active, true);

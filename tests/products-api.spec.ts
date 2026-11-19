@@ -7,6 +7,7 @@ const product = { id: 7, slug: 'vestido', sku: 'VEST-01', name: 'Vestido API', d
 async function fill(page: Page) {
   await page.getByLabel('Slug del producto', { exact: true }).fill('nuevo');
   await page.getByLabel('Nombre del producto', { exact: true }).fill('Producto nuevo');
+  await page.getByLabel('Descripción del producto', { exact: true }).fill('Descripción de prueba');
   await page.getByLabel('Precio en COP', { exact: true }).fill('65000');
   await page.getByLabel('Categoría', { exact: true }).fill('Blusas');
   await page.getByLabel('Tallas separadas por comas', { exact: true }).fill('S, M');
@@ -24,7 +25,7 @@ test('crea, edita y desactiva con Bearer sin modificar cantidades de inventario'
     expect(request.headers().authorization).toMatch(/^Bearer /);
     if (request.method() === 'POST') {
       posts++;
-      expect(request.postDataJSON()).toEqual({ slug: 'nuevo', sku: null, name: 'Producto nuevo', description: '', price: 65000, category: 'Blusas', sizes: ['S', 'M'], image: '', featured: false, quantity: 0, is_active: true });
+      expect(request.postDataJSON()).toEqual({ slug: 'nuevo', sku: null, name: 'Producto nuevo', description: 'Descripción de prueba', price: 65000, category: 'Blusas', sizes: ['S', 'M'], image: '', featured: false, quantity: 0, is_active: true });
       await gate;
       const next = { ...product, ...request.postDataJSON(), id: 8, stock_by_size: {} };
       items = [...items, next];
@@ -52,6 +53,11 @@ test('crea, edita y desactiva con Bearer sin modificar cantidades de inventario'
   await expect(page.getByLabel('Precio en COP', { exact: true })).toBeFocused();
   expect(posts).toBe(0);
   await page.getByLabel('Precio en COP', { exact: true }).fill('65000');
+  await page.getByLabel('Descripción del producto', { exact: true }).fill(' ');
+  await page.getByRole('button', { name: 'Crear producto', exact: true }).click();
+  await expect(page.getByLabel('Descripción del producto', { exact: true })).toBeFocused();
+  expect(posts).toBe(0);
+  await page.getByLabel('Descripción del producto', { exact: true }).fill('Descripción de prueba');
   await page.getByRole('button', { name: 'Crear producto', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Procesando…', exact: true })).toBeDisabled();
   await expect.poll(() => posts).toBe(1); release();

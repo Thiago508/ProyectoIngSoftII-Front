@@ -1,9 +1,32 @@
 # Fashion Online Store
 
 Proyecto académico de tienda de ropa femenina con React, TypeScript y Vite.
-El proyecto desarrolla el frontend de **F-01: Realizar pedido** (antes RF5) mediante
-un carrito y una operación de creación explícitamente simulados. No completa F-01 en producción: todavía no existe una integración de backend.
-La referencia actual es `PR - TiendaRopa.xlsx`, recibida el 19 de octubre de 2026.
+El frontend conecta F-01–F-08 con la API del equipo backend: autenticación,
+catálogo, carrito, pedidos, productos, inventario y notificaciones. El pago usa
+la pasarela de prueba documentada del backend. Se conserva el modo `source=demo`
+para los ejemplos locales; las secciones históricas de demo no describen el estado
+actual de las integraciones.
+
+La fuente de alcance es `PR - TiendaRopa.xlsx` (35 SWR). Consulta la
+[matriz vigente de requisitos](docs/requirements-status.md) y la
+[evidencia de integración](docs/backend-integration.md). Tener una interfaz
+conectada no certifica transacciones, autorización ni entrega del servidor.
+
+| Entrada | Función actual |
+| --- | --- |
+| `/catalog` | Catálogo API, búsqueda, detalle y selección por talla. |
+| `/register`, `/login` | Registro y login reales, perfil confirmado y sesión en memoria. |
+| `/cart?source=api` | Carrito de la cuenta, edición y retiro. |
+| `/checkout/review?source=api` | Revisión y creación del pedido con items. No guarda envío. |
+| `/orders?source=api` | Consulta de un pedido propio por ID; no hay listado GET /orders. |
+| `/orders/:id/payment?source=api` | Pago con tokens de prueba y resultado consultado. |
+| `/notifications?source=api` | Bandeja propia y marcado leído confirmado. |
+| `/admin/products`, `/admin/inventory`, `/admin/notifications` | Productos, ajustes por talla e intentos; requieren administrador. |
+
+Para revisar la demostración se usa `source=demo` en las pantallas que lo ofrecen;
+`/checkout` conserva el flujo simulado anterior. El modo API es predeterminado,
+salvo que se configure `VITE_CATALOG_SOURCE=demo`, como hace Playwright para las
+regresiones locales. Las pruebas API seleccionan su fuente explícitamente.
 
 ## Ejecutar el proyecto
 
@@ -1131,3 +1154,31 @@ tok_declined y enviar; comprobar el estado consultado. Un pedido pagado, expirad
 cancelado o con reserva liberada no debe ofrecer nuevo pago. Reproducir respuesta
 perdida solo en entorno controlado y consultar antes de repetir. La suite
 automatizada intercepta pagos y no altera pedidos ni existencias reales.
+
+
+## Revisión integral de requisitos — 19 de noviembre de 2026
+
+Se contrastaron los 35 SWR del Excel con código y pruebas, y se reemplazó la
+matriz antigua que aún describía todo como demo. Dos ajustes de la revisión:
+la descripción del producto real es obligatoria, como pide SWR-11; una discrepancia
+entre total del pedido e importe de pago no muestra aprobación ni habilita un
+nuevo intento (defensa de interfaz para SWR-24). El backend conserva la autoridad
+sobre autenticidad, autorización, moneda y aplicación única de efectos.
+
+Reproducción automatizada: `npm run build`, `npm run lint`, `npm test` y
+`PLAYWRIGHT_BROWSERS_PATH=/tmp/fashion-playwright npm run test:e2e -- --workers=4`.
+Si Chromium no está instalado, instalarlo antes con
+`PLAYWRIGHT_BROWSERS_PATH=/tmp/fashion-playwright npx playwright install chromium --only-shell`.
+La carpeta temporal puede desaparecer entre sesiones. La suite intercepta las
+escrituras de API: no crea compras, cobra pagos ni ajusta stock del backend real.
+
+Revisión manual pendiente: compra completa con datos autorizados del entorno de
+pruebas, lector de pantalla y aceptación visual. Además, el equipo backend debe
+aportar evidencia de auditoría, transacciones de stock, expiración, idempotencia,
+bcrypt/permisos y generación/deduplicación de avisos. No se consideran pruebas
+de esas garantías las simulaciones o la mera existencia de un endpoint.
+
+Resultado de esta revisión: build, lint y unitarias correctos; **321 pruebas de
+navegador correctas** (107 casos en cada uno de los tres tamaños). Las lecturas
+reales de autenticación, catálogo, productos, inventario, carrito, bandeja e
+intentos también validaron sus adaptadores, sin escrituras de negocio.
