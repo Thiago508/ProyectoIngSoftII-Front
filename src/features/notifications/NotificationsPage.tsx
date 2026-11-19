@@ -26,7 +26,8 @@ export function NotificationsPage({ cartCount, sessionNotices, availableOrderIds
     <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo="/catalog" contentHeadingId="notifications-heading" skipLabel="Saltar a las notificaciones" />
     <main className="notifications-page">
       <h1 id="notifications-heading" ref={headingRef} tabIndex={-1}>Notificaciones</h1>
-      <p>Avisos locales de demostración, sin cuenta autenticada. Los avisos de esta sesión provienen de pedidos creados en el checkout simulado y se pierden al recargar.</p>
+      <p>Avisos locales de demostración, independientes de la bandeja de tu cuenta. Los avisos de esta sesión provienen de pedidos creados en el checkout simulado y se pierden al recargar.</p>
+      <p><Link to="/notifications?source=api">Ver notificaciones del servidor</Link></p>
       <div className="notifications-page__scenario">
         <label htmlFor="notifications-scenario">Escenario de notificaciones (demostración)</label>
         <select id="notifications-scenario" value={scenario} onChange={(event) => {

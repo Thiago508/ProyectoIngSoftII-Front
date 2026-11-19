@@ -8,7 +8,7 @@ export function AdminHeader() {
   const [params] = useSearchParams();
   const location = useLocation();
   const demo = (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo';
-  const realAdministration = ['/admin/products', '/admin/inventory'].includes(location.pathname) && !demo;
+  const realAdministration = ['/admin/products', '/admin/inventory', '/admin/notifications'].includes(location.pathname) && !demo;
   const suffix = params.has('source') ? `?source=${demo ? 'demo' : 'api'}` : '';
   return <header className="admin-header">
     <div className="admin-header__inner">

@@ -194,3 +194,19 @@ No hay historial real de ajustes en frontend: la respuesta actual solo entrega
 cantidades confirmadas, sin identificador de auditoría, actor o fecha. Backend
 local no respondió al intento de lectura de esta revisión; las escrituras se
 validan con API interceptada.
+
+
+## Avance de notificaciones reales — 19 de noviembre de 2026
+
+Bandeja autenticada con consulta, filtros y marcado como leído confirmado mediante
+GET posterior. Consulta administrativa de intentos, resultado/error y filtro por
+resultado real. Incluye carga, vacío, recuperación, 401/403, cancelación y limpieza
+al cerrar/cambiar sesión, con rechazo de respuestas con avisos de otra cuenta.
+Los ejemplos demo siguen separados y no generan mensajes del servidor.
+
+Quedan checkout, creación/consulta de pedidos y pagos reales. El frontend no
+implementa entrega, firma HMAC de webhook, reintento de mensajes ni procesos de
+expiración del backend. Los intentos se consultan sin acreditar recepción.
+La zona de fechas de notificaciones no fue aclarada: se conserva el texto del
+servidor sin convertirlo. El contrato de envío de pedidos sigue pendiente de
+conciliar entre Swagger y el mensaje técnico.

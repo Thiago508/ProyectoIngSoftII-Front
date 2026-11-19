@@ -986,3 +986,39 @@ físico/reservado/disponible. Crear otra talla con cantidad cero y motivo. Desco
 el backend durante una escritura debe ofrecer consulta de recuperación, sin
 repetir el ajuste automáticamente. Las pruebas automatizadas interceptan escrituras
 y no ajustan inventario real.
+
+
+## Notificaciones e intentos conectados a la API
+
+`/notifications` consulta la bandeja de la cuenta autenticada con GET /notifications;
+POST /notifications/{id}/read solicita marcar un aviso como leído. La respuesta de
+ese POST es un objeto abierto, por lo que se vuelve a consultar la bandeja y solo
+se muestra «Leída» si GET devuelve is_read=true. Leer un aviso no cambia pedidos
+ni pagos. No se vinculan IDs reales de pedidos al detalle de pedidos demo.
+
+`/admin/notifications` consulta GET /notifications/attempts con navegación de
+administrador. Es una consulta de solo lectura: no se envían mensajes, no se
+inventan endpoints de reintento y se muestran result/error tal como llegan, con
+filtro por resultados realmente presentes. Asociaciones anulables se muestran
+sin inventar pedidos, usuarios o notificaciones inexistentes.
+
+`notificationsApi.ts` valida ambas respuestas, duplicados e identidad de la bandeja.
+`useNotificationApi` comparte lectura, espera, cancelación, errores y aislamiento
+por token entre ambas pantallas. Logout o cambio de sesión limpia datos privados
+en memoria y cancela solicitudes; no se usa localStorage/sessionStorage. 401
+invalida sesión y 403 conserva la cuenta. Una lectura fallida permite consultar
+otra vez; un marcado incierto bloquea nuevas escrituras hasta recuperar la bandeja.
+No se hacen reintentos automáticos de escritura ni cambios optimistas de lectura.
+
+Fechas se muestran como texto informado por el servidor, sin interpretarlas como
+UTC ni convertirlas según la zona del navegador. Campos de fecha ausentes o nulos
+se muestran como no informados. Un resultado de procesamiento no se presenta como
+prueba de recepción del mensaje por el destinatario.
+
+Ambas pantallas ofrecen source=demo para conservar los ejemplos y escenarios
+locales. El modo API es predeterminado fuera de la configuración de pruebas.
+Prueba manual: iniciar sesión, abrir Notificaciones, filtrar sin leer, marcar un
+aviso y comprobar el estado recibido al volver a consultar. Cerrar sesión debe
+retirar la bandeja privada. Con administrador abrir los intentos y filtrar sus
+resultados. Las pruebas de marcado usan API interceptada; no generan mensajes
+ni modifican avisos reales del entorno compartido.

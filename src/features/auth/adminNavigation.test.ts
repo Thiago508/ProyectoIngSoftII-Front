@@ -21,3 +21,10 @@ test('conserva solo el selector de fuente permitido al volver a administración'
   assert.equal(adminReturnPath({ returnTo: '/admin/products?source=demo' }), '/admin/products?source=demo');
   assert.equal(adminReturnPath({ returnTo: '/admin/products?source=api&next=x' }), null);
 });
+
+
+test('retorno a notificaciones admite solo la bandeja interna prevista', async () => {
+  const { loginReturnPath } = await import('./adminNavigation.ts');
+  assert.equal(loginReturnPath({ returnTo: '/notifications?source=api' }), '/notifications?source=api');
+  assert.equal(loginReturnPath({ returnTo: '/notifications?source=api&next=https://example.com' }), null);
+});

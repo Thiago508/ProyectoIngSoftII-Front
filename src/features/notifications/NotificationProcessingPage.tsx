@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AdminHeader } from '../../shared/components/AdminHeader/AdminHeader';
 import { notificationStatusLabels } from './notificationsDemo';
 import { notificationProcessingDemo, processingOutcomeLabels, type ProcessingOutcome } from './notificationProcessingDemo';
@@ -24,8 +25,9 @@ export function NotificationProcessingPage() {
     <AdminHeader />
     <main className="notifications-page">
       <h1 id="notification-processing-heading" ref={headingRef} tabIndex={-1}>Procesamiento de notificaciones</h1>
-      <p>Consulta de demostración, sin autenticación administrativa. Estos historiales son ejemplos fijos y no corresponden a los avisos creados durante la sesión.</p>
+      <p>Consulta de demostración con navegación protegida para administrador. Estos historiales son ejemplos fijos y no corresponden a los avisos creados durante la sesión.</p>
       <p>«Procesado» representa el resultado del procesamiento del ejemplo, sin acreditar entrega al destinatario. No se envían mensajes ni se ejecutan reintentos desde esta pantalla.</p>
+      <p><Link to="/admin/notifications?source=api">Ver intentos del servidor</Link></p>
       <div className="notifications-page__scenario">
         <label htmlFor="processing-filter">Filtrar por resultado de procesamiento</label>
         <select id="processing-filter" value={filter} onChange={(event) => {

@@ -13,5 +13,5 @@ export function loginReturnPath(state: unknown): string | null {
   if (admin) return admin;
   if (!state || typeof state !== 'object' || !('returnTo' in state) || typeof state.returnTo !== 'string') return null;
   const path = state.returnTo;
-  return path === '/cart?source=api' || /^\/catalog\/[1-9]\d*\?source=api$/.test(path) ? path : null;
+  return path === '/notifications?source=api' || path === '/cart?source=api' || /^\/catalog\/[1-9]\d*\?source=api$/.test(path) ? path : null;
 }

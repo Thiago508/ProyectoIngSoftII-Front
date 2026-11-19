@@ -14,6 +14,8 @@ import { RegistrationPage } from "./features/auth/RegistrationPage";
 
 import { LoginPage } from "./features/auth/LoginPage";
 
+import { ApiNotificationsPage } from "./features/notifications/ApiNotificationsPage";
+import { ApiNotificationAttemptsPage } from "./features/notifications/ApiNotificationAttemptsPage";
 import { NotificationsPage } from "./features/notifications/NotificationsPage";
 
 import type { DemoNotification } from "./features/notifications/notificationsDemo";
@@ -35,6 +37,16 @@ import { ApiCartPage } from "./features/cart/pages/ApiCartPage";
 import { useSearchParams } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
+
+function NotificationsRoute(props: Parameters<typeof NotificationsPage>[0]) {
+  const [params] = useSearchParams();
+  return (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo' ? <NotificationsPage {...props} /> : <ApiNotificationsPage />;
+}
+
+function NotificationAttemptsRoute() {
+  const [params] = useSearchParams();
+  return (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo' ? <NotificationProcessingPage /> : <ApiNotificationAttemptsPage />;
+}
 
 function InventoryRoute(props: Parameters<typeof InventoryPage>[0]) {
   const [params] = useSearchParams();
@@ -96,7 +108,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/orders/:orderId" element={<OrderDetailPage orders={orders} cartCount={cartCount} />} />
-        <Route path="/notifications" element={<NotificationsPage cartCount={cartCount} sessionNotices={notifications} availableOrderIds={orders.map((order) => order.id)} />} />
+        <Route path="/notifications" element={<NotificationsRoute cartCount={cartCount} sessionNotices={notifications} availableOrderIds={orders.map((order) => order.id)} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
         <Route path="/cart" element={<CartRoute lines={cart} products={products} onUpdate={handleUpdateCart} onRemove={handleRemoveCart} />} />
@@ -105,7 +117,7 @@ function App() {
         <Route path="/catalog/:productId" element={<CatalogPage inventoryItems={inventory.items} products={products} cartCount={cartCount} onAddToCart={handleAddToCart} />} />
         <Route element={<RequireAdmin cartCount={cartCount} />}>
           <Route path="/admin/connection" element={<BackendConnectionPage />} />
-          <Route path="/admin/notifications" element={<NotificationProcessingPage />} />
+          <Route path="/admin/notifications" element={<NotificationAttemptsRoute />} />
           <Route path="/admin/products" element={<ProductsRoute products={products} onProductsChange={setProducts} />} />
           <Route path="/admin/inventory" element={<InventoryRoute products={products} inventory={inventory} onInventoryChange={setInventory} />} />
           <Route path="/admin/*" element={<Navigate to="/admin/products" replace />} />

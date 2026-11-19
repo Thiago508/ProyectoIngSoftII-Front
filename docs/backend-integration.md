@@ -296,3 +296,36 @@ inicial tuvo 75 casos correctos y 3 fallos por una expectativa antigua del aviso
 La revalidación final de inventario API/demo tuvo 36 casos correctos en escritorio,
 tableta y móvil, incluyendo permisos de escritura 401/403, errores, cero/talla nueva,
 reservas concurrentes, foco, desbordamiento y comprobación automatizada axe.
+
+
+## Bandeja e intentos de notificación — 19 de noviembre de 2026
+
+GET /notifications y POST /notifications/{id}/read usan Bearer. El frontend valida
+que cada aviso pertenezca al usuario del perfil, evitando mostrar una respuesta
+con avisos ajenos. El POST solo tipa un objeto abierto: no se asume un campo status
+o is_read en su acuse; GET posterior confirma lectura. Un fallo después de enviar
+exige consultar antes de repetir, sin reintentos automáticos.
+
+GET /notifications/attempts se presenta en administración, con permisos de
+navegación y tratamiento de 401/403. Se conserva el listado plano del contrato y
+los IDs nulos; no se inventa agrupación histórica por destinatario ni éxito de
+entrega. No hay acciones de envío o reintento. Filtros se derivan de result sin
+restringirlo a estados de ejemplo.
+
+Datos privados se mantienen en memoria y se limpian al salir/cambiar sesión.
+Fechas se muestran sin conversión ni suposición de zona: la aclaración previa
+de hora local del proceso se refería a pedidos, no define la zona de estos campos.
+No se guardan credenciales, mensajes o detalles de error en almacenamiento local
+ni se registran sus contenidos en consola.
+
+Comprobación real de solo lectura: login de desarrollo, GET /notifications y
+GET /notifications/attempts completaron los adaptadores con ambas listas vacías.
+No se marcaron avisos reales, no se enviaron mensajes y no se comprobó entrega SMTP.
+Pruebas con API interceptada cubren marcado, estados y fallos; no certifican
+autorización efectiva ni recepción de mensajes del backend.
+
+Verificación frontend del bloque: build, lint y suite unitaria correctos. Los
+63 casos Playwright de notificaciones API/demo, intentos, login y acceso
+administrativo pasaron en escritorio, tableta y móvil. Incluyen lectura confirmada
+por GET, acuse sin confirmación, resultado incierto, avisos ajenos, logout, filtros,
+401/403, vacío/reintento, fechas sin conversión, foco, desbordamiento y revisión axe.
