@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { fillShipping, testShippingPayload } from '../shippingFixtures.js';
 
 const api = process.env.FASHION_INTEGRATION_API!;
 const front = process.env.FASHION_INTEGRATION_FRONT!;
@@ -40,13 +41,15 @@ async function inventory(request: APIRequestContext) {
 }
 async function createFromCart(page: Page) {
   await page.getByRole('link', { name: 'Continuar con la compra', exact: true }).click();
-  await page.getByLabel('Revisé los productos, tallas y cantidades.', { exact: true }).check();
+  await fillShipping(page);
+  await page.getByLabel('Revisé los productos, tallas, cantidades y datos de envío.', { exact: true }).check();
   const responsePromise = page.waitForResponse((response) => response.url() === `${api}/orders` && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Crear pedido pendiente de pago', exact: true }).click();
   const response = await responsePromise; expect(response.status()).toBe(201);
   const result = await response.json() as { id: number; total: number; status: string };
   await expect(page.getByRole('heading', { name: 'Pedido recibido', exact: true })).toBeVisible();
-  expect(result.status).toBe('pendiente_pago'); return result;
+  expect(result.status).toBe('pendiente_pago');
+  expect(await response.json()).toMatchObject(testShippingPayload); return result;
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -139,6 +142,9 @@ test('cliente registra cuenta, compra, paga y recibe avisos con efectos únicos'
   expect((await request.get(`${api}/orders/${created.id}`, { headers: auth(otherToken) })).status()).toBe(404);
   expect((await request.post(`${api}/notifications/${first.id}/read`, { headers: auth(otherToken) })).status()).toBe(404);
   expect((await request.get(`${api}/notifications/attempts`, { headers: auth(clientToken) })).status()).toBe(403);
+  expect((await request.get(`${api}/inventory`, { headers: auth(clientToken) })).status()).toBe(403);
+  expect((await request.get(`${api}/inventory/${productId}`, { headers: auth(clientToken) })).status()).toBe(403);
+  expect((await request.get(`${api}/inventory`)).status()).toBe(401);
   expect((await request.post(`${api}/inventory/adjustments`, { headers: auth(clientToken), data: { product_id: productId, size: 'M', new_quantity: 8, reason: 'No permitido' } })).status()).toBe(403);
   expect((await request.get(`${api}/cart`, { headers: auth('invalid-token') })).status()).toBe(401);
   const past = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: '2', role: 'cliente', exp: 1 })).toString('base64url')}`;
@@ -181,7 +187,7 @@ test('administrador consulta intentos persistentes y su deduplicación', async (
 
 test('webhook firmado debe aceptar la moneda COP acordada con frontend', async ({ request }) => {
   expect(approvedOrderId).toBeGreaterThan(0); expect(approvedTotal).toBeGreaterThan(0);
-  const created = await request.post(`${api}/orders`, { headers: auth(clientToken), data: { items: [{ product_id: productId, size: 'M', quantity: 1 }] } });
+  const created = await request.post(`${api}/orders`, { headers: auth(clientToken), data: { items: [{ product_id: productId, size: 'M', quantity: 1 }], ...testShippingPayload } });
   expect(created.status()).toBe(201);
   const pendingOrder = await created.json() as { id: number; total: number };
   const payload = JSON.stringify({ event_id: 'isolated-cop-contract-check', order_id: pendingOrder.id, result: 'approved', amount: pendingOrder.total, currency: 'COP' });

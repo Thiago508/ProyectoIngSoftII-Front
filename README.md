@@ -17,7 +17,7 @@ conectada no certifica transacciones, autorización ni entrega del servidor.
 | `/catalog` | Catálogo API, búsqueda, detalle y selección por talla. |
 | `/register`, `/login` | Registro y login reales, perfil confirmado y sesión en memoria. |
 | `/cart?source=api` | Carrito de la cuenta, edición y retiro. |
-| `/checkout/review?source=api` | Revisión y creación del pedido con items. No guarda envío. |
+| `/checkout/review?source=api` | Revisión y creación con artículos y dirección, teléfono, ciudad y departamento. |
 | `/orders?source=api` | Consulta de un pedido propio por ID; no hay listado GET /orders. |
 | `/orders/:id/payment?source=api` | Pago con tokens de prueba y resultado consultado. |
 | `/notifications?source=api` | Bandeja propia y marcado leído confirmado. |
@@ -35,9 +35,12 @@ probar UI y API reales, separados de los datos de trabajo. Requiere Python con
 las dependencias del backend; configuración y resultados en el
 [informe de integración](docs/integration-validation.md).
 
-Resultado actual: **4 escenarios correctos y 1 fallo backend de moneda COP/CLP**.
-La prueba permanece fallida hasta resolver el contrato; no se oculta como caso omitido.
-La suite normal de frontend permanece independiente y conserva 321 casos.
+Resultado actual sobre backend `99f5968`: **5 escenarios integrados correctos**;
+el webhook firmado en COP ya es aceptado. La instancia del puerto 8000 aún publica
+el contrato anterior: requiere reinicio/reconstrucción por su responsable. El frontend
+comprueba `/openapi.json` antes de crear, para impedir que esa versión ignore el envío.
+Los datos de envío se conservan solo en memoria y se limpian al salir de la cuenta
+o confirmar el pedido. La suite habitual sigue separada de las escrituras integradas.
 
 ## Ejecutar el proyecto
 

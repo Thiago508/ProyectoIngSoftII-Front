@@ -10,6 +10,12 @@ unitarias y de navegador que interceptan la API. No certifica autorización,
 transacciones, persistencia, concurrencia, entrega o cobros del servidor. El pago
 conectado usa la pasarela **de prueba** documentada por backend.
 
+Revalidación del backend `99f5968`: 5/5 escenarios integrados correctos en SQLite
+temporal, incluidos envío requerido, protección de inventario y webhook en COP.
+El servicio del puerto 8000 todavía publica el contrato anterior. Véanse
+[las pruebas y limitaciones](integration-validation.md). Pendientes: normalizar UTC,
+entorno compartido, idempotencia de creación y listado de pedidos propios.
+
 ## Matriz vigente de los 35 requisitos
 
 ### F-01 · Realizar pedido
@@ -18,8 +24,8 @@ conectado usa la pasarela **de prueba** documentada por backend.
 | --- | --- | --- |
 | SWR-01 | Rechaza carrito vacío antes de POST /orders; revisión API bloquea confirmar. | Rechazo equivalente en servidor ante petición directa. |
 | SWR-02 | Muestra disponibilidad por talla, revisa selección y presenta rechazos de stock al crear. No decide la disponibilidad definitiva. | Verificación transaccional de todas las líneas y concurrencia. |
-| SWR-03 | Revisión de cuenta, productos, tallas, cantidades y subtotal consultado antes de confirmar. | Aceptación del flujo por el usuario. El servidor actual no guarda dirección ni destinatario alternativo. |
-| SWR-04 | POST /orders envía únicamente items, valida respuesta y conserva el resultado entre rutas. Bloquea doble clic y resultados inciertos. | Persistencia real de pedido/líneas y reserva atómica. |
+| SWR-03 | Revisión de cuenta, artículos, subtotal y envío obligatorio validado antes de confirmar. | Aceptación del flujo por el usuario y actualización del servicio HTTP; el código 99f5968 ya guarda envío. |
+| SWR-04 | POST /orders envía items y los cuatro datos de envío, valida respuesta y conserva el resultado entre rutas. Bloquea doble clic y resultados inciertos. | Persistencia real de pedido/líneas y reserva atómica. |
 | SWR-05 | Presenta referencia, total y reserva confirmados; detalle autenticado por ID y acceso desde notificaciones. | Compra completa en entorno backend de pruebas, incluido resultado perdido. No existe listado GET /orders. |
 
 Evidencia: `src/features/orders/createApiOrder.ts`, `OrderCreationProvider.tsx`,
@@ -118,17 +124,18 @@ Evidencia: `src/features/notifications/notificationsApi.ts`, `useNotificationApi
 
 ## Pendientes concretos
 
-1. Ejecutar la compra completa con un backend de pruebas y datos autorizados,
-   incluyendo rechazo, pago pendiente/aprobado/rechazado y resultado perdido.
-   Las escrituras de la suite frontend están interceptadas; no prueban transacciones reales.
+1. Revalidar la versión desplegada en un entorno compartido de pruebas. La compra
+   aprobada/rechazada ya se ejecutó sobre el código 99f5968 en SQLite aislada;
+   recuperar una creación cuya respuesta se pierde sin ID requiere contrato backend.
 2. Obtener evidencia backend de auditoría, stock transaccional, expiración,
    idempotencia, bcrypt, permisos y eventos/notificaciones (columnas anteriores).
    No corresponde resolverlo con simulaciones adicionales en frontend.
 3. Completar revisión manual con lector de pantalla y aceptación visual del usuario.
    Axe, teclado/foco y pruebas responsive automatizadas no sustituyen esa revisión.
-4. Mantener actualizado el Swagger distribuido: la instancia consultada define
-   creación con solo items y no guarda envío/destinatario alternativo. La UI API
-   no promete persistir el formulario de envío demo.
+4. Actualizar el servicio del puerto 8000: todavía publica creación con solo items.
+   El nuevo checkout exige envío y bloquea antes del POST si el OpenAPI no lo confirma.
+5. Backend: fechas UTC con zona, URL compartida, idempotencia de creación y listado
+   autenticado de pedidos propios.
 
 No falta conectar otra pantalla de los 35 SWR al contrato disponible. Esto describe
 el alcance frontend implementado, **no significa que los 35 requisitos del sistema
@@ -138,23 +145,16 @@ en la entrega; el Excel exige registrar auditoría, no especifica una pantalla d
 
 ## Evidencia integrada adicional — 19 de noviembre
 
-Se añadió una suite opcional con frontend/backend reales y SQLite temporal,
-separada de los 321 casos interceptados. Resultado: **4 escenarios correctos y
-1 contrato fallido**. La compra aprobada/rechazada, consumo/liberación secuencial,
-privacidad, roles, JWT inválido/vencido, bandeja/deduplicación, bcrypt y auditoría
-tienen ahora evidencia del snapshot aislado. No equivalen a validación del
-servidor compartido ni de concurrencia/expiración globales.
+Suite opcional con frontend/backend reales y SQLite temporal, separada de la
+regresión interceptada: **5 escenarios correctos** en `99f5968`. Compra con envío,
+aprobación/rechazo, consumo/liberación secuencial, privacidad, roles, JWT, bandeja,
+deduplicación, bcrypt y auditoría tienen evidencia del snapshot aislado.
+El webhook firmado acepta COP; el fallo de moneda anterior quedó corregido.
 
-**SWR-24 sigue bloqueado en backend para la moneda acordada:** un webhook COP
-con importe y firma correctos recibe 400 INVALID_PSP_AMOUNT; el código del PSP
-interno exige CLP. No se marca F-06 completo de extremo a extremo ni se cambia
-la moneda del frontend. Detalle y solicitud para backend en
-[Validación integrada](integration-validation.md).
-
-La compra completa que figura en pendientes debe revalidarse tras esa corrección
-y sobre la versión desplegada. Lector de pantalla, aceptación visual, reservas
-multilínea/concurrentes, expiración, replay de webhook y entrega externa siguen
-fuera de la evidencia obtenida. El envío de correos no se ejecutó en estas pruebas.
+No equivale a certificación del servidor compartido ni de concurrencia/expiración
+globales. Lector de pantalla, aceptación visual, reservas multilínea/concurrentes,
+replay completo de webhook y entrega externa siguen fuera de la evidencia obtenida.
+El envío de correos no se ejecutó. Véase [Validación integrada](integration-validation.md).
 
 ## Límites y conservación de datos
 

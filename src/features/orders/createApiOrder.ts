@@ -1,4 +1,5 @@
 import { ApiError, type createApiClient } from '../../shared/api/apiClient.ts';
+import { matchesOrderShipping, orderShippingPayload, type OrderShipping } from './orderShipping.ts';
 import type { ApiCart } from '../cart/cartApi';
 import { readApiOrder, type ApiOrder } from './ordersApi.ts';
 export class OrderCreationResponseError extends Error {
@@ -14,12 +15,13 @@ export function orderItems(cart: ApiCart) {
     return { product_id: item.productId, size: item.size, quantity: item.quantity };
   });
 }
-export async function createApiOrder(client: ReturnType<typeof createApiClient>, token: string, userId: number, cart: ApiCart, signal: AbortSignal): Promise<ApiOrder> {
-  const value = await client.request('/orders', { method: 'POST', token, signal, json: { items: orderItems(cart) } });
+export async function createApiOrder(client: ReturnType<typeof createApiClient>, token: string, userId: number, cart: ApiCart, shipping: OrderShipping, signal: AbortSignal): Promise<ApiOrder> {
+  const value = await client.request('/orders', { method: 'POST', token, signal, json: { items: orderItems(cart), ...orderShippingPayload(shipping) } });
   const raw = value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
   const reference = raw?.user_id === userId && typeof raw.id === 'number' && Number.isSafeInteger(raw.id) && raw.id > 0 ? raw.id : null;
   try {
     const order = readApiOrder(value);
+    if (!matchesOrderShipping(order.shipping, shipping)) throw new Error('Envío no confirmado.');
     if (order.userId !== userId) throw new Error('Propietario incompatible.');
     return order;
   } catch { throw new OrderCreationResponseError(reference); }

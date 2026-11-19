@@ -1,8 +1,23 @@
 # Integración con backend: evidencia y cuestiones abiertas
 
-Actualización del 19 de noviembre: el OpenAPI servido por la instancia local
-define CheckoutIn con solo items; no incluye campos de envío. La discrepancia
-con el archivo adjunto queda resuelta para esa instancia, como se documenta al final.
+## Revalidación tras actualizar backend — estado vigente
+
+Backend local `99f5968`, sin modificaciones: **5/5 pruebas integradas aprobadas**
+en SQLite temporal. Ya recibe dirección, teléfono, ciudad y departamento obligatorios;
+las consultas de inventario requieren administrador y el webhook firmado acepta COP.
+Consulta [la evidencia y sus límites](integration-validation.md).
+
+El frontend adapta el formulario API, valida y confirma esos datos en la respuesta,
+y consulta `/openapi.json` antes del POST para evitar perder envío frente a versiones
+antiguas. Los datos personales viven en memoria, sin localStorage/sessionStorage.
+
+**La instancia HTTP del puerto 8000 sigue desactualizada:** su OpenAPI solo exige
+items y no declara seguridad para inventario. Debe reiniciarse/reconstruirse antes
+de probar el contrato nuevo allí; no se reinició ni se realizaron escrituras en ella.
+Pendientes backend: fechas UTC con zona, entorno compartido, idempotencia de creación
+y listado autenticado de pedidos propios. COP ya no es un bloqueo en `99f5968`.
+
+Las secciones siguientes conservan evidencia histórica; no sustituyen esta revalidación.
 
 ## Resumen vigente de la integración — 19 de noviembre de 2026
 
