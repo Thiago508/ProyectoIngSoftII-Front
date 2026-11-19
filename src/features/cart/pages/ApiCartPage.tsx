@@ -46,7 +46,8 @@ export function ApiCartPage() {
               onRemove={async () => { const result = await api.change({ type: 'remove', productId: item.productId, size: item.size }); if (result.ok) { focusIndex.current = index; setMessage(result.message); } return result; }} />
           </div></li>)}</ul>}
           <p className="cart-page__subtotal">Subtotal de productos: {currency.format(api.cart.subtotalCents / 100)}</p>
-          <p>Envío no incluido. La creación de pedidos reales todavía está pendiente de integración.</p>
+          <p>El pedido se crea después de revisar la selección; no se realiza un cobro al crearlo.</p>
+          {api.cart.items.length > 0 && <p><Link className="cart-page__checkout" to="/checkout/review?source=api">Continuar con la compra</Link></p>}
           <button type="button" className="cart-line-controls__secondary" disabled={api.busy} onClick={() => { focusIndex.current = 0; void api.refresh(); setMessage(''); }}>Actualizar carrito</button>
         </div>}
         <p role="status" aria-atomic="true">{api.busy && api.status === 'ready' ? 'Actualizando carrito…' : message}</p>

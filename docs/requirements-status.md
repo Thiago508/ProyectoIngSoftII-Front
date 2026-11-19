@@ -224,3 +224,20 @@ resolviendo la discrepancia para ese servidor. El archivo distribuido debe
 actualizarse, pero ya se puede preparar creación con ese contrato comprobado.
 Siguen pendientes creación de pedidos, conexión del checkout y pagos reales.
 La información de envío del formulario demo no se presenta como guardada en backend.
+
+
+## Avance de creación de pedidos reales — 19 de noviembre de 2026
+
+Carrito API → revisión → POST /orders conectado al contrato desplegado con items
+únicamente. Cuenta autenticada, validación 1–20 por línea, total y reserva del
+servidor, resultado entre rutas y consulta posterior del carrito. No hay descuento
+físico local ni confirmación de pago. El formulario demo de envío permanece separado
+y sus datos no se presentan como guardados por la API.
+
+Se bloquean doble clic y repetición de resultados inciertos. Una marca anónima por
+pestaña (sin usuario, token, carrito o ID) conserva ese bloqueo al recargar; una
+referencia propia recibida se recupera por GET. Sin referencia no se reintenta ni
+se enumera: requiere revisión externa. La idempotencia global sigue siendo tarea
+del backend. Falta integrar inicio y resultado de pago y efectuar verificación
+completa con entorno backend de pruebas autorizado. Las escrituras automatizadas
+de este bloque se interceptan; no crean compras reales.

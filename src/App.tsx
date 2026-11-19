@@ -21,6 +21,8 @@ import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import type { DemoNotification } from "./features/notifications/notificationsDemo";
 import { recordRegisteredNotification } from "./features/notifications/recordRegisteredNotification";
 
+import { OrderCreationProvider } from "./features/orders/OrderCreationProvider";
+import { ApiCheckoutPage } from "./features/checkout/pages/ApiCheckoutPage";
 import { ApiOrderPage } from "./features/orders/ApiOrderPage";
 import { OrderDetailPage } from "./features/orders/OrderDetailPage";
 import type { CheckoutData, DemoOrder } from "./features/checkout/types/checkout.types";
@@ -111,6 +113,7 @@ function App() {
   return (
     <AuthProvider onIdentityChange={clearPrivateSession}>
     <ApiCartProvider>
+    <OrderCreationProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/orders" element={<ApiOrderPage />} />
@@ -129,10 +132,12 @@ function App() {
           <Route path="/admin/inventory" element={<InventoryRoute products={products} inventory={inventory} onInventoryChange={setInventory} />} />
           <Route path="/admin/*" element={<Navigate to="/admin/products" replace />} />
         </Route>
+        <Route path="/checkout/review" element={<ApiCheckoutPage />} />
         <Route path="/checkout/*" element={<CheckoutFlow inventoryItems={inventory.items} lines={cart} products={products} data={checkoutDraft} onDataChange={setCheckoutDraft} onDemoOrderCreated={handleDemoOrderCreated} />} />
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>
+    </OrderCreationProvider>
     </ApiCartProvider>
     </AuthProvider>
   );

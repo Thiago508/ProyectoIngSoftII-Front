@@ -365,3 +365,44 @@ Playwright de consulta de pedidos API/demo, notificaciones y revisión de checko
 en escritorio, tableta y móvil. Incluyen login con retorno, actualizaciones solo
 GET, protección de datos ajenos, 401/403/404, reintento, fechas, foco, revisión axe
 y ausencia de desbordamiento.
+
+
+## Creación de pedidos integrada — 19 de noviembre de 2026
+
+Se reconsultó http://127.0.0.1:8000/openapi.json antes de implementar: CheckoutIn
+solo define items. Las líneas exigen cantidad 1–20. La descripción de POST /orders
+confirma creación pendiente de pago con reservas por talla durante 15 minutos;
+la UI conserva reservation_expires_at recibido y no calcula un plazo nuevo.
+
+El carrito real abre una revisión autenticada; POST /orders envía únicamente
+items con product_id, quantity y size. Se valida respuesta/propietario antes de
+presentar el pedido. El frontend no descuenta stock, crea avisos falsos, vacía el
+carrito por suposición ni interpreta crear como pagar. Tras éxito vuelve a
+consultar GET /cart y ofrece el detalle real. Preparar otro pedido exige una
+acción explícita y una nueva revisión.
+
+No existen idempotencia ni listado para recuperar creación sin ID. Se conserva
+estado entre rutas y una marca anónima por pestaña en sessionStorage, escrita
+antes del POST, sin datos personales ni credenciales. Resultado incierto bloquea
+nuevas creaciones incluso tras recargar. Un rechazo HTTP 4xx conocido (salvo 408)
+limpia la marca, pero obliga a consultar carrito antes de revisar de nuevo. Un
+5xx, red, timeout, 408 o respuesta incompatible no permite reintentar el POST.
+Un ID propio recibido en respuesta incompatible puede recuperarse mediante GET;
+si no hay ID, la UI no inventa recuperación por carrito, fecha o enumeración.
+
+El marcador es genérico de la pestaña y puede bloquear otra cuenta sin revelar
+información de la anterior. Se mantiene tras logout si la solicitud quedó sin
+confirmar. No protege globalmente entre pestañas/dispositivos ni reemplaza una
+Idempotency-Key de backend. Si el navegador impide escribir la marca, no se
+despacha la solicitud. El resultado con referencia solo vive en memoria.
+
+Comprobación real de este bloque: lectura del OpenAPI público, sin POST de negocio.
+La creación, rechazos y recuperación se prueban con API interceptada. No se crearon
+pedidos, no se reservaron unidades reales y no se realizaron cobros. El pago del
+pedido queda para un bloque posterior.
+
+Verificación: build, lint y suite unitaria correctos; 69 pruebas Playwright de
+creación, carrito API, detalle de pedidos y checkout demo correctas en los tres
+tamaños. Incluyen doble envío, navegación, persistencia de marca tras recarga/login,
+recuperación por ID sin otro POST, 409/401/403, validaciones de líneas, foco, axe
+y ausencia de desbordamiento.

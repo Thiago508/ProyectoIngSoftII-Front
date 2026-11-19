@@ -1047,3 +1047,49 @@ y el pago reales siguen para próximos bloques; este bloque solo consulta pedido
 Prueba manual con un ID propio conocido: abrir consulta, introducirlo, comprobar
 productos históricos, total y estado; actualizar la lectura, probar un ID inexistente
 y cerrar sesión. No se enumeran pedidos ni se crean registros para esta verificación.
+
+
+## Creación de pedidos reales desde el carrito
+
+El carrito API enlaza a `/checkout/review?source=api`. Esa pantalla vuelve a
+consultar el carrito y requiere revisar productos, tallas y cantidades antes de
+crear. Muestra la cuenta autenticada; no solicita dirección ni destinatario
+alternativo porque el contrato desplegado solo recibe items. El checkout anterior
+permanece como demostración y no se mezclan sus datos con pedidos reales.
+
+`createApiOrder.ts` prepara únicamente product_id, size y quantity por línea;
+valida carrito no vacío, productos activos y cantidades de 1 a 20 según el OpenAPI
+del servidor. POST /orders usa Bearer, sin datos de envío, precios, rol ni estado
+inventados. El pedido recibido conserva el total, estado y reserva del backend.
+No se realiza cobro, no se descuenta inventario físico en frontend y el vencimiento
+no se calcula desde el reloj del navegador. Las reservas las crea el servidor.
+
+`OrderCreationProvider` comparte el resultado entre rutas para evitar repetir el
+POST al volver del detalle. Tras éxito se consulta el carrito: no se supone que el
+servidor lo vacía ni se borra localmente. Preparar otro pedido es una acción
+explícita que consulta de nuevo y exige revisar otra vez. Un rechazo 4xx conocido
+requiere actualizar el carrito y revisar antes de intentar otro envío.
+
+No hay idempotencia de creación en backend. Antes de despachar se guarda en
+sessionStorage una única marca anónima `fashion.pending-order-request=pending`.
+No contiene token, usuario, email, carrito, precios ni ID del pedido. Se elimina
+al confirmar éxito o un rechazo HTTP conocido; error de red, timeout, 408, 5xx o
+respuesta incompatible la conserva. Navegar, recargar o volver a iniciar sesión
+en esa pestaña no habilita reenviar automáticamente. Cancelar fetch al cerrar
+sesión tampoco demuestra que el servidor haya cancelado el pedido.
+
+Si una respuesta incompatible trajo un ID y propietario válidos, la UI ofrece
+recuperarlo mediante GET /orders/{id}, sin otro POST. Sin referencia confirmada,
+solo ofrece revisar avisos/consulta por ID y pedir revisión a la tienda. No se
+intenta deducir el pedido a partir del carrito ni se agrega un listado inexistente.
+El bloqueo anónimo puede afectar a otra cuenta en la misma pestaña; no identifica
+al comprador. El marcador no sustituye idempotencia del servidor entre pestañas,
+dispositivos o sesiones de navegador. Si no se puede escribir el estado temporal,
+no se despacha la creación. La referencia recuperable y el pedido quedan solo
+en memoria y se limpian al cambiar cuenta.
+
+Prueba manual con datos de compra autorizados: carrito API → Continuar con la
+compra → revisar selección → Crear pedido pendiente de pago. Comprobar referencia
+y detalle, volver atrás y confirmar que no se repite el POST. Probar pérdida de
+respuesta únicamente con entorno de prueba controlado; la suite intercepta estas
+escrituras y no crea pedidos reales. Pago sigue pendiente del siguiente bloque.
