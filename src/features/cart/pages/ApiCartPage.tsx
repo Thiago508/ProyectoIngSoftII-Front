@@ -51,6 +51,7 @@ export function ApiCartPage() {
         </div>}
         <p role="status" aria-atomic="true">{api.busy && api.status === 'ready' ? 'Actualizando carrito…' : message}</p>
       </>}
+      <p><Link to="/orders?source=api">Consultar un pedido por ID</Link></p>
       <p><Link to="/catalog?source=api">Seguir explorando el catálogo</Link></p>
       <p><Link to="/cart?source=demo">Ver carrito de demostración</Link></p>
     </main>

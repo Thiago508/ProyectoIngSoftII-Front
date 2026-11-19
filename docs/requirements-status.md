@@ -210,3 +210,17 @@ expiración del backend. Los intentos se consultan sin acreditar recepción.
 La zona de fechas de notificaciones no fue aclarada: se conserva el texto del
 servidor sin convertirlo. El contrato de envío de pedidos sigue pendiente de
 conciliar entre Swagger y el mensaje técnico.
+
+
+## Avance de consulta de pedidos reales — 19 de noviembre de 2026
+
+Detalle por ID conectado a GET /orders/{id}, con acceso desde notificaciones,
+búsqueda manual, carga, reintento, 401/403/404 y limpieza al cambiar identidad.
+No hay listado de pedidos del usuario: el contrato no expone esa ruta. Se muestran
+estados, pago y datos históricos del servidor sin ejecutar operaciones.
+
+El OpenAPI de la instancia local confirmó CheckoutIn con solo items y sin envío,
+resolviendo la discrepancia para ese servidor. El archivo distribuido debe
+actualizarse, pero ya se puede preparar creación con ese contrato comprobado.
+Siguen pendientes creación de pedidos, conexión del checkout y pagos reales.
+La información de envío del formulario demo no se presenta como guardada en backend.

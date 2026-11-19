@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CustomerHeader } from '../../shared/components/CustomerHeader/CustomerHeader';
 import type { DemoOrder } from '../checkout/types/checkout.types';
 import './OrderDetailPage.css';
@@ -9,6 +9,8 @@ const dateTime = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeSty
 
 export function OrderDetailPage({ orders, cartCount }: { orders: readonly DemoOrder[]; cartCount: number }) {
   const { orderId } = useParams<{ orderId: string }>();
+  const [params] = useSearchParams();
+  const suffix = params.get("source") === "demo" ? "?source=demo" : "";
   const order = orders.find((candidate) => candidate.id === orderId);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -20,7 +22,7 @@ export function OrderDetailPage({ orders, cartCount }: { orders: readonly DemoOr
   }, [orderId, order]);
 
   return <>
-    <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo="/catalog" contentHeadingId="order-heading" skipLabel="Saltar al detalle del pedido" />
+    <CustomerHeader cartItemCount={cartCount} cartTo="/cart" homeTo={`/catalog${suffix}`} contentHeadingId="order-heading" skipLabel="Saltar al detalle del pedido" />
     <main className="order-detail">
       <h1 id="order-heading" ref={headingRef} tabIndex={-1}>{order ? 'Detalle del pedido' : 'Pedido no disponible'}</h1>
       {order ? <>
@@ -51,8 +53,8 @@ export function OrderDetailPage({ orders, cartCount }: { orders: readonly DemoOr
         </section>
       </> : <p>Este pedido no está disponible en la sesión de demostración. Los pedidos locales se pierden al recargar.</p>}
       <nav className="order-detail__links" aria-label="Navegación del pedido">
-        <Link to="/notifications">Volver a las notificaciones</Link>
-        <Link to="/catalog">Volver al catálogo</Link>
+        <Link to={`/notifications${suffix}`}>Volver a las notificaciones</Link>
+        <Link to={`/catalog${suffix}`}>Volver al catálogo</Link>
       </nav>
     </main>
   </>;

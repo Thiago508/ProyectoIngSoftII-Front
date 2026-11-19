@@ -50,7 +50,7 @@ export function NotificationsPage({ cartCount, sessionNotices, availableOrderIds
             <div><dt>Estado resultante</dt><dd>{notificationStatusLabels[notice.status]}</dd></div>
             <div><dt>Fecha y hora del cambio</dt><dd><time dateTime={notice.occurredAt}>{dateTime.format(new Date(notice.occurredAt))}</time></dd></div>
           </dl>
-          {scenario === 'session' && availableOrderIds.includes(notice.orderId) && <p><Link to={`/orders/${encodeURIComponent(notice.orderId)}`} aria-label={`Ver pedido ${notice.orderId}`}>Ver detalle del pedido</Link></p>}
+          {scenario === 'session' && availableOrderIds.includes(notice.orderId) && <p><Link to={`/orders/${encodeURIComponent(notice.orderId)}?source=demo`} aria-label={`Ver pedido ${notice.orderId}`}>Ver detalle del pedido</Link></p>}
         </li>)}
       </ol>}
       <Link to="/catalog">Volver al catálogo</Link>

@@ -1,5 +1,9 @@
 # Integración con backend: evidencia y cuestiones abiertas
 
+Actualización del 19 de noviembre: el OpenAPI servido por la instancia local
+define CheckoutIn con solo items; no incluye campos de envío. La discrepancia
+con el archivo adjunto queda resuelta para esa instancia, como se documenta al final.
+
 Revisión documental: 18 de noviembre de 2026. Fuentes: `openapi (1).json`,
 `openapi.json` entregados por el equipo,
 «Informe Técnico de Estado Actual del Backend.docx» y comprobaciones HTTP de lectura
@@ -329,3 +333,35 @@ Verificación frontend del bloque: build, lint y suite unitaria correctos. Los
 administrativo pasaron en escritorio, tableta y móvil. Incluyen lectura confirmada
 por GET, acuse sin confirmación, resultado incierto, avisos ajenos, logout, filtros,
 401/403, vacío/reintento, fechas sin conversión, foco, desbordamiento y revisión axe.
+
+
+## Consulta de pedidos y contrato desplegado — 19 de noviembre de 2026
+
+Se incorpora GET /orders/{id} con Bearer, validación de propietario e identidad,
+404 genérico y errores 401/403. No se llama GET /orders porque no existe listado
+en el contrato. /orders ofrece un formulario local de búsqueda por ID y el detalle
+se abre desde notificaciones reales. Datos históricos, importes, estados y fechas
+proceden del pedido, sin reemplazarlos por catálogo ni deducir expiración o pago.
+Los pedidos demo se enlazan explícitamente con source=demo.
+
+La consulta pública http://127.0.0.1:8000/openapi.json respondió con versión 0.1.0.
+El CheckoutIn de esa instancia tiene una única propiedad, items, también única
+obligatoria. OrderOut contiene id, user_id, status, reservation_state, total,
+reservation_expires_at, created_at, items y payment; no contiene campos de envío.
+Esto coincide con la aclaración textual del backend y difiere de openapi (1).json.
+Las advertencias anteriores sobre la contradicción describen la revisión histórica:
+para integrar esa instancia se usará el contrato desplegado con items únicamente.
+Solicitar al equipo actualizar el archivo distribuido sigue siendo conveniente,
+pero ya no bloquea preparar la creación de pedidos contra este servidor.
+
+No se crearon pedidos ni se probaron pagos; tampoco se enumeraron IDs de pedidos
+reales. La comprobación real de este bloque fue la lectura del contrato público.
+El detalle de pedidos poblados y sus errores se verifican con API interceptada.
+El adaptador tolera campos de envío anulables del Swagger anterior al leer, pero
+no los inventa cuando el servidor no los devuelve.
+
+Validación frontend: build, lint y suite unitaria correctos. Pasaron 54 pruebas
+Playwright de consulta de pedidos API/demo, notificaciones y revisión de checkout
+en escritorio, tableta y móvil. Incluyen login con retorno, actualizaciones solo
+GET, protección de datos ajenos, 401/403/404, reintento, fechas, foco, revisión axe
+y ausencia de desbordamiento.

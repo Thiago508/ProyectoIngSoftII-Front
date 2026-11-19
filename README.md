@@ -1022,3 +1022,28 @@ aviso y comprobar el estado recibido al volver a consultar. Cerrar sesión debe
 retirar la bandeja privada. Con administrador abrir los intentos y filtrar sus
 resultados. Las pruebas de marcado usan API interceptada; no generan mensajes
 ni modifican avisos reales del entorno compartido.
+
+
+## Consulta de pedidos reales
+
+`/orders?source=api` permite introducir un ID; `/orders/:id?source=api` consulta
+GET /orders/{id} con la sesión en memoria. Notificaciones reales enlazan a ese
+detalle. No se presenta un listado ni se inventa GET /orders. `ordersApi.ts` valida
+identidad, propietario, importes COP e información de pago; un pedido ajeno se
+trata como no disponible. `ApiOrderPage` muestra carga, error/reintento y 404,
+y limpia el detalle al cambiar sesión o ID. Recargar requiere iniciar sesión.
+
+Las líneas son las instantáneas del pedido, no productos del catálogo vigente.
+Se muestra el total recibido sin recomputarlo desde cantidades ni gastos supuestos.
+Fechas se conservan tal como llegan y no se calcula una expiración local; estados
+de reserva y pago se presentan sin convertirlos en aprobación o cancelación.
+No hay botones de crear, cobrar o cancelar. Los enlaces demo preservan source=demo.
+
+La consulta del OpenAPI desplegado el 19 de noviembre resolvió la discrepancia de
+creación para el servidor local: CheckoutIn contiene únicamente items; OrderOut
+no incluye campos de envío. Es distinto del Swagger adjunto anterior. La creación
+y el pago reales siguen para próximos bloques; este bloque solo consulta pedidos.
+
+Prueba manual con un ID propio conocido: abrir consulta, introducirlo, comprobar
+productos históricos, total y estado; actualizar la lectura, probar un ID inexistente
+y cerrar sesión. No se enumeran pedidos ni se crean registros para esta verificación.

@@ -28,3 +28,11 @@ test('retorno a notificaciones admite solo la bandeja interna prevista', async (
   assert.equal(loginReturnPath({ returnTo: '/notifications?source=api' }), '/notifications?source=api');
   assert.equal(loginReturnPath({ returnTo: '/notifications?source=api&next=https://example.com' }), null);
 });
+
+
+test('retorno de pedidos permite consulta interna y rechaza destinos externos', async () => {
+  const { loginReturnPath } = await import('./adminNavigation.ts');
+  assert.equal(loginReturnPath({ returnTo: '/orders?source=api' }), '/orders?source=api');
+  assert.equal(loginReturnPath({ returnTo: '/orders/7?source=api' }), '/orders/7?source=api');
+  assert.equal(loginReturnPath({ returnTo: '/orders/7?source=api&next=x' }), null);
+});

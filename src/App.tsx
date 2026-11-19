@@ -21,6 +21,7 @@ import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import type { DemoNotification } from "./features/notifications/notificationsDemo";
 import { recordRegisteredNotification } from "./features/notifications/recordRegisteredNotification";
 
+import { ApiOrderPage } from "./features/orders/ApiOrderPage";
 import { OrderDetailPage } from "./features/orders/OrderDetailPage";
 import type { CheckoutData, DemoOrder } from "./features/checkout/types/checkout.types";
 
@@ -37,6 +38,11 @@ import { ApiCartPage } from "./features/cart/pages/ApiCartPage";
 import { useSearchParams } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
+
+function OrderRoute(props: Parameters<typeof OrderDetailPage>[0]) {
+  const [params] = useSearchParams();
+  return (params.get('source') ?? import.meta.env.VITE_CATALOG_SOURCE) === 'demo' ? <OrderDetailPage {...props} /> : <ApiOrderPage />;
+}
 
 function NotificationsRoute(props: Parameters<typeof NotificationsPage>[0]) {
   const [params] = useSearchParams();
@@ -107,7 +113,8 @@ function App() {
     <ApiCartProvider>
     <BrowserRouter>
       <Routes>
-        <Route path="/orders/:orderId" element={<OrderDetailPage orders={orders} cartCount={cartCount} />} />
+        <Route path="/orders" element={<ApiOrderPage />} />
+        <Route path="/orders/:orderId" element={<OrderRoute orders={orders} cartCount={cartCount} />} />
         <Route path="/notifications" element={<NotificationsRoute cartCount={cartCount} sessionNotices={notifications} availableOrderIds={orders.map((order) => order.id)} />} />
         <Route path="/login" element={<LoginPage cartCount={cartCount} />} />
         <Route path="/register" element={<RegistrationPage cartCount={cartCount} />} />
