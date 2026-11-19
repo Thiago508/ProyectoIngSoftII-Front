@@ -1,7 +1,7 @@
 # Estado de requisitos: frontend e integración
 
 Fuente: `PR - TiendaRopa.xlsx`, hoja «Priorización de Requerimientos»,
-35 SWR agrupados en F-01–F-08. Revisión actualizada el 11 de noviembre de 2026.
+35 SWR agrupados en F-01–F-08. Revisión documental actualizada el 18 de noviembre de 2026.
 Este estado describe lo implementado localmente, no certifica funcionalidades de
 producción. Las operaciones de negocio actuales usan datos en memoria. La nueva comprobación
 de conexión consulta el endpoint de salud real; aún no sustituye las demos por APIs.
@@ -81,5 +81,48 @@ están pendientes de interfaz en la demostración.
 
 La URL de desarrollo, el cliente HTTP común y la consulta de salud ya están
 preparados. Se verificaron salud, CORS para localhost:5173, forma de catálogo e
-inventario y rechazo del carrito sin token. Dinero, datos de envío y contratos
-genéricos siguen pendientes de aclarar antes de dar por integrada la compra.
+inventario y rechazo del carrito sin token el 11 de noviembre; esas comprobaciones
+no se repitieron en la revisión documental del 18 de noviembre. El nuevo OpenAPI
+aclara COP sin centavos, cuatro campos obligatorios de envío y contratos tipados
+para catálogo, inventario y ajustes. También declara Bearer en lecturas de inventario.
+Siguen pendientes la integración frontend y las pruebas de los contratos nuevos;
+no se deben confundir las aclaraciones documentales con operaciones ya integradas.
+
+
+## Cambios documentados por backend el 18 de noviembre
+
+- Dinero: pesos colombianos enteros, sin centavos; adaptar la conversión al modelo
+  actual del frontend sin redondear importes al enviarlos.
+- Pedido: enviar shipping_address, shipping_phone, shipping_city y shipping_department;
+  alinear longitudes/patrón del formulario con CheckoutIn.
+- Catálogo e inventario: usar CatalogOut/CatalogProductOut e InventoryListItemOut,
+  sin suponer que catálogo tiene la misma forma que ProductOut.
+- Ajustes: usar InventoryAdjustIn y enviar talla y motivo explícitos.
+- Inventario: contrato protegido con Bearer; verificar también autorización por rol.
+
+Para próximos bloques no hace falta esperar otra definición de moneda o dirección.
+Se conserva como pendiente aclarar fechas con zona, destinatario, disponibilidad
+pública por talla, permisos efectivos y recuperación de respuestas inciertas. El
+estado de implementación de las pantallas de la tabla superior no cambió en esta
+revisión. Ver [Comparación de contratos](backend-integration.md).
+
+
+## Bloque de autenticación real — 18 de noviembre
+
+Registro y login ya envían los formatos documentados a la API y confirman el
+perfil mediante GET /users/me. Se añadieron nombre, validación de alta, errores
+HTTP/422, prevención de doble envío, cierre y vencimiento por exp. El token vive
+solo en memoria; una recarga requiere nuevo login. Contraseñas no se conservan
+al terminar una solicitud. Cambiar identidad limpia borradores personales, pedidos
+y avisos demo, conservando el carrito local.
+
+Este bloque sustituye el estado anterior de formularios exclusivamente locales.
+No completa todavía navegación administrativa por rol ni integra operaciones de
+negocio. Registro/login tienen pruebas con API interceptada; no equivalen a una
+validación completa del backend desplegado.
+
+El mensaje técnico posterior aclara fechas locales sin zona, stock_by_size como
+disponible, vigencia JWT y recuperación de pagos. Contradice Swagger respecto a
+campos de envío en POST /orders y acceso público de inventario. Las indicaciones
+anteriores de este documento sobre esos contratos deben leerse como revisión del
+Swagger, no como decisiones ya implementadas. Véase backend-integration.md.

@@ -1,64 +1,93 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { authCors, mockProfile, testToken, testUser } from './authFixtures.js';
 
-test('F-07 acceso valida campos, mantiene foco y no presenta una sesión autenticada', async ({ page }, testInfo) => {
+async function fillLogin(page: import('@playwright/test').Page) {
+  await page.getByLabel('Correo electrónico', { exact: true }).fill(testUser.email);
+  await page.getByLabel('Contraseña', { exact: true }).fill(' clave exacta ');
+}
+
+test('login usa OAuth2, consulta perfil y conserva sesión al navegar sin almacenar credenciales', async ({ page }, testInfo) => {
+  const token = testToken();
+  let calls = 0;
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/api/v1/auth/login', async (route) => {
+    calls++;
+    expect(route.request().headers()['content-type']).toContain('application/x-www-form-urlencoded');
+    expect(Object.fromEntries(new URLSearchParams(route.request().postData() ?? ''))).toEqual({ username: testUser.email, password: ' clave exacta ', grant_type: 'password' });
+    await gate;
+    await route.fulfill({ headers: authCors, json: { access_token: token, user: testUser } });
+  });
+  await mockProfile(page, token);
   await page.goto('/login');
-  await expect(page.getByRole('heading', { name: 'Inicio de sesión', exact: true })).toBeFocused();
-  await expect(page).toHaveTitle('Inicio de sesión | Fashion Online Store');
-  const email = page.getByLabel('Correo electrónico', { exact: true });
-  const password = page.getByLabel('Contraseña', { exact: true });
-  const submit = page.getByRole('button', { name: 'Validar acceso (demostración)' });
-  await expect(email).toHaveAttribute('autocomplete', 'username');
-  await expect(password).toHaveAttribute('autocomplete', 'current-password');
-  await submit.click();
-  await expect(email).toBeFocused();
-  await expect(email).toHaveAccessibleDescription('Escribe un correo electrónico válido.');
-  await expect(password).toHaveAccessibleDescription('Escribe una contraseña.');
-  await email.fill('correo@');
-  await submit.click();
-  await expect(email).toBeFocused();
-  await email.fill('cliente@example.com');
-  await submit.click();
-  await expect(password).toBeFocused();
-  await password.fill(' clave demo ');
-  const visibility = page.getByLabel('Mostrar contraseña', { exact: true });
-  await visibility.focus();
-  await page.keyboard.press('Space');
-  await expect(password).toHaveAttribute('type', 'text');
-  await expect(password).toHaveValue(' clave demo ');
-  await submit.click();
-  await expect(page.getByRole('status')).toContainText('No se verificaron las credenciales ni se inició sesión');
-  await expect(password).toHaveValue('');
-  await expect(password).toHaveAttribute('type', 'password');
-  await expect(visibility).not.toBeChecked();
-  await expect(page).toHaveURL(/\/login$/);
+  await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByLabel('Correo electrónico')).toBeFocused();
+  await expect(page.getByLabel('Correo electrónico')).toHaveAccessibleDescription('Escribe un correo electrónico válido.');
+  await fillLogin(page);
+  const show = page.getByLabel('Mostrar contraseña', { exact: true });
+  await show.focus(); await page.keyboard.press('Space');
+  await expect(page.getByLabel('Contraseña', { exact: true })).toHaveAttribute('type', 'text');
+  await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Iniciando sesión…', exact: true })).toBeDisabled();
+  await expect.poll(() => calls).toBe(1);
+  release();
+  await expect(page.getByRole('status')).toContainText('Sesión iniciada como Cliente Prueba');
+  await expect(page.getByLabel('Contraseña', { exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: testInfo.outputPath('acceso.png'), fullPage: true });
-  await email.fill('otro@example.com');
-  await expect(page.getByRole('status')).toBeEmpty();
-  await page.reload();
-  await expect(email).toHaveValue('');
-  await expect(password).toHaveValue('');
+  await page.screenshot({ path: testInfo.outputPath('sesion.png'), fullPage: true });
+  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Cerrar sesión', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Cerrar sesión', exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByLabel('Contraseña', { exact: true })).toHaveValue('');
 });
 
-test('registro y acceso permiten volver sin conservar credenciales ni perder el carrito', async ({ page }) => {
-  await page.goto('/catalog/demo-dress');
-  await page.getByLabel('Talla', { exact: true }).selectOption('DEMO-VEST-M');
-  await page.getByRole('button', { name: 'Agregar al carrito', exact: true }).click();
-  await page.getByRole('link', { name: 'Registro de cliente (demostración)' }).click();
-  await page.getByRole('link', { name: 'Ir al inicio de sesión' }).click();
-  await expect(page.getByRole('heading', { name: 'Inicio de sesión', exact: true })).toBeFocused();
-  await page.getByLabel('Correo electrónico').fill('cliente@example.com');
-  await page.getByLabel('Contraseña', { exact: true }).fill('clave demo');
-  await page.getByRole('link', { name: 'Ir al registro', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Registro de cliente', exact: true })).toBeFocused();
-  await expect(page.getByLabel('Correo electrónico')).toHaveValue('');
+test('401 y errores 422 no crean sesión y conservan errores accesibles', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/api/v1/auth/login', async (route) => {
+    calls++;
+    await route.fulfill({ headers: authCors, status: calls === 1 ? 401 : 422, json: calls === 1 ? { detail: 'Credenciales incorrectas' } : { detail: [{ loc: ['body', 'username'], msg: 'Correo no válido', input: 'no mostrar' }] } });
+  });
+  await page.goto('/login');
+  await fillLogin(page);
+  await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveText('Credenciales incorrectas');
+  await expect(page.getByRole('alert')).toBeFocused();
   await expect(page.getByLabel('Contraseña', { exact: true })).toHaveValue('');
-  await page.getByRole('link', { name: 'Ir al inicio de sesión' }).click();
+  await page.getByLabel('Contraseña', { exact: true }).fill('clave');
+  await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByLabel('Correo electrónico')).toBeFocused();
+  await expect(page.getByLabel('Correo electrónico')).toHaveAccessibleDescription('Correo no válido');
+  await expect(page.getByRole('button', { name: 'Cerrar sesión', exact: true })).toHaveCount(0);
+});
+
+test('un perfil rechazado impide completar la sesión', async ({ page }) => {
+  const token = testToken();
+  await page.route('**/api/v1/auth/login', (route) => route.fulfill({ headers: authCors, json: { access_token: token, user: testUser } }));
+  await mockProfile(page, token, 401);
+  await page.goto('/login');
+  await fillLogin(page);
+  await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Token inválido o vencido');
+  await expect(page.getByRole('button', { name: 'Cerrar sesión', exact: true })).toHaveCount(0);
+});
+
+test('la sesión vence según exp y recargar no restaura el token', async ({ page }) => {
+  await page.clock.install();
+  const token = testToken();
+  await page.route('**/api/v1/auth/login', (route) => route.fulfill({ headers: authCors, json: { access_token: token, user: testUser } }));
+  await mockProfile(page, token);
+  await page.goto('/login');
+  await fillLogin(page);
+  await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Sesión iniciada');
+  await page.clock.fastForward(13 * 60 * 60 * 1000);
+  await expect(page.getByText('Tu sesión venció. Vuelve a iniciar sesión.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cerrar sesión', exact: true })).toHaveCount(0);
+  await page.reload();
   await expect(page.getByLabel('Correo electrónico')).toHaveValue('');
-  await expect(page.getByLabel('Contraseña', { exact: true })).toHaveValue('');
-  await page.getByRole('link', { name: 'Volver al catálogo', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Carrito de compras: 1 unidades', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Iniciar sesión', exact: true })).toBeVisible();
 });

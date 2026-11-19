@@ -26,6 +26,8 @@ import { NotificationProcessingPage } from "./features/notifications/Notificatio
 
 import { BackendConnectionPage } from "./features/integration/BackendConnectionPage";
 
+import { AuthProvider } from "./features/auth/AuthProvider";
+
 function emptyCheckoutData(): CheckoutData {
   return { fullName: "", email: "", phone: "", address: "", city: "", department: "" };
 }
@@ -61,7 +63,12 @@ function App() {
       notifications: recordRegisteredNotification(previous.notifications, order.id, order.createdAt),
     }));
   }
+  function clearPrivateSession() {
+    setCheckoutDraft(emptyCheckoutData());
+    setOrderSession({ orders: [], notifications: [] });
+  }
   return (
+    <AuthProvider onIdentityChange={clearPrivateSession}>
     <BrowserRouter>
       <Routes>
         <Route path="/orders/:orderId" element={<OrderDetailPage orders={orders} cartCount={cartCount} />} />
@@ -80,6 +87,7 @@ function App() {
         <Route path="*" element={<Navigate to="/checkout" replace />} />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   );
 }
 

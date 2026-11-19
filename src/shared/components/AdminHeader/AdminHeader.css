@@ -6,3 +6,6 @@
 .admin-header a { color: #fff; padding-block: 0.25rem; }
 .admin-header a[aria-current="page"] { text-decoration-thickness: 3px; text-underline-offset: 6px; }
 .admin-header a:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+
+.admin-header__logout { border: 1px solid #fff; color: #fff; background: transparent; border-radius: var(--radius-control); padding: 0.5rem; cursor: pointer; }
+.admin-header__logout:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }

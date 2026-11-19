@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import "./CustomerHeader.css";
 
+import { useAuth } from "../../../features/auth/AuthContext";
+
 interface CustomerHeaderProps {
   cartItemCount: number;
   cartTo?: string;
@@ -11,6 +13,7 @@ interface CustomerHeaderProps {
 }
 
 export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", contentHeadingId = "checkout-heading", skipLabel = "Saltar al contenido del checkout", search }: CustomerHeaderProps) {
+  const { session, expired, logout } = useAuth();
   return (
     <header className="customer-header">
       <a className="customer-header__skip" href={`#${contentHeadingId}`}>{skipLabel}</a>
@@ -40,7 +43,7 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
           className="customer-header__actions"
           aria-label="Acciones del usuario"
         >
-          <Link to="/register" className="customer-header__action" aria-label="Registro de cliente (demostración)">
+          <Link to={session ? "/login" : "/register"} className="customer-header__action" aria-label={session ? "Cuenta de usuario" : "Registro de cliente"}>
             <span aria-hidden="true">♙</span>
           </Link>
 
@@ -58,7 +61,9 @@ export function CustomerHeader({ cartItemCount, cartTo, homeTo = "/checkout", co
           </button>}
         </nav>
         <div className="customer-header__secondary">
-          <p id="header-demo-note" className="customer-header__notice">Demo: registro sin creación de cuentas. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
+          <p id="header-demo-note" className="customer-header__notice">Catálogo, carrito y pedidos de demostración. {search ? "Búsqueda por nombre disponible." : "Busca desde el catálogo."} {cartTo ? "Carrito en memoria." : "Carrito de demostración sin conexión."}</p>
+          {session ? <><span className="customer-header__session">Sesión: {session.user.name}</span><button className="customer-header__admin" type="button" onClick={logout}>Cerrar sesión</button></> : <Link className="customer-header__admin" to="/login">Iniciar sesión</Link>}
+          {expired && <p className="customer-header__notice" role="alert">Tu sesión venció. Vuelve a iniciar sesión.</p>}
           <Link className="customer-header__admin" to="/admin/products" aria-label="Administración (demostración)">Administración (demo)</Link>
         </div>
       </div>

@@ -188,3 +188,6 @@
 .customer-header__admin:hover {
   background: var(--color-primary-soft);
 }
+
+.customer-header__admin { cursor: pointer; }
+.customer-header__session { font-size: 0.875rem; overflow-wrap: anywhere; }

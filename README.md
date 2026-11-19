@@ -95,7 +95,7 @@ entrega en una localidad ni formatos internacionales de teléfono.
 
 Hay labels, autocomplete, radios nativos, foco visible, salto al contenido y
 anuncios de creación. La fecha usa `time` y la zona `America/Bogota`. El encabezado
-enlaza al registro de cliente de demostración y al carrito en memoria. La búsqueda
+enlaza al registro de cliente con API y al carrito en memoria. La búsqueda
 está disponible en catálogo; en el modo aislado `?demo=1` de checkout el contador
 corresponde al carrito fijo y su acción permanece deshabilitada.
 
@@ -559,70 +559,35 @@ y rechazo del acceso directo o tras recargar sin un pedido creado.
 Las reglas de colaboración están en [AGENTS.md](AGENTS.md), incluida la instrucción
 de sugerir el commit al final de cada incremento sin ejecutar `git commit`.
 
-## F-07: formulario público de registro de cliente
+## F-07: registro e inicio de sesión con API
 
-La acción de usuario del encabezado abre `/register`. Este primer bloque de SWR-27
-incluye correo, contraseña y confirmación; no permite elegir un rol. El registro
-público se presenta como registro de cliente. Se reutilizan `CustomerHeader` y los
-valores visuales de `index.css`, con estilos propios en `features/auth` para evitar
-que el formulario de registro dependa del CSS de checkout.
+`/register` envía nombre, correo y contraseña a POST `/auth/register`; el servidor
+asigna el rol cliente. Nombre acepta 2–120 caracteres y contraseña 6–80 según el
+contrato; la confirmación solo se valida en frontend. No se transforma la contraseña.
+`/login` envía username/password como formulario OAuth2 a POST `/auth/login`.
+Ambos confirman la identidad mediante GET `/users/me` con Bearer antes de mostrar
+la sesión iniciada. Configurar `VITE_API_URL` y arrancar el backend para uso real.
 
-`registration.ts` contiene una validación pura: correo con formato básico tras
-recortar espacios externos, contraseña obligatoria y confirmación exacta. Las
-contraseñas no se recortan ni normalizan. No se ha inventado una longitud mínima ni
-una política de complejidad: deberá definirse y validarse también en el backend.
-El formulario usa `noValidate` para mostrar sus mensajes propios, con labels,
-autocomplete, `aria-invalid`, descripción de errores y foco en el primer campo
-inválido. Permite mostrar y ocultar ambas contraseñas.
+`authApi.ts` valida respuestas y errores; `AuthProvider` comparte el token/usuario
+en memoria entre rutas. La sesión termina al recargar, cerrar sesión o vencer exp.
+No se guardan credenciales en almacenamiento del navegador ni existe renovación
+silenciosa. Leer exp no verifica la firma: autorización corresponde al servidor.
+Al cambiar identidad o salir se limpian datos personales de checkout, pedidos y
+avisos locales; el carrito demo se conserva.
 
-«Validar registro (demostración)» solo comprueba esos campos; no envía solicitudes,
-no crea cuentas ni inicia sesión. Tras validar se limpian las contraseñas y se
-anuncia el resultado sin conservarlas en almacenamiento del navegador. Editar el
-formulario limpia el resultado anterior. Salir o recargar descarta el borrador.
-El carrito compartido se conserva al navegar por registro dentro de la SPA.
-No hay espera artificial ni dependencias nuevas.
+Los formularios bloquean envíos simultáneos, limpian contraseñas tras cada intento,
+permiten mostrarlas con teclado y enfocan campos o errores. Si un alta fue aceptada
+pero el perfil falló, se indica ir a login sin reenviar automáticamente el registro.
 
-SWR-27 sigue parcial: unicidad del correo, creación del usuario y asignación del rol
-por el servidor están pendientes. Hash bcrypt (SWR-28), autenticación y emisión de
-JWT (SWR-29), y autorización de operaciones protegidas (SWR-30) no están implementados.
-El formulario no cambia el acceso de las pantallas administrativas de demostración.
+Verificación: enviar formularios vacíos, corregir errores y registrar una cuenta de
+prueba autorizada. Confirmar sesión al navegar, cerrar sesión y recargar. Login con
+clave incorrecta debe mostrar error sin conservar la contraseña. Las pruebas
+Playwright interceptan API para comprobar además 401/422, vencimiento y accesibilidad
+en escritorio, tableta y móvil; no crean usuarios en el servidor.
 
-Prueba manual: desde catálogo abrir el icono de registro, enviar vacío y comprobar
-el foco y los errores. Completar el correo, escribir contraseñas diferentes y volver
-a validar. Corregirlas, probar «Mostrar contraseñas» y validar: aparece el aviso de
-que no se creó una cuenta y ambas contraseñas quedan vacías. Volver al catálogo conserva las unidades del carrito.
-
-## F-07: formulario de inicio de sesión
-
-`/login` presenta correo y contraseña; se puede acceder desde «Ir al inicio de
-sesión» en registro y volver mediante «Ir al registro». Comparte `AuthPage.css` con
-registro para mantener la misma distribución centrada, colores y controles en los
-tres tamaños. Este archivo sustituye a `RegistrationPage.css` porque ahora sirve
-a dos pantallas de la misma funcionalidad.
-
-`credentials.ts` contiene los tipos y la validación común de los campos. Registro
-la reutiliza y añade la confirmación de contraseña. Inicio de sesión usa
-`autocomplete="username"` para el correo y `current-password` para la contraseña;
-registro conserva `email` y `new-password`. No se transforma la contraseña ni se
-interpreta que un formato válido implique credenciales correctas.
-
-«Validar acceso (demostración)» comprueba correo y contraseña obligatorios, muestra
-errores asociados y enfoca el primer campo inválido. El control «Mostrar contraseña»
-funciona con teclado. Al validar se limpia la contraseña y se vuelve a ocultar;
-el aviso explica que no se verificaron credenciales ni se inició sesión. Editar
-campos limpia el aviso. No hay llamadas a una API, espera artificial, tokens,
-almacenamiento de credenciales ni acceso nuevo a operaciones administrativas.
-
-La interfaz de SWR-29 sigue parcial: autenticación, rechazo de credenciales
-incorrectas y JWT con vencimiento requieren integración con el backend. La
-validación local no sustituye la autorización de SWR-30. Los formularios mantienen
-sus borradores únicamente mientras están montados; navegar entre registro y acceso
-o recargar los descarta, conservando el carrito al navegar dentro de la SPA.
-
-Prueba manual: abrir `/register`, entrar en «Ir al inicio de sesión», validar vacío
-y comprobar foco y errores. Escribir un correo de formato válido y una contraseña,
-probar mostrarla y validar. Comprobar que el resultado no anuncia una sesión y que
-la contraseña queda vacía. Navegar entre ambos formularios y volver al catálogo.
+La navegación administrativa por rol sigue pendiente. Catálogo, carrito, pedidos,
+pagos, inventario y avisos continúan en demostración. Ver
+[contratos y discrepancias](docs/backend-integration.md) antes de conectar pedidos.
 
 ## F-08: bandeja de notificaciones de demostración
 
